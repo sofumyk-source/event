@@ -170,11 +170,11 @@
     "name": "ご来店・ご予約",
     "settings": [
       {
-        "type": "url",
+        "type": "text",
         "id": "reservation_url",
         "label": "予約ボタンのリンク先",
         "default": "https://lin.ee/SaICq3So",
-        "info": "LINE 公式アカウントや予約システムの URL"
+        "info": "LINE 公式アカウントや予約システムの URL https:// から始まる URL を入力してください"
       },
       {
         "type": "text",
@@ -268,28 +268,29 @@
     "name": "SNS",
     "settings": [
       {
-        "type": "url",
+        "type": "text",
         "id": "social_instagram",
         "label": "Instagram",
         "default": "https://www.instagram.com/rotailor77/"
       },
       {
-        "type": "url",
+        "type": "text",
         "id": "social_instagram2",
         "label": "Instagram（2つ目）",
         "default": "https://www.instagram.com/rotailor_laboratory_/"
       },
       {
-        "type": "url",
+        "type": "text",
         "id": "social_tiktok",
         "label": "TikTok",
         "default": "https://www.tiktok.com/@rotailor"
       },
       {
-        "type": "url",
+        "type": "text",
         "id": "social_line",
         "label": "LINE 公式アカウント",
-        "default": "https://lin.ee/SaICq3So"
+        "default": "https://lin.ee/SaICq3So",
+        "info": "https:// から始まる URL を入力してください"
       },
       {
         "type": "url",
