@@ -1,0 +1,254 @@
+/* RO Tailor — Suit Simulator */
+
+.simulator { padding-top: 48px; }
+.simulator__head { text-align: center; max-width: 720px; margin-inline: auto; }
+
+.simulator__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: 48px;
+  align-items: start;
+  margin-top: 40px;
+}
+
+.simulator__stage,
+.simulator__panel { min-width: 0; }
+
+.simulator__stage {
+  position: sticky;
+  top: 96px;
+  display: grid;
+  gap: 16px;
+}
+
+.sim-preview {
+  position: relative;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.9), transparent 70%),
+    var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 20px 20px 12px;
+}
+
+.sim-preview__toolbar { display: flex; gap: 6px; justify-content: flex-end; }
+
+.sim-preview__canvas {
+  aspect-ratio: 300 / 452;
+  max-height: max(300px, calc(100vh - 330px));
+  margin: 4px auto 0;
+  color: var(--color-muted);
+}
+.sim-preview__canvas .sim-svg { width: 100%; height: 100%; display: block; }
+
+.sim-preview__fabric {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  letter-spacing: 0.04em;
+  min-height: 1.4em;
+}
+
+.sim-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--color-primary);
+  color: #fff;
+  padding: 16px 20px;
+}
+.sim-total__label { margin: 0; font-size: 0.75rem; letter-spacing: 0.08em; opacity: 0.75; }
+.sim-total__price { margin: 2px 0 0; font-family: var(--font-display); font-size: 1.9rem; line-height: 1; letter-spacing: 0.02em; }
+.sim-total .button--primary { background: var(--color-accent); border-color: var(--color-accent); }
+
+/* steps */
+.sim-steps {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+  margin: 0 0 24px;
+  padding: 0;
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-margin-top: 96px;
+}
+.sim-steps::-webkit-scrollbar { display: none; }
+.sim-steps__btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.sim-steps__num {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+}
+.sim-steps__item.is-active .sim-steps__btn { color: var(--color-primary); border-bottom-color: var(--color-accent); font-weight: 700; }
+.sim-steps__item.is-active .sim-steps__num { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.sim-steps__item.is-done .sim-steps__num { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+
+.sim-step-body { display: grid; gap: 32px; min-height: 320px; }
+.sim-step-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--color-border); }
+.sim-step-nav .button[disabled] { visibility: hidden; }
+
+.sim-group { border: 0; padding: 0; margin: 0; min-width: 0; }
+.sim-group__title {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+  padding: 0;
+}
+
+.sim-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+
+.sim-chip {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  border-radius: 999px;
+}
+.sim-chip.is-active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+
+/* option cards */
+.sim-option {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.sim-option:hover { border-color: var(--color-muted); }
+.sim-option.is-selected { border-color: var(--color-primary); box-shadow: inset 0 0 0 1px var(--color-primary); }
+.sim-option.is-selected::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+.sim-option:focus-within { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+.sim-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.sim-options--list { grid-template-columns: 1fr; }
+
+.sim-option__icon { flex: 0 0 40px; width: 40px; height: 40px; color: var(--color-primary); }
+.sim-option__dot {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+.sim-option__dot svg { width: 100%; height: 100%; display: block; }
+.sim-option__dot--button {
+  background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.35), transparent 45%), var(--dot);
+  box-shadow: inset 0 0 0 5px rgba(0, 0, 0, 0.12);
+}
+.sim-option__body { display: grid; gap: 2px; min-width: 0; }
+.sim-option__name { font-size: 0.9rem; font-weight: 500; line-height: 1.4; }
+.sim-option__price { font-size: 0.78rem; color: var(--color-accent); letter-spacing: 0.03em; }
+.sim-option__desc { font-size: 0.75rem; color: var(--color-muted); line-height: 1.6; }
+
+.sim-option--check { align-items: flex-start; }
+.sim-check { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--color-primary); }
+.sim-extra { display: grid; gap: 6px; }
+.sim-text {
+  margin-left: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font: inherit;
+  max-width: 280px;
+}
+.sim-text:disabled { opacity: 0.5; }
+
+/* fabrics */
+.sim-fabrics { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+.sim-fabric { flex-direction: column; align-items: stretch; padding: 8px; gap: 10px; }
+.sim-fabric__swatch { display: block; aspect-ratio: 4 / 3; overflow: hidden; }
+.sim-fabric__swatch svg { width: 100%; height: 100%; display: block; }
+.sim-fabric__body { display: grid; gap: 2px; padding: 0 4px 4px; }
+.sim-fabric__name { font-size: 0.88rem; font-weight: 500; }
+.sim-fabric__meta { font-size: 0.7rem; color: var(--color-muted); }
+.sim-fabric__price { font-family: var(--font-display); font-size: 1.05rem; color: var(--color-primary); }
+
+/* summary */
+.sim-summary { margin-top: 80px; padding-top: 64px; border-top: 1px solid var(--color-border); outline: none; scroll-margin-top: 80px; }
+.sim-summary__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; }
+
+.sim-spec { margin: 24px 0; display: grid; }
+.sim-spec__row { display: grid; grid-template-columns: 9em 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px dotted var(--color-border); font-size: 0.9rem; }
+.sim-spec__row dt { color: var(--color-muted); }
+.sim-spec__row dd { margin: 0; }
+
+.sim-breakdown { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 8px; }
+.sim-breakdown th { text-align: left; font-weight: 400; color: var(--color-muted); padding: 6px 0; }
+.sim-breakdown td { text-align: right; padding: 6px 0; font-variant-numeric: tabular-nums; }
+.sim-breakdown tfoot th,
+.sim-breakdown tfoot td { border-top: 1px solid var(--color-text); padding-top: 12px; color: var(--color-text); font-weight: 700; }
+.sim-breakdown tfoot td { font-family: var(--font-display); font-size: 1.6rem; }
+
+.sim-note { font-size: 0.75rem; color: var(--color-muted); line-height: 1.7; }
+.sim-summary__tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+
+.sim-summary__actions { display: grid; gap: 16px; align-content: start; }
+.sim-card { background: var(--color-surface); border: 1px solid var(--color-border); padding: 28px; }
+.sim-card--alt { background: transparent; }
+.sim-card__title { font-family: var(--font-serif); font-size: 1.2rem; margin: 0 0 8px; }
+.sim-card__text { font-size: 0.85rem; color: var(--color-muted); line-height: 1.8; margin: 0 0 16px; }
+.sim-card__price { font-family: var(--font-display); font-size: 1.6rem; margin: 0 0 12px; }
+
+.sim-form { display: grid; gap: 14px; }
+
+.sim-pairing { margin-top: 80px; }
+.sim-pairing .section-head { text-align: center; }
+.product-grid--single { grid-template-columns: minmax(0, 280px); justify-content: center; margin-top: 24px; }
+
+@media (max-width: 989px) {
+  .simulator__layout { grid-template-columns: 1fr; gap: 24px; }
+  .simulator__stage { top: 56px; z-index: 5; gap: 0; margin-inline: -20px; }
+  .sim-preview { padding: 8px 12px 4px; border-inline: 0; display: grid; grid-template-columns: 1fr auto; align-items: center; }
+  .sim-preview__toolbar { grid-column: 2; grid-row: 1; flex-direction: column; }
+  .sim-preview__canvas { grid-column: 1; grid-row: 1; max-height: 28vh; height: 28vh; }
+  .sim-preview__fabric { grid-column: 1 / -1; font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sim-total { padding: 10px 20px; }
+  .sim-total__price { font-size: 1.5rem; }
+  .sim-summary__grid { grid-template-columns: 1fr; gap: 32px; }
+}
+
+@media (max-width: 599px) {
+  .sim-options { grid-template-columns: 1fr; }
+  .sim-fabrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sim-spec__row { grid-template-columns: 7em 1fr; }
+  .sim-total .button { padding-inline: 14px; font-size: 0.8rem; }
+}

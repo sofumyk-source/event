@@ -1,0 +1,61 @@
+<div class="container">
+  <header class="collection-hero">
+    <p class="eyebrow">COLLECTION</p>
+    <h1 class="section-title">{{ collection.title }}</h1>
+    {%- if collection.description != blank -%}
+      <div class="collection-hero__desc rte">{{ collection.description }}</div>
+    {%- endif -%}
+  </header>
+
+  {%- paginate collection.products by section.settings.per_page -%}
+    <div class="collection-toolbar">
+      <div class="filter-chips">
+        {%- if section.settings.show_tags and collection.all_tags.size > 0 -%}
+          <a href="{{ collection.url }}" class="{% if current_tags == blank %}is-active{% endif %}">すべて</a>
+          {%- for tag in collection.all_tags limit: 12 -%}
+            {%- if current_tags contains tag -%}
+              <a href="{{ collection.url }}" class="is-active">{{ tag }}</a>
+            {%- else -%}
+              <a href="{{ collection.url }}/{{ tag | handleize }}">{{ tag }}</a>
+            {%- endif -%}
+          {%- endfor -%}
+        {%- else -%}
+          <span>{{ 'collections.count' | t: count: collection.products_count }}</span>
+        {%- endif -%}
+      </div>
+      <label>
+        <span class="visually-hidden">{{ 'collections.sort_by' | t }}</span>
+        <select data-sort aria-label="{{ 'collections.sort_by' | t }}">
+          {%- assign sort_by = collection.sort_by | default: collection.default_sort_by -%}
+          {%- for option in collection.sort_options -%}
+            <option value="{{ option.value }}"{% if option.value == sort_by %} selected{% endif %}>{{ option.name }}</option>
+          {%- endfor -%}
+        </select>
+      </label>
+    </div>
+
+    {%- if collection.products.size > 0 -%}
+      <div class="product-grid">
+        {%- for product in collection.products -%}
+          {% render 'product-card', product: product %}
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <p style="text-align:center; padding: 64px 0;">{{ 'collections.empty' | t }}</p>
+    {%- endif -%}
+
+    {% render 'pagination', paginate: paginate %}
+  {%- endpaginate -%}
+</div>
+<div class="section"></div>
+
+{% schema %}
+{
+  "name": "コレクション",
+  "class": "section-main-collection",
+  "settings": [
+    { "type": "range", "id": "per_page", "label": "1ページの表示数", "min": 8, "max": 48, "step": 4, "default": 24 },
+    { "type": "checkbox", "id": "show_tags", "label": "タグで絞り込むボタンを表示", "default": true }
+  ]
+}
+{% endschema %}

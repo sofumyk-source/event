@@ -1,0 +1,97 @@
+<div class="container cart">
+  <header class="page-header" style="padding-top:0;">
+    <p class="eyebrow">YOUR BAG</p>
+    <h1 class="section-title">{{ 'cart.title' | t }}</h1>
+  </header>
+
+  {%- if cart.item_count > 0 -%}
+    <form action="{{ routes.cart_url }}" method="post" novalidate>
+      <table class="cart__items">
+        <thead>
+          <tr>
+            <th scope="col">商品</th>
+            <th scope="col">{{ 'products.quantity' | t }}</th>
+            <th scope="col" style="text-align:right;">金額</th>
+          </tr>
+        </thead>
+        <tbody>
+          {%- for item in cart.items -%}
+            <tr>
+              <td>
+                <div class="cart-item">
+                  <a href="{{ item.url }}">
+                    {%- if item.image -%}
+                      {{ item.image | image_url: width: 240 | image_tag: loading: 'lazy', alt: item.title | escape }}
+                    {%- endif -%}
+                  </a>
+                  <div>
+                    <a href="{{ item.url }}"><strong>{{ item.product.title }}</strong></a>
+                    {%- unless item.product.has_only_default_variant -%}
+                      <p class="cart-item__props" style="margin:0;">{{ item.variant.title }}</p>
+                    {%- endunless -%}
+                    {%- if item.properties.size > 0 -%}
+                      <dl class="cart-item__props">
+                        {%- for property in item.properties -%}
+                          {%- assign first_char = property.first | slice: 0 -%}
+                          {%- if property.last != blank and first_char != '_' -%}
+                            <div><dt>{{ property.first }}</dt><dd>{{ property.last }}</dd></div>
+                          {%- endif -%}
+                        {%- endfor -%}
+                      </dl>
+                    {%- endif -%}
+                    <p style="margin:6px 0 0;"><a href="{{ item.url_to_remove }}" class="cart-remove">{{ 'cart.remove' | t }}</a></p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <label class="visually-hidden" for="Qty-{{ forloop.index }}">{{ 'products.quantity' | t }}</label>
+                <div class="quantity">
+                  <input id="Qty-{{ forloop.index }}" type="number" name="updates[]" value="{{ item.quantity }}" min="0">
+                </div>
+              </td>
+              <td style="text-align:right;">{{ item.final_line_price | money }}</td>
+            </tr>
+          {%- endfor -%}
+        </tbody>
+      </table>
+
+      <div class="cart__footer">
+        <div class="cart__note">
+          {%- if section.settings.show_note -%}
+            <label class="field">
+              <span>{{ 'cart.note' | t }}</span>
+              <textarea name="note">{{ cart.note }}</textarea>
+            </label>
+          {%- endif -%}
+        </div>
+        <div class="cart__summary">
+          <div class="cart__subtotal">
+            <span>{{ 'cart.subtotal' | t }}</span>
+            <strong>{{ cart.total_price | money_with_currency }}</strong>
+          </div>
+          <p class="sim-note" style="margin:0;">{{ 'cart.taxes_note' | t }}</p>
+          <button type="submit" name="update" class="button button--ghost">{{ 'cart.update' | t }}</button>
+          <button type="submit" name="checkout" class="button button--primary button--block">{{ 'cart.checkout' | t }}</button>
+          {%- if additional_checkout_buttons -%}
+            <div>{{ content_for_additional_checkout_buttons }}</div>
+          {%- endif -%}
+        </div>
+      </div>
+    </form>
+  {%- else -%}
+    <div style="text-align:center;">
+      <p>{{ 'cart.empty' | t }}</p>
+      <a href="{{ routes.all_products_collection_url }}" class="button">{{ 'cart.continue_shopping' | t }}</a>
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "カート",
+  "class": "section-main-cart",
+  "settings": [
+    { "type": "checkbox", "id": "show_note", "label": "備考欄を表示", "default": true }
+  ]
+}
+{% endschema %}

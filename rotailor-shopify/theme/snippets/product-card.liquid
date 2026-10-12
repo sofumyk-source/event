@@ -1,0 +1,58 @@
+{%- comment -%}
+  Usage: {% render 'product-card', product: product %}
+  Optional: note (string) — a short tailor's caption shown under the title.
+{%- endcomment -%}
+{%- liquid
+  assign image = product.featured_media
+  assign second_image = product.media[1]
+  assign image_alt = image.alt | default: product.title | escape
+  assign on_sale = false
+  if product.compare_at_price > product.price
+    assign on_sale = true
+  endif
+-%}
+<article class="card">
+  <a href="{{ product.url }}" class="card__media{% if settings.card_show_secondary_image and second_image %} card__media--hover{% endif %}">
+    {%- if image -%}
+      {{
+        image
+        | image_url: width: 900
+        | image_tag:
+          loading: 'lazy',
+          widths: '300, 450, 600, 900',
+          sizes: '(min-width: 990px) 25vw, 50vw',
+          alt: image_alt,
+          class: 'card__img'
+      }}
+      {%- if settings.card_show_secondary_image and second_image -%}
+        {{
+          second_image
+          | image_url: width: 900
+          | image_tag:
+            loading: 'lazy',
+            widths: '300, 450, 600, 900',
+            sizes: '(min-width: 990px) 25vw, 50vw',
+            alt: '',
+            class: 'card__img card__img--secondary'
+        }}
+      {%- endif -%}
+    {%- else -%}
+      {{ 'product-apparel-1' | placeholder_svg_tag: 'card__img placeholder' }}
+    {%- endif -%}
+    {%- if product.available == false -%}
+      <span class="badge">{{ 'products.sold_out' | t }}</span>
+    {%- elsif on_sale -%}
+      <span class="badge badge--sale">{{ 'products.sale' | t }}</span>
+    {%- endif -%}
+  </a>
+  <div class="card__body">
+    {%- if settings.card_show_vendor and product.vendor != blank -%}
+      <p class="card__vendor">{{ product.vendor }}</p>
+    {%- endif -%}
+    <h3 class="card__title"><a href="{{ product.url }}">{{ product.title }}</a></h3>
+    {%- if note != blank -%}
+      <p class="card__note">{{ note }}</p>
+    {%- endif -%}
+    {% render 'price', product: product %}
+  </div>
+</article>

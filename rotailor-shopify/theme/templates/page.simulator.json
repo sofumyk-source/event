@@ -1,0 +1,583 @@
+{
+  "sections": {
+    "simulator": {
+      "type": "suit-simulator",
+      "settings": {
+        "three_piece_price": 22000
+      },
+      "blocks": {
+        "fab-navy": {
+          "type": "fabric",
+          "settings": {
+            "name": "ミッドナイトネイビー 無地",
+            "mill": "Vitale Barberis Canonico",
+            "origin": "イタリア",
+            "composition": "ウール 100%／250g",
+            "season": "all",
+            "color": "#1F2A44",
+            "pattern": "solid",
+            "price": 88000,
+            "is_default": true,
+            "comment": "初めての一着に。冠婚葬祭以外のほとんどの場面に馴染む、最も頼れる色です。ボルドーのネクタイと焦げ茶の靴が定番の組み合わせ。"
+          }
+        },
+        "fab-charcoal": {
+          "type": "fabric",
+          "settings": {
+            "name": "チャコールグレー 無地",
+            "mill": "Vitale Barberis Canonico",
+            "origin": "イタリア",
+            "composition": "ウール 100%／250g",
+            "season": "all",
+            "color": "#3A3C40",
+            "pattern": "solid",
+            "price": 88000,
+            "is_default": false,
+            "comment": "改まった席も任せられる落ち着き。黒の内羽根の靴で格を揃えると、ぐっと端正に。"
+          }
+        },
+        "fab-navy-pin": {
+          "type": "fabric",
+          "settings": {
+            "name": "ネイビー ピンストライプ",
+            "mill": "Ermenegildo Zegna",
+            "origin": "イタリア",
+            "composition": "ウール 100%／240g",
+            "season": "all",
+            "color": "#1C2540",
+            "pattern": "pinstripe",
+            "price": 132000,
+            "is_default": false,
+            "comment": "ビジネスの勝負服に。柄がある分、ネクタイは無地かごく細かな小紋で引き算を。"
+          }
+        },
+        "fab-navy-birdseye": {
+          "type": "fabric",
+          "settings": {
+            "name": "ネイビー バーズアイ",
+            "mill": "Loro Piana",
+            "origin": "イタリア",
+            "composition": "ウール 100%／240g",
+            "season": "all",
+            "color": "#22304D",
+            "pattern": "birdseye",
+            "price": 176000,
+            "is_default": false,
+            "comment": "遠目には無地、近づくと上品な織り柄。光沢のあるシルクタイがよく映えます。"
+          }
+        },
+        "fab-grey-glen": {
+          "type": "fabric",
+          "settings": {
+            "name": "グレー グレンチェック",
+            "mill": "Dormeuil",
+            "origin": "イギリス",
+            "composition": "ウール 100%／290g",
+            "season": "aw",
+            "color": "#7E8184",
+            "pattern": "glen",
+            "price": 154000,
+            "is_default": false,
+            "comment": "英国らしいクラシックな一着。ブラウンのスエード靴で、休日にも着こなせます。"
+          }
+        },
+        "fab-brown-hb": {
+          "type": "fabric",
+          "settings": {
+            "name": "ブラウン ヘリンボーン",
+            "mill": "Fox Brothers",
+            "origin": "イギリス",
+            "composition": "ウール フランネル／370g",
+            "season": "aw",
+            "color": "#5A4232",
+            "pattern": "herringbone",
+            "price": 143000,
+            "is_default": false,
+            "comment": "秋冬らしい温かみのある表情。オリーブやマスタードのニットタイと好相性です。"
+          }
+        },
+        "fab-navy-chalk": {
+          "type": "fabric",
+          "settings": {
+            "name": "ネイビー チョークストライプ",
+            "mill": "Fox Brothers",
+            "origin": "イギリス",
+            "composition": "ウール フランネル／340g",
+            "season": "aw",
+            "color": "#1E2639",
+            "pattern": "chalkstripe",
+            "price": 154000,
+            "is_default": false,
+            "comment": "ダブルブレストで仕立てると格別。ポケットチーフは白のリネンで潔く。"
+          }
+        },
+        "fab-sand": {
+          "type": "fabric",
+          "settings": {
+            "name": "サンドベージュ 無地",
+            "mill": "尾州産（国内）",
+            "origin": "日本",
+            "composition": "ウール 100%／220g（トロピカル）",
+            "season": "ss",
+            "color": "#B9A586",
+            "pattern": "solid",
+            "price": 99000,
+            "is_default": false,
+            "comment": "春夏の軽やかな一着に。ネイビーのニットタイとタンの靴で爽やかに。"
+          }
+        },
+        "fab-grey-pane": {
+          "type": "fabric",
+          "settings": {
+            "name": "ライトグレー ウィンドウペン",
+            "mill": "Holland & Sherry",
+            "origin": "イギリス",
+            "composition": "ウール・モヘア／250g",
+            "season": "ss",
+            "color": "#9A9C9E",
+            "pattern": "check",
+            "price": 121000,
+            "is_default": false,
+            "comment": "モヘア混のさらりとした風合い。サックスブルーのシャツで涼しげにまとめて。"
+          }
+        },
+        "sty-sb2": {
+          "type": "style",
+          "settings": {
+            "name": "シングル 2つボタン",
+            "key": "sb2",
+            "price": 0,
+            "description": "最もベーシックで、どんな場面にも。",
+            "is_default": true
+          }
+        },
+        "sty-sb1": {
+          "type": "style",
+          "settings": {
+            "name": "シングル 1つボタン",
+            "key": "sb1",
+            "price": 0,
+            "description": "Vゾーンが深く、すっきりとモダンな印象に。",
+            "is_default": false
+          }
+        },
+        "sty-sb3": {
+          "type": "style",
+          "settings": {
+            "name": "シングル 3つボタン段返り",
+            "key": "sb3",
+            "price": 0,
+            "description": "上のボタンを返して着る、イタリアの伝統的な型。",
+            "is_default": false
+          }
+        },
+        "sty-db6": {
+          "type": "style",
+          "settings": {
+            "name": "ダブル 6つボタン",
+            "key": "db6",
+            "price": 11000,
+            "description": "重厚でクラシック。胸板を厚く見せます。",
+            "is_default": false
+          }
+        },
+        "sty-db4": {
+          "type": "style",
+          "settings": {
+            "name": "ダブル 4つボタン",
+            "key": "db4",
+            "price": 11000,
+            "description": "ダブルの中でも軽快で現代的。",
+            "is_default": false
+          }
+        },
+        "lap-notch": {
+          "type": "lapel",
+          "settings": {
+            "name": "ノッチドラペル",
+            "key": "notch",
+            "width": 8.5,
+            "price": 0,
+            "description": "最も汎用性の高い襟。",
+            "is_default": true
+          }
+        },
+        "lap-notch-n": {
+          "type": "lapel",
+          "settings": {
+            "name": "ナローノッチ",
+            "key": "notch",
+            "width": 7,
+            "price": 0,
+            "description": "細身のネクタイと合わせて軽快に。",
+            "is_default": false
+          }
+        },
+        "lap-peak": {
+          "type": "lapel",
+          "settings": {
+            "name": "ピークドラペル",
+            "key": "peak",
+            "width": 9.5,
+            "price": 0,
+            "description": "剣先が上を向いた、華やかで力強い襟。",
+            "is_default": false
+          }
+        },
+        "lap-shawl": {
+          "type": "lapel",
+          "settings": {
+            "name": "ショールカラー",
+            "key": "shawl",
+            "width": 9,
+            "price": 5500,
+            "description": "丸みのある襟。ディナージャケットにも。",
+            "is_default": false
+          }
+        },
+        "pk-flap": {
+          "type": "pocket",
+          "settings": {
+            "name": "フラップポケット",
+            "key": "flap",
+            "price": 0,
+            "description": "",
+            "is_default": true
+          }
+        },
+        "pk-ticket": {
+          "type": "pocket",
+          "settings": {
+            "name": "フラップ＋チェンジポケット",
+            "key": "flap_ticket",
+            "price": 3300,
+            "description": "英国調の小さなポケットを右腰に。",
+            "is_default": false
+          }
+        },
+        "pk-slant": {
+          "type": "pocket",
+          "settings": {
+            "name": "スラントポケット",
+            "key": "slant",
+            "price": 3300,
+            "description": "斜めの角度で、ウエストをシャープに見せます。",
+            "is_default": false
+          }
+        },
+        "pk-jetted": {
+          "type": "pocket",
+          "settings": {
+            "name": "両玉縁ポケット",
+            "key": "jetted",
+            "price": 0,
+            "description": "フラップのない、最もドレッシーな仕様。",
+            "is_default": false
+          }
+        },
+        "pk-patch": {
+          "type": "pocket",
+          "settings": {
+            "name": "パッチポケット",
+            "key": "patch",
+            "price": 5500,
+            "description": "貼り付けポケットで、リラックスした雰囲気に。",
+            "is_default": false
+          }
+        },
+        "vt-side": {
+          "type": "vent",
+          "settings": {
+            "name": "サイドベンツ",
+            "key": "side",
+            "price": 0,
+            "description": "動きやすく、後ろ姿もすっきり。",
+            "is_default": true
+          }
+        },
+        "vt-center": {
+          "type": "vent",
+          "settings": {
+            "name": "センターベント",
+            "key": "center",
+            "price": 0,
+            "description": "軽快でアメリカントラッドな印象。",
+            "is_default": false
+          }
+        },
+        "vt-none": {
+          "type": "vent",
+          "settings": {
+            "name": "ノーベント",
+            "key": "none",
+            "price": 0,
+            "description": "最もフォーマルで、シルエットが美しく。",
+            "is_default": false
+          }
+        },
+        "btn-nut-navy": {
+          "type": "button",
+          "settings": {
+            "name": "ナットボタン（ネイビー）",
+            "color": "#26314A",
+            "price": 0,
+            "description": "",
+            "is_default": true
+          }
+        },
+        "btn-nut-brown": {
+          "type": "button",
+          "settings": {
+            "name": "ナットボタン（ブラウン）",
+            "color": "#5A3E2B",
+            "price": 0,
+            "description": "",
+            "is_default": false
+          }
+        },
+        "btn-horn": {
+          "type": "button",
+          "settings": {
+            "name": "本水牛ホーン（ダークブラウン）",
+            "color": "#3A2A20",
+            "price": 5500,
+            "description": "一つずつ異なる天然の縞模様。",
+            "is_default": false
+          }
+        },
+        "btn-metal": {
+          "type": "button",
+          "settings": {
+            "name": "メタルボタン（ゴールド）",
+            "color": "#B8963E",
+            "price": 8800,
+            "description": "ブレザー仕立てにおすすめ。",
+            "is_default": false
+          }
+        },
+        "lin-navy": {
+          "type": "lining",
+          "settings": {
+            "name": "キュプラ ネイビー",
+            "color": "#24304F",
+            "pattern": "solid",
+            "price": 0,
+            "description": "",
+            "is_default": true
+          }
+        },
+        "lin-bordeaux": {
+          "type": "lining",
+          "settings": {
+            "name": "キュプラ ボルドー",
+            "color": "#5C1E2A",
+            "pattern": "solid",
+            "price": 0,
+            "description": "",
+            "is_default": false
+          }
+        },
+        "lin-dot": {
+          "type": "lining",
+          "settings": {
+            "name": "ドット（ネイビー×ブルー）",
+            "color": "#1C2540",
+            "pattern": "birdseye",
+            "price": 5500,
+            "description": "脱いだときにだけ見える遊び心。",
+            "is_default": false,
+            "pattern_color": "#7E9AD0"
+          }
+        },
+        "lin-stripe": {
+          "type": "lining",
+          "settings": {
+            "name": "ストライプ（ボルドー×ゴールド）",
+            "color": "#5C1E2A",
+            "pattern": "pinstripe",
+            "price": 5500,
+            "description": "",
+            "is_default": false,
+            "pattern_color": "#C9A46A"
+          }
+        },
+        "pl-none": {
+          "type": "pleat",
+          "settings": {
+            "name": "ノータック",
+            "key": "none",
+            "price": 0,
+            "description": "",
+            "is_default": true
+          }
+        },
+        "pl-one": {
+          "type": "pleat",
+          "settings": {
+            "name": "1タック",
+            "key": "one",
+            "price": 0,
+            "description": "",
+            "is_default": false
+          }
+        },
+        "pl-two": {
+          "type": "pleat",
+          "settings": {
+            "name": "2タック",
+            "key": "two",
+            "price": 0,
+            "description": "",
+            "is_default": false
+          }
+        },
+        "hem-single": {
+          "type": "hem",
+          "settings": {
+            "name": "シングル",
+            "key": "single",
+            "price": 0,
+            "description": "",
+            "is_default": true
+          }
+        },
+        "hem-double": {
+          "type": "hem",
+          "settings": {
+            "name": "ダブル（4cm）",
+            "key": "double",
+            "price": 0,
+            "description": "",
+            "is_default": false
+          }
+        },
+        "ex-kirihba": {
+          "type": "extra",
+          "settings": {
+            "name": "本切羽（袖ボタンが開く仕様）",
+            "price": 5500,
+            "description": "オーダーならではの証。袖口のボタンが実際に開閉します。",
+            "needs_text": false,
+            "is_default": false
+          }
+        },
+        "ex-name": {
+          "type": "extra",
+          "settings": {
+            "name": "ネーム刺繍",
+            "price": 0,
+            "description": "内ポケットにお名前を刺繍します（英字 20 文字まで）。",
+            "needs_text": true,
+            "is_default": false
+          }
+        },
+        "ex-daiba": {
+          "type": "extra",
+          "settings": {
+            "name": "台場仕立て",
+            "price": 11000,
+            "description": "内ポケット周りを表地で仕立て、裏地の交換を容易にします。",
+            "needs_text": false,
+            "is_default": false
+          }
+        },
+        "ex-spare": {
+          "type": "extra",
+          "settings": {
+            "name": "スペアパンツ",
+            "price": 27500,
+            "description": "パンツの消耗を分散し、スーツを長持ちさせます。",
+            "needs_text": false,
+            "is_default": false
+          }
+        },
+        "tie-bordeaux": {
+          "type": "tie",
+          "settings": {
+            "name": "ボルドー 小紋",
+            "color": "#6B1F2A",
+            "pattern": "birdseye",
+            "shirt_color": "#FFFFFF",
+            "description": "ネイビー・グレーどちらにも合う万能色。",
+            "is_default": true,
+            "pattern_color": "#C9A46A"
+          }
+        },
+        "tie-navy": {
+          "type": "tie",
+          "settings": {
+            "name": "ネイビー ソリッド",
+            "color": "#1E2A4A",
+            "pattern": "solid",
+            "shirt_color": "#FFFFFF",
+            "description": "",
+            "is_default": false
+          }
+        },
+        "tie-green": {
+          "type": "tie",
+          "settings": {
+            "name": "グリーン レジメンタル",
+            "color": "#2F4A3A",
+            "pattern": "pinstripe",
+            "shirt_color": "#DCE6F2",
+            "description": "サックスブルーのシャツと。",
+            "is_default": false,
+            "pattern_color": "#C9B27A"
+          }
+        }
+      },
+      "block_order": [
+        "fab-navy",
+        "fab-charcoal",
+        "fab-navy-pin",
+        "fab-navy-birdseye",
+        "fab-grey-glen",
+        "fab-brown-hb",
+        "fab-navy-chalk",
+        "fab-sand",
+        "fab-grey-pane",
+        "sty-sb2",
+        "sty-sb1",
+        "sty-sb3",
+        "sty-db6",
+        "sty-db4",
+        "lap-notch",
+        "lap-notch-n",
+        "lap-peak",
+        "lap-shawl",
+        "pk-flap",
+        "pk-ticket",
+        "pk-slant",
+        "pk-jetted",
+        "pk-patch",
+        "vt-side",
+        "vt-center",
+        "vt-none",
+        "btn-nut-navy",
+        "btn-nut-brown",
+        "btn-horn",
+        "btn-metal",
+        "lin-navy",
+        "lin-bordeaux",
+        "lin-dot",
+        "lin-stripe",
+        "pl-none",
+        "pl-one",
+        "pl-two",
+        "hem-single",
+        "hem-double",
+        "ex-kirihba",
+        "ex-name",
+        "ex-daiba",
+        "ex-spare",
+        "tie-bordeaux",
+        "tie-navy",
+        "tie-green"
+      ]
+    }
+  },
+  "order": [
+    "simulator"
+  ]
+}

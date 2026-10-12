@@ -1,0 +1,18 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-article",
+      "settings": {
+        "show_author": true
+      }
+    },
+    "shop": {
+      "type": "simulator-promo",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main",
+    "shop"
+  ]
+}

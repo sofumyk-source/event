@@ -1,0 +1,96 @@
+<header class="site-header{% if section.settings.sticky %} site-header--sticky{% endif %}" data-header>
+  <div class="site-header__inner container">
+    <details class="drawer" data-drawer>
+      <summary class="icon-button drawer__toggle" aria-label="{{ 'general.menu' | t }}">
+        <span class="drawer__open">{% render 'icon', name: 'menu' %}</span>
+        <span class="drawer__close">{% render 'icon', name: 'close' %}</span>
+      </summary>
+      <div class="drawer__panel">
+        <nav aria-label="{{ 'general.menu' | t }}">
+          <ul class="drawer__menu">
+            {%- for link in section.settings.menu.links -%}
+              <li>
+                <a href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title }}</a>
+                {%- if link.links.size > 0 -%}
+                  <ul class="drawer__submenu">
+                    {%- for child in link.links -%}
+                      <li><a href="{{ child.url }}">{{ child.title }}</a></li>
+                    {%- endfor -%}
+                  </ul>
+                {%- endif -%}
+              </li>
+            {%- endfor -%}
+          </ul>
+        </nav>
+        {%- if settings.reservation_url != blank -%}
+          <a href="{{ settings.reservation_url }}" class="button button--primary drawer__cta">{{ settings.reservation_label }}</a>
+        {%- endif -%}
+        {% render 'social-links' %}
+      </div>
+    </details>
+
+    <a href="{{ routes.root_url }}" class="site-logo">
+      {%- if settings.logo -%}
+        {{
+          settings.logo
+          | image_url: width: 520
+          | image_tag: alt: shop.name, class: 'site-logo__img', loading: 'eager', widths: '260, 520'
+        }}
+      {%- else -%}
+        <span class="site-logo__name">{{ settings.brand_name | default: shop.name }}</span>
+        {%- if settings.brand_tagline != blank -%}
+          <span class="site-logo__tagline">{{ settings.brand_tagline }}</span>
+        {%- endif -%}
+      {%- endif -%}
+    </a>
+
+    <nav class="site-nav" aria-label="{{ 'general.menu' | t }}">
+      <ul class="site-nav__list">
+        {%- for link in section.settings.menu.links -%}
+          <li class="site-nav__item{% if link.links.size > 0 %} has-children{% endif %}">
+            <a href="{{ link.url }}" class="site-nav__link"{% if link.current %} aria-current="page"{% endif %}>{{ link.title }}</a>
+            {%- if link.links.size > 0 -%}
+              <ul class="site-nav__dropdown">
+                {%- for child in link.links -%}
+                  <li><a href="{{ child.url }}">{{ child.title }}</a></li>
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+    </nav>
+
+    <div class="site-header__actions">
+      {%- if section.settings.show_simulator_link and section.settings.simulator_page != blank -%}
+        <a href="{{ section.settings.simulator_page.url }}" class="header-pill">
+          {% render 'icon', name: 'needle' %}
+          <span>{{ section.settings.simulator_label }}</span>
+        </a>
+      {%- endif -%}
+      <a href="{{ routes.search_url }}" class="icon-button" aria-label="{{ 'general.search' | t }}">{% render 'icon', name: 'search' %}</a>
+      {%- if shop.customer_accounts_enabled -%}
+        <a href="{{ routes.account_url }}" class="icon-button icon-button--desktop" aria-label="{{ 'general.account' | t }}">{% render 'icon', name: 'account' %}</a>
+      {%- endif -%}
+      <a href="{{ routes.cart_url }}" class="icon-button cart-link" aria-label="{{ 'general.cart' | t }}">
+        {% render 'icon', name: 'cart' %}
+        <span class="cart-count" data-cart-count{% if cart.item_count == 0 %} hidden{% endif %} aria-label="{{ 'accessibility.cart_count' | t }}">{{ cart.item_count }}</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+{% schema %}
+{
+  "name": "ヘッダー",
+  "class": "section-header",
+  "settings": [
+    { "type": "link_list", "id": "menu", "label": "メニュー", "default": "main-menu" },
+    { "type": "checkbox", "id": "sticky", "label": "スクロール時に固定", "default": true },
+    { "type": "header", "content": "スーツシミュレーションへのリンク" },
+    { "type": "checkbox", "id": "show_simulator_link", "label": "ヘッダーに表示", "default": true },
+    { "type": "page", "id": "simulator_page", "label": "シミュレーションのページ", "info": "テンプレート「page.simulator」を割り当てたページを選択" },
+    { "type": "text", "id": "simulator_label", "label": "表示名", "default": "スーツを仕立てる" }
+  ]
+}
+{% endschema %}

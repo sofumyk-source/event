@@ -1,0 +1,43 @@
+<section class="section simulator-promo">
+  <div class="container simulator-promo__grid">
+    <div class="simulator-promo__body">
+      {%- if section.settings.eyebrow != blank -%}<p class="eyebrow eyebrow--light">{{ section.settings.eyebrow }}</p>{%- endif -%}
+      <h2 class="section-title section-title--light">{{ section.settings.heading | newline_to_br }}</h2>
+      <div class="rte">{{ section.settings.text }}</div>
+      <ul class="simulator-promo__steps">
+        <li><span>01</span>生地を選ぶ</li>
+        <li><span>02</span>ディテールを選ぶ</li>
+        <li><span>03</span>見積もりを確認して来店予約</li>
+      </ul>
+      <a href="{{ section.settings.page.url | default: '#' }}" class="button button--light">{{ section.settings.button_label }}</a>
+    </div>
+    <div class="simulator-promo__visual" aria-hidden="true">
+      {%- if section.settings.image -%}
+        {{ section.settings.image | image_url: width: 1000 | image_tag: loading: 'lazy', widths: '500, 800, 1000', sizes: '(min-width: 990px) 40vw, 100vw' }}
+      {%- else -%}
+        {% render 'suit-illustration' %}
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "シミュレーション案内",
+  "class": "section-simulator-promo",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "MADE TO MEASURE" },
+    { "type": "textarea", "id": "heading", "label": "見出し", "default": "あなたの一着を、\nまずは画面の上で。" },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "本文",
+      "default": "<p>生地、ラペル、ボタン、裏地まで。ROテイラーのオーダースーツを、その場で組み立てて概算価格を確認できます。仕上がったイメージはそのままご来店予約に。</p>"
+    },
+    { "type": "page", "id": "page", "label": "シミュレーションのページ" },
+    { "type": "text", "id": "button_label", "label": "ボタンの文言", "default": "シミュレーションを始める" },
+    { "type": "image_picker", "id": "image", "label": "画像（未設定ならイラスト）" }
+  ],
+  "presets": [{ "name": "シミュレーション案内" }]
+}
+{% endschema %}

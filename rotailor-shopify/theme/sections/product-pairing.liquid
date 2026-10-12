@@ -1,0 +1,60 @@
+{%- comment -%}
+  テイラーが選ぶ合わせ小物。
+  1) メタフィールド custom.pairing_products があればそれを表示
+  2) なければ Shopify の商品レコメンド（関連商品）を非同期で読み込み
+{%- endcomment -%}
+{%- assign pairing = product.metafields.custom.pairing_products.value -%}
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+      <h2 class="section-title">
+        {%- if pairing.count > 0 -%}{{ 'products.pairing_heading' | t }}{%- else -%}{{ 'products.recommendations_heading' | t }}{%- endif -%}
+      </h2>
+    </div>
+    {%- if pairing.count > 0 -%}
+      <div class="product-grid">
+        {%- for item in pairing limit: 8 -%}
+          {% render 'product-card', product: item %}
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <div
+        class="product-grid"
+        data-recommendations
+        data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit=4"
+      >
+        {%- if recommendations.performed -%}
+          {%- for item in recommendations.products -%}
+            {% render 'product-card', product: item %}
+          {%- endfor -%}
+        {%- endif -%}
+      </div>
+      <script>
+        (function () {
+          var grid = document.currentScript.previousElementSibling;
+          if (!grid || grid.children.length) return;
+          fetch(grid.getAttribute('data-url'))
+            .then(function (r) { return r.text(); })
+            .then(function (html) {
+              var doc = new DOMParser().parseFromString(html, 'text/html');
+              var fresh = doc.querySelector('[data-recommendations]');
+              if (fresh && fresh.children.length) grid.innerHTML = fresh.innerHTML;
+              else grid.closest('section').hidden = true;
+            });
+        })();
+      </script>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "合わせたい小物",
+  "class": "section-product-pairing",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "TAILOR'S PAIRING" },
+    { "type": "paragraph", "content": "商品メタフィールド custom.pairing_products（商品リスト）に登録した商品を表示します。未登録の場合は自動の関連商品を表示します。" }
+  ]
+}
+{% endschema %}

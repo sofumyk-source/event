@@ -1,0 +1,84 @@
+<footer class="site-footer">
+  <div class="container site-footer__grid">
+    <div class="site-footer__brand">
+      <p class="site-footer__logo">{{ settings.brand_name | default: shop.name }}</p>
+      {%- if section.settings.about != blank -%}
+        <div class="site-footer__about rte">{{ section.settings.about }}</div>
+      {%- endif -%}
+      {% render 'social-links' %}
+    </div>
+
+    <div class="site-footer__store">
+      <h2 class="site-footer__heading">{{ section.settings.store_heading }}</h2>
+      <address>
+        {{ settings.store_address | newline_to_br }}
+      </address>
+      {%- if settings.store_hours != blank -%}<p>{{ settings.store_hours }}</p>{%- endif -%}
+      {%- if settings.store_phone != blank -%}
+        <p><a href="tel:{{ settings.store_phone | remove: '-' }}">TEL {{ settings.store_phone }}</a></p>
+      {%- endif -%}
+      {%- if settings.reservation_url != blank -%}
+        <a href="{{ settings.reservation_url }}" class="button button--outline-light">{{ settings.reservation_label }}</a>
+      {%- endif -%}
+    </div>
+
+    {%- for i in (1..2) -%}
+      {%- liquid
+        assign menu_key = 'menu_' | append: i
+        assign menu = section.settings[menu_key]
+      -%}
+      {%- if menu != blank -%}
+        <nav class="site-footer__menu" aria-label="{{ menu.title }}">
+          <h2 class="site-footer__heading">{{ menu.title }}</h2>
+          <ul>
+            {%- for link in menu.links -%}
+              <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+            {%- endfor -%}
+          </ul>
+        </nav>
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- if section.settings.show_newsletter -%}
+      <div class="site-footer__newsletter">
+        <h2 class="site-footer__heading">{{ section.settings.newsletter_heading }}</h2>
+        <p>{{ section.settings.newsletter_text }}</p>
+        {%- form 'customer', id: 'FooterNewsletter', class: 'newsletter' -%}
+          <input type="hidden" name="contact[tags]" value="newsletter">
+          <label for="FooterNewsletterEmail" class="visually-hidden">{{ 'contact.email' | t }}</label>
+          <input id="FooterNewsletterEmail" type="email" name="contact[email]" required autocomplete="email" placeholder="{{ 'contact.email' | t }}">
+          <button type="submit" class="button button--accent">登録</button>
+          {%- if form.posted_successfully? -%}
+            <p class="form-message" role="status">ご登録ありがとうございます。</p>
+          {%- endif -%}
+        {%- endform -%}
+      </div>
+    {%- endif -%}
+  </div>
+  <div class="container site-footer__bottom">
+    <small>&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}</small>
+    {{ powered_by_link }}
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "フッター",
+  "class": "section-footer",
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "about",
+      "label": "ブランド紹介文",
+      "default": "<p>スーツを仕立てるテイラーが、スーツに合わせるための小物だけを選びました。</p>"
+    },
+    { "type": "text", "id": "store_heading", "label": "店舗情報の見出し", "default": "サロン" },
+    { "type": "link_list", "id": "menu_1", "label": "メニュー 1", "default": "footer" },
+    { "type": "link_list", "id": "menu_2", "label": "メニュー 2" },
+    { "type": "header", "content": "メールマガジン" },
+    { "type": "checkbox", "id": "show_newsletter", "label": "登録フォームを表示", "default": true },
+    { "type": "text", "id": "newsletter_heading", "label": "見出し", "default": "Letter from the Tailor" },
+    { "type": "text", "id": "newsletter_text", "label": "説明文", "default": "新入荷やブログの更新、受注会のご案内をお届けします。" }
+  ]
+}
+{% endschema %}

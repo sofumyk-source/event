@@ -1,0 +1,195 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "RO Tailor Haberdashery",
+    "theme_version": "1.0.0",
+    "theme_author": "RO Tailor",
+    "theme_documentation_url": "https://shopify.dev/docs/storefronts/themes",
+    "theme_support_url": "https://help.shopify.com"
+  },
+  {
+    "name": "ブランド",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "ロゴ画像"
+      },
+      {
+        "type": "range",
+        "id": "logo_width",
+        "label": "ロゴの幅",
+        "min": 60,
+        "max": 260,
+        "step": 10,
+        "unit": "px",
+        "default": 140
+      },
+      {
+        "type": "text",
+        "id": "brand_name",
+        "label": "ブランド名（ロゴ画像がない場合に表示）",
+        "default": "RO TAILOR"
+      },
+      {
+        "type": "text",
+        "id": "brand_tagline",
+        "label": "ブランドの添え書き",
+        "default": "Haberdashery & Bespoke"
+      },
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "ファビコン",
+        "info": "32 × 32px 以上の正方形の画像"
+      },
+      {
+        "type": "image_picker",
+        "id": "share_image",
+        "label": "SNS 共有用の画像",
+        "info": "ページに画像がないときに使われます（1200 × 628px 推奨）"
+      }
+    ]
+  },
+  {
+    "name": "配色",
+    "settings": [
+      {
+        "type": "color",
+        "id": "color_primary",
+        "label": "メインカラー（ミッドナイトネイビー）",
+        "default": "#1C2333"
+      },
+      {
+        "type": "color",
+        "id": "color_accent",
+        "label": "アクセントカラー（真鍮）",
+        "default": "#A8874F"
+      },
+      {
+        "type": "color",
+        "id": "color_background",
+        "label": "背景色",
+        "default": "#F7F4EE"
+      },
+      {
+        "type": "color",
+        "id": "color_surface",
+        "label": "カード・パネルの背景色",
+        "default": "#FFFFFF"
+      },
+      {
+        "type": "color",
+        "id": "color_text",
+        "label": "文字色",
+        "default": "#1E1E1E"
+      },
+      {
+        "type": "color",
+        "id": "color_muted",
+        "label": "補足テキストの色",
+        "default": "#6B6559"
+      },
+      {
+        "type": "color",
+        "id": "color_border",
+        "label": "罫線の色",
+        "default": "#DDD6C8"
+      },
+      {
+        "type": "color",
+        "id": "color_sale",
+        "label": "セール価格の色",
+        "default": "#8C2F2F"
+      }
+    ]
+  },
+  {
+    "name": "商品カード",
+    "settings": [
+      {
+        "type": "select",
+        "id": "card_image_ratio",
+        "label": "画像の比率",
+        "options": [
+          { "value": "portrait", "label": "縦長（4:5）" },
+          { "value": "square", "label": "正方形" },
+          { "value": "natural", "label": "画像のまま" }
+        ],
+        "default": "portrait"
+      },
+      {
+        "type": "checkbox",
+        "id": "card_show_secondary_image",
+        "label": "ホバー時に2枚目の画像を表示",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "card_show_vendor",
+        "label": "ブランド（ベンダー）名を表示",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "ご来店・ご予約",
+    "settings": [
+      {
+        "type": "url",
+        "id": "reservation_url",
+        "label": "来店予約ページの URL",
+        "info": "外部の予約システム（STORES 予約、RESERVA など）や問い合わせページを指定します"
+      },
+      {
+        "type": "text",
+        "id": "reservation_label",
+        "label": "予約ボタンの文言",
+        "default": "ご来店予約"
+      },
+      {
+        "type": "textarea",
+        "id": "store_address",
+        "label": "店舗住所",
+        "default": "〒000-0000\n住所をここに入力してください"
+      },
+      {
+        "type": "text",
+        "id": "store_hours",
+        "label": "営業時間",
+        "default": "11:00 – 19:00（火曜定休）"
+      },
+      {
+        "type": "text",
+        "id": "store_phone",
+        "label": "電話番号",
+        "default": "000-000-0000"
+      }
+    ]
+  },
+  {
+    "name": "SNS",
+    "settings": [
+      {
+        "type": "url",
+        "id": "social_instagram",
+        "label": "Instagram"
+      },
+      {
+        "type": "url",
+        "id": "social_line",
+        "label": "LINE 公式アカウント"
+      },
+      {
+        "type": "url",
+        "id": "social_facebook",
+        "label": "Facebook"
+      },
+      {
+        "type": "url",
+        "id": "social_x",
+        "label": "X"
+      }
+    ]
+  }
+]

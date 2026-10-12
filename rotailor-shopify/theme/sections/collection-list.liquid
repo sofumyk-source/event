@@ -1,0 +1,71 @@
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      {%- if section.settings.eyebrow != blank -%}<p class="eyebrow">{{ section.settings.eyebrow }}</p>{%- endif -%}
+      <h2 class="section-title">{{ section.settings.heading }}</h2>
+    </div>
+    <div class="category-grid category-grid--{{ section.blocks.size | at_most: 4 }}">
+      {%- for block in section.blocks -%}
+        {%- assign collection = block.settings.collection -%}
+        <a href="{{ collection.url | default: '#' }}" class="category-tile" {{ block.shopify_attributes }}>
+          <div class="category-tile__media">
+            {%- assign tile_image = block.settings.image | default: collection.featured_image -%}
+            {%- if tile_image -%}
+              {{
+                tile_image
+                | image_url: width: 900
+                | image_tag:
+                  loading: 'lazy',
+                  widths: '400, 600, 900',
+                  sizes: '(min-width: 990px) 25vw, 50vw',
+                  alt: collection.title
+                  | escape
+              }}
+            {%- else -%}
+              {{ 'collection-' | append: forloop.index | placeholder_svg_tag: 'placeholder' }}
+            {%- endif -%}
+          </div>
+          <div class="category-tile__label">
+            <span class="category-tile__en">{{ block.settings.label_en }}</span>
+            <span class="category-tile__ja">{{ block.settings.title | default: collection.title }}</span>
+          </div>
+        </a>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "カテゴリ一覧",
+  "class": "section-collection-list",
+  "max_blocks": 8,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "CATEGORIES" },
+    { "type": "text", "id": "heading", "label": "見出し", "default": "カテゴリから探す" }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "カテゴリ",
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "コレクション" },
+        { "type": "image_picker", "id": "image", "label": "画像（未設定ならコレクション画像）" },
+        { "type": "text", "id": "title", "label": "表示名（未設定ならコレクション名）" },
+        { "type": "text", "id": "label_en", "label": "英字ラベル", "default": "Shoes" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "カテゴリ一覧",
+      "blocks": [
+        { "type": "collection", "settings": { "title": "シューズ", "label_en": "Shoes" } },
+        { "type": "collection", "settings": { "title": "バッグ", "label_en": "Bags" } },
+        { "type": "collection", "settings": { "title": "ネクタイ", "label_en": "Neckwear" } },
+        { "type": "collection", "settings": { "title": "ベルト・小物", "label_en": "Accessories" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

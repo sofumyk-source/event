@@ -1,0 +1,236 @@
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign mf = product.metafields.custom
+-%}
+<section class="container">
+  <div class="product">
+    <div class="product__gallery">
+      {%- for media in product.media -%}
+        <div class="product__media">
+          {%- liquid
+            assign loading = 'lazy'
+            if forloop.first
+              assign loading = 'eager'
+            endif
+          -%}
+          {%- case media.media_type -%}
+            {%- when 'image' -%}
+              {{
+                media
+                | image_url: width: 1600
+                | image_tag:
+                  loading: loading,
+                  widths: '600, 900, 1200, 1600',
+                  sizes: '(min-width: 990px) 58vw, 100vw',
+                  alt: media.alt
+                  | escape
+              }}
+            {%- when 'video' -%}
+              {{ media | video_tag: controls: true, muted: true, playsinline: true }}
+            {%- when 'external_video' -%}
+              {{ media | external_video_tag }}
+            {%- else -%}
+              {{ media | media_tag }}
+          {%- endcase -%}
+        </div>
+      {%- else -%}
+        <div class="product__media">{{ 'product-apparel-1' | placeholder_svg_tag: 'placeholder' }}</div>
+      {%- endfor -%}
+    </div>
+
+    <div class="product__info">
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {%- when 'vendor' -%}
+            <p class="product__vendor" {{ block.shopify_attributes }}>{{ product.vendor }}</p>
+
+          {%- when 'title' -%}
+            <h1 class="product__title" {{ block.shopify_attributes }}>{{ product.title }}</h1>
+
+          {%- when 'price' -%}
+            <div data-price-for="{{ section.id }}" {{ block.shopify_attributes }}>
+              {% render 'price', product: product, variant: current_variant %}
+            </div>
+
+          {%- when 'suit_hint' -%}
+            {%- if mf.suit_pairing_hint != blank -%}
+              <p class="card__note" {{ block.shopify_attributes }}>{{ block.settings.prefix }}{{ mf.suit_pairing_hint.value }}</p>
+            {%- endif -%}
+
+          {%- when 'buy_buttons' -%}
+            {%- form 'product', product, class: 'product-form', data-product-form: '', data-section: section.id -%}
+              <input type="hidden" name="id" value="{{ current_variant.id }}">
+              {%- unless product.has_only_default_variant -%}
+                {%- for option in product.options_with_values -%}
+                  <fieldset class="product-form__option" data-option-index="{{ forloop.index0 }}">
+                    <legend>{{ option.name }}</legend>
+                    <div class="product-form__values">
+                      {%- for value in option.values -%}
+                        {%- assign input_id = section.id | append: '-' | append: forloop.parentloop.index0 | append: '-' | append: forloop.index0 -%}
+                        <input
+                          type="radio"
+                          id="{{ input_id }}"
+                          name="options[{{ option.name | escape }}]"
+                          value="{{ value | escape }}"
+                          {% if option.selected_value == value %}checked{% endif %}
+                          {% unless value.available %}class="is-unavailable"{% endunless %}
+                        >
+                        <label for="{{ input_id }}">{{ value }}</label>
+                      {%- endfor -%}
+                    </div>
+                  </fieldset>
+                {%- endfor -%}
+              {%- endunless -%}
+
+              {%- if block.settings.show_quantity -%}
+                <div>
+                  <p class="visually-hidden">{{ 'products.quantity' | t }}</p>
+                  <div class="quantity">
+                    <button type="button" data-qty-step="-1" aria-label="-">−</button>
+                    <input type="number" name="quantity" value="1" min="1" data-qty aria-label="{{ 'products.quantity' | t }}">
+                    <button type="button" data-qty-step="1" aria-label="+">+</button>
+                  </div>
+                </div>
+              {%- endif -%}
+
+              <button
+                type="submit"
+                class="button button--primary button--block"
+                data-add="{{ 'products.add_to_cart' | t }}"
+                data-sold-out="{{ 'products.sold_out' | t }}"
+                data-unavailable="{{ 'products.unavailable' | t }}"
+                {% unless current_variant.available %}disabled{% endunless %}
+              >
+                {%- if current_variant.available -%}{{ 'products.add_to_cart' | t }}{%- else -%}{{ 'products.sold_out' | t }}{%- endif -%}
+              </button>
+              {{ form | payment_button }}
+
+              <script type="application/json" data-product-json>
+                [
+                  {%- for variant in product.variants -%}
+                    {%- capture price_html -%}{% render 'price', product: product, variant: variant %}{%- endcapture -%}
+                    {
+                      "id": {{ variant.id }},
+                      "available": {{ variant.available | json }},
+                      "options": {{ variant.options | json }},
+                      "price_html": {{ price_html | strip_newlines | json }}
+                    }{% unless forloop.last %},{% endunless %}
+                  {%- endfor -%}
+                ]
+              </script>
+            {%- endform -%}
+
+          {%- when 'tailor_note' -%}
+            {%- assign note = mf.tailor_comment.value | default: block.settings.fallback -%}
+            {%- if note != blank -%}
+              <aside class="tailor-note" {{ block.shopify_attributes }}>
+                <p class="tailor-note__label">{% render 'icon', name: 'needle' %}{{ 'products.tailor_note_heading' | t }}</p>
+                <p class="tailor-note__text">{{ note | newline_to_br }}</p>
+              </aside>
+            {%- endif -%}
+
+          {%- when 'description' -%}
+            {%- if product.description != blank -%}
+              <div class="product__description rte" {{ block.shopify_attributes }}>{{ product.description }}</div>
+            {%- endif -%}
+
+          {%- when 'specs' -%}
+            <div class="product__specs" {{ block.shopify_attributes }}>
+              {%- if mf.material != blank or mf.origin != blank -%}
+                <details open>
+                  <summary>{{ 'products.details' | t }}</summary>
+                  <div class="rte">
+                    {%- if mf.material != blank -%}<p>{{ 'products.material' | t }}：{{ mf.material.value }}</p>{%- endif -%}
+                    {%- if mf.origin != blank -%}<p>{{ 'products.origin' | t }}：{{ mf.origin.value }}</p>{%- endif -%}
+                  </div>
+                </details>
+              {%- endif -%}
+              {%- if mf.care != blank -%}
+                <details>
+                  <summary>{{ 'products.care' | t }}</summary>
+                  <div class="rte"><p>{{ mf.care.value | newline_to_br }}</p></div>
+                </details>
+              {%- endif -%}
+              {%- if block.settings.shipping_page != blank -%}
+                <details>
+                  <summary>{{ block.settings.shipping_page.title }}</summary>
+                  <div class="rte">{{ block.settings.shipping_page.content }}</div>
+                </details>
+              {%- endif -%}
+            </div>
+
+          {%- when 'store_cta' -%}
+            {%- if settings.reservation_url != blank -%}
+              <p class="store-cta" {{ block.shopify_attributes }}>
+                <span>{{ block.settings.text }}</span>
+                <a href="{{ settings.reservation_url }}">{{ settings.reservation_label }}</a>
+              </p>
+            {%- endif -%}
+
+          {%- when '@app' -%}
+            {% render block %}
+        {%- endcase -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+<script type="application/ld+json">
+  {{ product | structured_data }}
+</script>
+
+{% schema %}
+{
+  "name": "商品情報",
+  "class": "section-main-product",
+  "blocks": [
+    { "type": "@app" },
+    { "type": "vendor", "name": "ブランド名", "limit": 1 },
+    { "type": "title", "name": "商品名", "limit": 1 },
+    { "type": "price", "name": "価格", "limit": 1 },
+    {
+      "type": "suit_hint",
+      "name": "合うスーツのヒント",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "メタフィールド custom.suit_pairing_hint（例：ネイビー・グレーのスーツに）を表示します" },
+        { "type": "text", "id": "prefix", "label": "前置き", "default": "おすすめ：" }
+      ]
+    },
+    {
+      "type": "buy_buttons",
+      "name": "購入ボタン",
+      "limit": 1,
+      "settings": [
+        { "type": "checkbox", "id": "show_quantity", "label": "数量を表示", "default": true }
+      ]
+    },
+    {
+      "type": "tailor_note",
+      "name": "テイラーのひとこと",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "メタフィールド custom.tailor_comment を表示します" },
+        { "type": "textarea", "id": "fallback", "label": "メタフィールドが空のときの文言" }
+      ]
+    },
+    { "type": "description", "name": "商品説明", "limit": 1 },
+    {
+      "type": "specs",
+      "name": "仕様・お手入れ",
+      "limit": 1,
+      "settings": [
+        { "type": "page", "id": "shipping_page", "label": "配送・返品についてのページ" }
+      ]
+    },
+    {
+      "type": "store_cta",
+      "name": "来店の案内",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "text", "label": "文言", "default": "サロンで実物をスーツに合わせてご覧いただけます。" }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,1945 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>オーダースーツ シミュレーション（デモ）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+JP:wght@400;500;700&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-primary: #1C2333; --color-primary-rgb: 28, 35, 51; --color-accent: #A8874F;
+  --color-bg: #F7F4EE; --color-surface: #FFFFFF; --color-text: #1E1E1E; --color-muted: #6B6559;
+  --color-border: #DDD6C8; --color-sale: #8C2F2F;
+  --font-serif: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  --font-display: 'Cormorant Garamond', 'Shippori Mincho', serif;
+  --font-sans: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+  --card-ratio: 4 / 5; --logo-width: 140px;
+}
+
+/* RO Tailor Haberdashery — base styles */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  -webkit-font-smoothing: antialiased;
+}
+img, svg { max-width: 100%; height: auto; }
+a { color: inherit; text-decoration: none; }
+a:hover { color: var(--color-accent); }
+h1, h2, h3, h4 { font-family: var(--font-serif); font-weight: 600; line-height: 1.5; letter-spacing: 0.06em; margin: 0 0 0.6em; }
+p { margin: 0 0 1em; }
+button { font: inherit; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+.skip-link:focus {
+  position: fixed !important; top: 8px; left: 8px; z-index: 1000;
+  width: auto; height: auto; clip: auto; padding: 8px 16px;
+  background: var(--color-primary); color: #fff;
+}
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+.container { width: 100%; max-width: 1240px; margin-inline: auto; padding-inline: 40px; }
+.container--narrow { max-width: 760px; }
+.section { padding-block: 96px; background: var(--section-bg, transparent); }
+.section + .section { padding-top: 0; }
+.section[style*="--section-bg: #"] { padding-top: 96px; }
+
+.placeholder { background: #e9e4da; fill: rgba(0, 0, 0, 0.25); width: 100%; height: 100%; display: block; }
+
+/* type helpers */
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  color: var(--color-accent);
+  margin: 0 0 12px;
+  text-transform: uppercase;
+}
+.eyebrow--light { color: #d9c49b; }
+.section-title { font-size: clamp(1.4rem, 2.4vw, 2rem); margin: 0 0 16px; }
+.section-title--light { color: #fff; }
+.section-intro { color: var(--color-muted); max-width: 640px; }
+.section-head { margin-bottom: 40px; }
+.section-head--row { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.section-head--row .section-title { margin: 0; }
+
+.rte > :last-child { margin-bottom: 0; }
+.rte a { text-decoration: underline; text-underline-offset: 3px; }
+.rte img { height: auto; }
+.rte blockquote {
+  margin: 2em 0; padding: 0.4em 0 0.4em 1.4em;
+  border-left: 2px solid var(--color-accent);
+  font-family: var(--font-serif); font-size: 1.1em;
+}
+.rte h2 { font-size: 1.4rem; margin-top: 2.2em; padding-bottom: 0.4em; border-bottom: 1px solid var(--color-border); }
+.rte h3 { font-size: 1.15rem; margin-top: 1.8em; }
+
+.link-arrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.85rem; letter-spacing: 0.08em;
+  border-bottom: 1px solid currentColor; padding-bottom: 2px;
+}
+.link-arrow .icon { width: 16px; height: 16px; transition: transform 0.2s ease; }
+.link-arrow:hover .icon { transform: translateX(4px); }
+
+/* buttons */
+.button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 12px 28px;
+  border: 1px solid var(--color-primary);
+  background: transparent; color: var(--color-primary);
+  font-size: 0.85rem; font-weight: 500; letter-spacing: 0.12em;
+  cursor: pointer; transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  text-align: center;
+}
+.button:hover { color: var(--color-primary); background: rgba(var(--color-primary-rgb), 0.06); }
+.button--primary { background: var(--color-primary); color: #fff; }
+.button--primary:hover { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+.button--accent { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+.button--accent:hover { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.button--light { background: #fff; border-color: #fff; color: var(--color-primary); }
+.button--light:hover { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+.button--outline-light { border-color: rgba(255, 255, 255, 0.7); color: #fff; }
+.button--outline-light:hover { background: #fff; color: var(--color-primary); }
+.button--ghost { border-color: var(--color-border); color: var(--color-text); }
+.button--block { width: 100%; }
+.button[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+.icon { width: 22px; height: 22px; display: block; }
+.icon-button {
+  display: inline-grid; place-items: center;
+  width: 40px; height: 40px; border: 0; background: none; color: inherit; cursor: pointer;
+  position: relative;
+}
+
+/* forms */
+.field { display: grid; gap: 6px; font-size: 0.8rem; color: var(--color-muted); }
+.field em { color: var(--color-sale); font-style: normal; }
+.field input, .field textarea, .field select {
+  width: 100%; padding: 12px 14px;
+  border: 1px solid var(--color-border); background: var(--color-bg);
+  font: inherit; font-size: 0.95rem; color: var(--color-text); border-radius: 0;
+}
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--color-primary); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-message { padding: 12px 16px; font-size: 0.85rem; background: rgba(var(--color-primary-rgb), 0.06); }
+.form-message--success { border-left: 3px solid #4a7a52; }
+.form-message--error { border-left: 3px solid var(--color-sale); }
+
+/* announcement */
+.announcement { background: var(--color-primary); color: #fff; font-size: 0.78rem; letter-spacing: 0.1em; text-align: center; }
+.announcement__track { position: relative; height: 36px; overflow: hidden; }
+.announcement__item {
+  position: absolute; inset: 0; margin: 0;
+  display: grid; place-items: center; padding-inline: 16px;
+  opacity: 0; transform: translateY(8px); transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.announcement__item.is-active { opacity: 1; transform: none; }
+.announcement a:hover { color: #d9c49b; }
+
+/* header */
+.site-header { background: var(--color-bg); border-bottom: 1px solid var(--color-border); z-index: 50; }
+.site-header--sticky { position: sticky; top: 0; }
+.site-header__inner { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 32px; height: 76px; }
+.site-logo { display: grid; line-height: 1.1; color: var(--color-primary); }
+.site-logo__img { width: var(--logo-width); height: auto; }
+.site-logo__name { font-family: var(--font-display); font-size: 1.7rem; font-weight: 600; letter-spacing: 0.18em; }
+.site-logo__tagline { font-family: var(--font-display); font-style: italic; font-size: 0.78rem; letter-spacing: 0.14em; color: var(--color-accent); }
+
+.site-nav__list { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+.site-nav__item { position: relative; }
+.site-nav__link { display: block; padding: 8px 12px; font-size: 0.85rem; letter-spacing: 0.08em; }
+.site-nav__link[aria-current] { color: var(--color-accent); }
+.site-nav__dropdown {
+  position: absolute; top: 100%; left: 0; min-width: 200px;
+  list-style: none; margin: 0; padding: 12px 0;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  opacity: 0; visibility: hidden; transform: translateY(4px); transition: all 0.2s ease;
+}
+.site-nav__item:hover .site-nav__dropdown,
+.site-nav__item:focus-within .site-nav__dropdown { opacity: 1; visibility: visible; transform: none; }
+.site-nav__dropdown a { display: block; padding: 6px 20px; font-size: 0.85rem; }
+
+.site-header__actions { display: flex; align-items: center; gap: 4px; justify-self: end; }
+.header-pill {
+  display: inline-flex; align-items: center; gap: 6px; margin-right: 8px;
+  padding: 8px 16px; border: 1px solid var(--color-primary);
+  font-size: 0.78rem; letter-spacing: 0.08em; color: var(--color-primary);
+}
+.header-pill .icon { width: 16px; height: 16px; }
+.header-pill:hover { background: var(--color-primary); color: #fff; }
+.cart-count {
+  position: absolute; top: 2px; right: 0;
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+  background: var(--color-accent); color: #fff;
+  font-size: 0.65rem; line-height: 18px; text-align: center; letter-spacing: 0;
+}
+.cart-count[hidden] { display: none; }
+
+.drawer { display: none; }
+.drawer > summary { list-style: none; }
+.drawer > summary::-webkit-details-marker { display: none; }
+.drawer__close { display: none; }
+.drawer[open] .drawer__open { display: none; }
+.drawer[open] .drawer__close { display: block; }
+.drawer__panel {
+  position: fixed; inset: 112px 0 0; z-index: 60; overflow-y: auto;
+  background: var(--color-bg); padding: 24px 24px 48px; border-top: 1px solid var(--color-border);
+}
+.drawer__menu, .drawer__submenu { list-style: none; margin: 0; padding: 0; }
+.drawer__menu > li { border-bottom: 1px solid var(--color-border); }
+.drawer__menu > li > a { display: block; padding: 16px 0; font-family: var(--font-serif); font-size: 1.05rem; }
+.drawer__submenu { padding: 0 0 12px 16px; }
+.drawer__submenu a { display: block; padding: 6px 0; font-size: 0.9rem; color: var(--color-muted); }
+.drawer__cta { width: 100%; margin-top: 24px; }
+
+/* hero */
+.hero { position: relative; display: grid; align-items: end; color: #fff; overflow: hidden; background: var(--color-primary); }
+.hero--small { min-height: 48vh; }
+.hero--medium { min-height: 68vh; }
+.hero--large { min-height: calc(100vh - 112px); }
+.hero__media { position: absolute; inset: 0; }
+.hero__media img, .hero__media .placeholder { width: 100%; height: 100%; object-fit: cover; }
+.hero__media::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10, 14, 24, calc(var(--hero-overlay) * 0.4)) 0%, rgba(10, 14, 24, var(--hero-overlay)) 100%);
+}
+.hero__content { position: relative; padding-block: 96px; max-width: 1240px; }
+.hero__title { font-size: clamp(1.9rem, 4.4vw, 3.4rem); line-height: 1.45; letter-spacing: 0.1em; margin-bottom: 24px; color: #fff; }
+.hero__text { max-width: 560px; font-size: 0.95rem; opacity: 0.92; }
+.hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+
+/* brand story */
+.brand-story__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.brand-story__grid--reverse .brand-story__media { order: 2; }
+.brand-story__media img, .brand-story__media .placeholder { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.brand-story__caption { font-family: var(--font-display); font-style: italic; color: var(--color-muted); margin-top: 12px; font-size: 0.95rem; }
+.brand-points { list-style: none; padding: 0; margin: 32px 0; display: grid; gap: 20px; }
+.brand-points__item { display: grid; grid-template-columns: 48px 1fr; gap: 12px; padding-top: 20px; border-top: 1px solid var(--color-border); }
+.brand-points__num { font-family: var(--font-display); font-size: 1.6rem; color: var(--color-accent); line-height: 1; }
+.brand-points__title { font-size: 1rem; margin-bottom: 4px; }
+.brand-points__item p { margin: 0; font-size: 0.88rem; color: var(--color-muted); }
+
+/* categories */
+.category-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.category-grid--1 { grid-template-columns: 1fr; }
+.category-grid--2 { grid-template-columns: repeat(2, 1fr); }
+.category-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.category-tile { position: relative; display: block; overflow: hidden; color: #fff; }
+.category-tile__media img, .category-tile__media .placeholder { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; transition: transform 0.8s ease; }
+.category-tile:hover .category-tile__media img { transform: scale(1.04); }
+.category-tile__label {
+  position: absolute; inset: auto 0 0; padding: 48px 20px 20px; display: grid;
+  background: linear-gradient(transparent, rgba(10, 14, 24, 0.7));
+}
+.category-tile__en { font-family: var(--font-display); font-size: 1.5rem; font-style: italic; line-height: 1.2; }
+.category-tile__ja { font-size: 0.8rem; letter-spacing: 0.12em; }
+.category-tile:hover { color: #fff; }
+
+/* product cards */
+.product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px 24px; }
+.product-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.card { display: grid; gap: 14px; align-content: start; }
+.card__media { position: relative; display: block; overflow: hidden; background: #ece7dd; aspect-ratio: var(--card-ratio); }
+.card__img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.4s ease, transform 0.8s ease; }
+.card__img--secondary { position: absolute; inset: 0; opacity: 0; }
+.card__media--hover:hover .card__img--secondary { opacity: 1; }
+.card:hover .card__img { transform: scale(1.03); }
+.card__body { display: grid; gap: 2px; }
+.card__vendor { margin: 0; font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.14em; color: var(--color-muted); text-transform: uppercase; }
+.card__title { font-family: var(--font-sans); font-size: 0.9rem; font-weight: 500; letter-spacing: 0.04em; margin: 0; line-height: 1.6; }
+.card__note { margin: 4px 0 0; font-size: 0.75rem; color: var(--color-accent); }
+.badge {
+  position: absolute; top: 12px; left: 12px; padding: 2px 10px;
+  background: var(--color-surface); color: var(--color-text);
+  font-size: 0.7rem; letter-spacing: 0.12em;
+}
+.badge--sale { background: var(--color-sale); color: #fff; }
+
+.price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; font-size: 0.9rem; }
+.price__current { font-weight: 500; }
+.price--sale .price__current { color: var(--color-sale); }
+.price__compare { color: var(--color-muted); font-size: 0.85em; }
+.price__tax { font-size: 0.7rem; color: var(--color-muted); }
+
+/* suit pairing */
+.suit-pairing { background: var(--color-surface); padding-top: 96px !important; }
+.suit-pairing .section-head { text-align: center; }
+.suit-pairing .section-intro { margin-inline: auto; }
+.suit-pairing__tabs { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-bottom: 48px; }
+.suit-swatch-tab {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 8px 20px 8px 8px; border: 1px solid var(--color-border); border-radius: 999px;
+  background: var(--color-bg); color: var(--color-text); cursor: pointer; font-size: 0.85rem;
+}
+.suit-swatch-tab.is-active { border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
+.suit-swatch {
+  width: 32px; height: 32px; border-radius: 50%;
+  background-color: var(--swatch); background-size: cover;
+  background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 3px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+.suit-pairing__panel { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 56px; align-items: start; }
+.suit-pairing__panel[hidden] { display: none; }
+.suit-pairing__title { font-size: 1.3rem; }
+.pairing-rules { margin: 24px 0; display: grid; gap: 0; }
+.pairing-rules > div { display: grid; grid-template-columns: 7em 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--color-border); font-size: 0.88rem; }
+.pairing-rules dt { font-family: var(--font-display); font-style: italic; font-size: 1.05rem; color: var(--color-accent); }
+.pairing-rules dd { margin: 0; }
+
+/* simulator promo */
+.simulator-promo { background: var(--color-primary); color: rgba(255, 255, 255, 0.86); padding-top: 96px !important; overflow: hidden; }
+.simulator-promo__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+.simulator-promo__steps { list-style: none; padding: 0; margin: 32px 0 40px; display: grid; gap: 12px; }
+.simulator-promo__steps li { display: flex; gap: 16px; align-items: baseline; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.14); }
+.simulator-promo__steps span { font-family: var(--font-display); color: #d9c49b; font-size: 1.2rem; }
+.simulator-promo__visual { display: grid; place-items: center; }
+.simulator-promo__visual svg, .simulator-promo__visual img { max-height: 520px; width: auto; }
+
+/* blog */
+.post-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 48px 32px; }
+.post-card { display: grid; gap: 16px; align-content: start; }
+.post-card__media { display: block; overflow: hidden; aspect-ratio: 3 / 2; background: #ece7dd; }
+.post-card__media img, .post-card__media .placeholder { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; }
+.post-card:hover .post-card__media img { transform: scale(1.03); }
+.post-card__meta { display: flex; gap: 12px; align-items: center; margin: 0; font-size: 0.75rem; color: var(--color-muted); letter-spacing: 0.08em; }
+.post-card__tag { padding: 0 8px; border: 1px solid var(--color-border); }
+.post-card__title { font-size: 1.05rem; margin: 0; }
+.post-card__excerpt { font-size: 0.85rem; color: var(--color-muted); margin: 0; }
+
+.tag-filter { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 48px; }
+.tag-filter a {
+  padding: 6px 16px; border: 1px solid var(--color-border); border-radius: 999px;
+  font-size: 0.8rem; background: var(--color-surface);
+}
+.tag-filter a[aria-current] { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+
+.article__header { text-align: center; max-width: 760px; margin: 0 auto 48px; }
+.article__meta { font-size: 0.8rem; color: var(--color-muted); letter-spacing: 0.08em; }
+.article__title { font-size: clamp(1.5rem, 3vw, 2.2rem); }
+.article__hero { margin-bottom: 56px; }
+.article__hero img { width: 100%; max-height: 640px; object-fit: cover; }
+.article__body { font-size: 1rem; line-height: 2.1; }
+.article__author {
+  display: flex; gap: 16px; align-items: center; margin-top: 64px; padding: 24px;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+}
+.article__author-mark {
+  flex: 0 0 56px; width: 56px; height: 56px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--color-primary); color: #fff;
+  font-family: var(--font-display); font-size: 1.2rem;
+}
+.article__author p { margin: 0; font-size: 0.85rem; color: var(--color-muted); }
+.article__nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 48px; font-size: 0.85rem; }
+.comments { margin-top: 64px; }
+.comment { padding: 16px 0; border-bottom: 1px solid var(--color-border); }
+.comment__meta { font-size: 0.75rem; color: var(--color-muted); }
+
+/* product page */
+.product { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 64px; align-items: start; padding-top: 40px; }
+.product__gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.product__media { background: #ece7dd; }
+.product__media:first-child { grid-column: 1 / -1; }
+.product__media img { width: 100%; height: auto; display: block; }
+.product__info { position: sticky; top: 108px; display: grid; gap: 20px; }
+.product__vendor { margin: 0; font-family: var(--font-display); letter-spacing: 0.16em; color: var(--color-muted); text-transform: uppercase; }
+.product__title { font-size: clamp(1.3rem, 2.4vw, 1.75rem); margin: 0; }
+.product__info .price { font-size: 1.2rem; }
+.product-form { display: grid; gap: 16px; }
+.product-form__option { border: 0; padding: 0; margin: 0; }
+.product-form__option legend { font-size: 0.8rem; color: var(--color-muted); margin-bottom: 8px; }
+.product-form__values { display: flex; flex-wrap: wrap; gap: 8px; }
+.product-form__values input { position: absolute; opacity: 0; pointer-events: none; }
+.product-form__values label {
+  padding: 8px 16px; border: 1px solid var(--color-border); background: var(--color-surface);
+  font-size: 0.85rem; cursor: pointer;
+}
+.product-form__values input:checked + label { border-color: var(--color-primary); box-shadow: inset 0 0 0 1px var(--color-primary); }
+.product-form__values input:focus-visible + label { outline: 2px solid var(--color-accent); }
+.product-form__values input.is-unavailable + label { color: var(--color-muted); text-decoration: line-through; }
+.quantity { display: inline-flex; border: 1px solid var(--color-border); background: var(--color-surface); width: fit-content; }
+.quantity button { width: 44px; border: 0; background: none; cursor: pointer; font-size: 1.1rem; }
+.quantity input { width: 52px; border: 0; text-align: center; font: inherit; background: none; -moz-appearance: textfield; }
+.quantity input::-webkit-outer-spin-button, .quantity input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.product__description { font-size: 0.9rem; }
+.product__specs { border-top: 1px solid var(--color-border); }
+.product__specs details { border-bottom: 1px solid var(--color-border); }
+.product__specs summary { padding: 16px 0; cursor: pointer; font-size: 0.9rem; list-style: none; display: flex; justify-content: space-between; }
+.product__specs summary::after { content: '+'; color: var(--color-accent); }
+.product__specs details[open] summary::after { content: '−'; }
+.product__specs .rte { padding-bottom: 16px; font-size: 0.88rem; color: var(--color-muted); }
+
+.tailor-note {
+  position: relative; padding: 24px 24px 24px 28px;
+  background: var(--color-surface); border-left: 2px solid var(--color-accent);
+}
+.tailor-note__label { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 0.75rem; letter-spacing: 0.14em; color: var(--color-accent); }
+.tailor-note__label .icon { width: 16px; height: 16px; }
+.tailor-note__text { margin: 0; font-family: var(--font-serif); line-height: 2; font-size: 0.95rem; }
+.store-cta { display: flex; gap: 12px; align-items: center; font-size: 0.8rem; color: var(--color-muted); }
+.store-cta a { color: var(--color-primary); border-bottom: 1px solid currentColor; }
+
+/* collection */
+.collection-hero { padding-block: 64px 40px; text-align: center; }
+.collection-hero__desc { max-width: 680px; margin-inline: auto; color: var(--color-muted); }
+.collection-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 16px; margin-bottom: 32px; border-block: 1px solid var(--color-border); font-size: 0.85rem; }
+.collection-toolbar select { padding: 8px 12px; border: 1px solid var(--color-border); background: var(--color-surface); font: inherit; }
+.filter-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.filter-chips a { padding: 4px 14px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-surface); font-size: 0.78rem; }
+.filter-chips a.is-active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+
+/* cart */
+.cart { padding-block: 64px 96px; }
+.cart__items { width: 100%; border-collapse: collapse; }
+.cart__items th { text-align: left; font-weight: 400; font-size: 0.75rem; color: var(--color-muted); padding-bottom: 12px; border-bottom: 1px solid var(--color-border); }
+.cart__items td { padding: 24px 0; border-bottom: 1px solid var(--color-border); vertical-align: top; }
+.cart-item { display: grid; grid-template-columns: 96px 1fr; gap: 20px; }
+.cart-item img { width: 96px; height: auto; }
+.cart-item__props { margin: 6px 0 0; font-size: 0.75rem; color: var(--color-muted); display: grid; gap: 2px; }
+.cart-item__props div { display: flex; gap: 6px; }
+.cart-item__props dt::after { content: '：'; }
+.cart-item__props dd { margin: 0; }
+.cart__footer { display: grid; grid-template-columns: 1fr 380px; gap: 48px; margin-top: 40px; }
+.cart__summary { display: grid; gap: 12px; align-content: start; }
+.cart__subtotal { display: flex; justify-content: space-between; font-size: 1.1rem; }
+.cart__note textarea { width: 100%; min-height: 100px; padding: 12px; border: 1px solid var(--color-border); background: var(--color-surface); font: inherit; }
+.cart-remove { font-size: 0.75rem; color: var(--color-muted); text-decoration: underline; }
+
+.cart-toast {
+  position: fixed; bottom: 24px; left: 50%; z-index: 100; transform: translateX(-50%);
+  display: flex; gap: 16px; align-items: center; padding: 14px 20px;
+  background: var(--color-primary); color: #fff; font-size: 0.85rem; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+.cart-toast[hidden] { display: none; }
+.cart-toast__link { text-decoration: underline; color: #d9c49b; }
+
+/* page / misc */
+.page-header { padding-block: 72px 32px; text-align: center; }
+.page-body { padding-bottom: 96px; }
+.pagination { display: flex; justify-content: center; gap: 6px; margin-top: 64px; }
+.pagination__link { min-width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid var(--color-border); font-size: 0.85rem; }
+.pagination__link.is-current { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.search-form { display: flex; gap: 8px; max-width: 560px; margin: 0 auto 48px; }
+.search-form input { flex: 1; padding: 12px 16px; border: 1px solid var(--color-border); background: var(--color-surface); font: inherit; }
+
+/* store visit */
+.store-visit__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; background: var(--color-surface); border: 1px solid var(--color-border); }
+.store-visit__media img, .store-visit__media .placeholder { width: 100%; height: 100%; object-fit: cover; min-height: 360px; }
+.store-visit__body { padding: 56px; }
+.store-visit__info { display: grid; gap: 0; margin: 24px 0 32px; font-size: 0.88rem; }
+.store-visit__info > div { display: grid; grid-template-columns: 6em 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--color-border); }
+.store-visit__info dt { color: var(--color-muted); }
+.store-visit__info dd { margin: 0; }
+.store-visit__actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* footer */
+.site-footer { background: #121722; color: rgba(255, 255, 255, 0.72); padding-top: 80px; font-size: 0.85rem; }
+.site-footer a:hover { color: #d9c49b; }
+.site-footer__grid { display: grid; grid-template-columns: 1.4fr 1fr 0.8fr 0.8fr 1.3fr; gap: 40px; padding-bottom: 64px; }
+.site-footer__logo { font-family: var(--font-display); font-size: 1.6rem; letter-spacing: 0.18em; color: #fff; margin-bottom: 16px; }
+.site-footer__heading { font-family: var(--font-display); font-size: 1rem; letter-spacing: 0.16em; color: #d9c49b; text-transform: uppercase; margin-bottom: 16px; }
+.site-footer ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.site-footer address { font-style: normal; margin-bottom: 8px; }
+.site-footer__store p { margin: 0 0 8px; }
+.site-footer__store .button { margin-top: 12px; min-height: 40px; padding: 8px 20px; }
+.newsletter { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.newsletter input { flex: 1 1 160px; padding: 10px 12px; background: transparent; border: 1px solid rgba(255, 255, 255, 0.3); color: #fff; font: inherit; }
+.newsletter .button { min-height: 44px; padding: 8px 20px; }
+.newsletter .form-message { flex-basis: 100%; background: rgba(255, 255, 255, 0.08); }
+.site-footer__bottom { display: flex; justify-content: space-between; padding-block: 24px; border-top: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.75rem; }
+.social { display: flex !important; gap: 8px !important; margin-top: 20px !important; }
+.social a { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50%; }
+.social .icon { width: 18px; height: 18px; }
+.drawer .social a { border-color: var(--color-border); }
+
+/* password */
+.password { min-height: 100vh; display: grid; place-items: center; text-align: center; padding: 40px 20px; }
+
+/* responsive */
+@media (max-width: 1100px) {
+  .site-footer__grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 989px) {
+  .container { padding-inline: 20px; }
+  .section { padding-block: 64px; }
+  .section[style*="--section-bg: #"], .suit-pairing, .simulator-promo { padding-top: 64px !important; }
+  .site-header__inner { grid-template-columns: auto 1fr auto; gap: 8px; height: 64px; }
+  .site-logo { justify-self: center; text-align: center; }
+  .site-logo__name { font-size: 1.3rem; }
+  .site-nav, .icon-button--desktop, .header-pill span { display: none; }
+  .header-pill { padding: 8px; margin: 0; border: 0; }
+  .header-pill .icon { width: 22px; height: 22px; }
+  .drawer { display: block; }
+  .drawer__panel { inset: 100px 0 0; }
+  .hero--large { min-height: 80vh; }
+  .brand-story__grid, .simulator-promo__grid, .store-visit__grid { grid-template-columns: 1fr; gap: 40px; }
+  .brand-story__grid--reverse .brand-story__media { order: 0; }
+  .store-visit__body { padding: 32px 24px; }
+  .category-grid, .category-grid--3 { grid-template-columns: repeat(2, 1fr); }
+  .product-grid, .product-grid--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 12px; }
+  .suit-pairing__panel { grid-template-columns: 1fr; gap: 32px; }
+  .post-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .product { grid-template-columns: 1fr; gap: 32px; padding-top: 0; }
+  .product__gallery { margin-inline: -20px; grid-template-columns: 1fr; }
+  .product__info { position: static; }
+  .cart__footer { grid-template-columns: 1fr; }
+  .section-head--row { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 599px) {
+  body { font-size: 14px; }
+  .post-grid { grid-template-columns: 1fr; }
+  .site-footer__grid { grid-template-columns: 1fr; }
+  .site-footer__bottom { flex-direction: column; gap: 8px; }
+  .field-row { grid-template-columns: 1fr; }
+  .hero__actions .button { width: 100%; }
+  .cart__items thead { display: none; }
+  .cart__items td { display: block; padding: 8px 0; border: 0; }
+  .cart__items tr { display: block; padding: 16px 0; border-bottom: 1px solid var(--color-border); }
+  .store-visit__info > div { grid-template-columns: 5em 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* RO Tailor — Suit Simulator */
+
+.simulator { padding-top: 48px; }
+.simulator__head { text-align: center; max-width: 720px; margin-inline: auto; }
+
+.simulator__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: 48px;
+  align-items: start;
+  margin-top: 40px;
+}
+
+.simulator__stage,
+.simulator__panel { min-width: 0; }
+
+.simulator__stage {
+  position: sticky;
+  top: 96px;
+  display: grid;
+  gap: 16px;
+}
+
+.sim-preview {
+  position: relative;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.9), transparent 70%),
+    var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 20px 20px 12px;
+}
+
+.sim-preview__toolbar { display: flex; gap: 6px; justify-content: flex-end; }
+
+.sim-preview__canvas {
+  aspect-ratio: 300 / 452;
+  max-height: max(300px, calc(100vh - 330px));
+  margin: 4px auto 0;
+  color: var(--color-muted);
+}
+.sim-preview__canvas .sim-svg { width: 100%; height: 100%; display: block; }
+
+.sim-preview__fabric {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  letter-spacing: 0.04em;
+  min-height: 1.4em;
+}
+
+.sim-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--color-primary);
+  color: #fff;
+  padding: 16px 20px;
+}
+.sim-total__label { margin: 0; font-size: 0.75rem; letter-spacing: 0.08em; opacity: 0.75; }
+.sim-total__price { margin: 2px 0 0; font-family: var(--font-display); font-size: 1.9rem; line-height: 1; letter-spacing: 0.02em; }
+.sim-total .button--primary { background: var(--color-accent); border-color: var(--color-accent); }
+
+/* steps */
+.sim-steps {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+  margin: 0 0 24px;
+  padding: 0;
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-margin-top: 96px;
+}
+.sim-steps::-webkit-scrollbar { display: none; }
+.sim-steps__btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.sim-steps__num {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+}
+.sim-steps__item.is-active .sim-steps__btn { color: var(--color-primary); border-bottom-color: var(--color-accent); font-weight: 700; }
+.sim-steps__item.is-active .sim-steps__num { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.sim-steps__item.is-done .sim-steps__num { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+
+.sim-step-body { display: grid; gap: 32px; min-height: 320px; }
+.sim-step-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--color-border); }
+.sim-step-nav .button[disabled] { visibility: hidden; }
+
+.sim-group { border: 0; padding: 0; margin: 0; min-width: 0; }
+.sim-group__title {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+  padding: 0;
+}
+
+.sim-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+
+.sim-chip {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  border-radius: 999px;
+}
+.sim-chip.is-active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+
+/* option cards */
+.sim-option {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.sim-option:hover { border-color: var(--color-muted); }
+.sim-option.is-selected { border-color: var(--color-primary); box-shadow: inset 0 0 0 1px var(--color-primary); }
+.sim-option.is-selected::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+.sim-option:focus-within { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+.sim-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.sim-options--list { grid-template-columns: 1fr; }
+
+.sim-option__icon { flex: 0 0 40px; width: 40px; height: 40px; color: var(--color-primary); }
+.sim-option__dot {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+.sim-option__dot svg { width: 100%; height: 100%; display: block; }
+.sim-option__dot--button {
+  background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.35), transparent 45%), var(--dot);
+  box-shadow: inset 0 0 0 5px rgba(0, 0, 0, 0.12);
+}
+.sim-option__body { display: grid; gap: 2px; min-width: 0; }
+.sim-option__name { font-size: 0.9rem; font-weight: 500; line-height: 1.4; }
+.sim-option__price { font-size: 0.78rem; color: var(--color-accent); letter-spacing: 0.03em; }
+.sim-option__desc { font-size: 0.75rem; color: var(--color-muted); line-height: 1.6; }
+
+.sim-option--check { align-items: flex-start; }
+.sim-check { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--color-primary); }
+.sim-extra { display: grid; gap: 6px; }
+.sim-text {
+  margin-left: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font: inherit;
+  max-width: 280px;
+}
+.sim-text:disabled { opacity: 0.5; }
+
+/* fabrics */
+.sim-fabrics { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+.sim-fabric { flex-direction: column; align-items: stretch; padding: 8px; gap: 10px; }
+.sim-fabric__swatch { display: block; aspect-ratio: 4 / 3; overflow: hidden; }
+.sim-fabric__swatch svg { width: 100%; height: 100%; display: block; }
+.sim-fabric__body { display: grid; gap: 2px; padding: 0 4px 4px; }
+.sim-fabric__name { font-size: 0.88rem; font-weight: 500; }
+.sim-fabric__meta { font-size: 0.7rem; color: var(--color-muted); }
+.sim-fabric__price { font-family: var(--font-display); font-size: 1.05rem; color: var(--color-primary); }
+
+/* summary */
+.sim-summary { margin-top: 80px; padding-top: 64px; border-top: 1px solid var(--color-border); outline: none; scroll-margin-top: 80px; }
+.sim-summary__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; }
+
+.sim-spec { margin: 24px 0; display: grid; }
+.sim-spec__row { display: grid; grid-template-columns: 9em 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px dotted var(--color-border); font-size: 0.9rem; }
+.sim-spec__row dt { color: var(--color-muted); }
+.sim-spec__row dd { margin: 0; }
+
+.sim-breakdown { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 8px; }
+.sim-breakdown th { text-align: left; font-weight: 400; color: var(--color-muted); padding: 6px 0; }
+.sim-breakdown td { text-align: right; padding: 6px 0; font-variant-numeric: tabular-nums; }
+.sim-breakdown tfoot th,
+.sim-breakdown tfoot td { border-top: 1px solid var(--color-text); padding-top: 12px; color: var(--color-text); font-weight: 700; }
+.sim-breakdown tfoot td { font-family: var(--font-display); font-size: 1.6rem; }
+
+.sim-note { font-size: 0.75rem; color: var(--color-muted); line-height: 1.7; }
+.sim-summary__tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+
+.sim-summary__actions { display: grid; gap: 16px; align-content: start; }
+.sim-card { background: var(--color-surface); border: 1px solid var(--color-border); padding: 28px; }
+.sim-card--alt { background: transparent; }
+.sim-card__title { font-family: var(--font-serif); font-size: 1.2rem; margin: 0 0 8px; }
+.sim-card__text { font-size: 0.85rem; color: var(--color-muted); line-height: 1.8; margin: 0 0 16px; }
+.sim-card__price { font-family: var(--font-display); font-size: 1.6rem; margin: 0 0 12px; }
+
+.sim-form { display: grid; gap: 14px; }
+
+.sim-pairing { margin-top: 80px; }
+.sim-pairing .section-head { text-align: center; }
+.product-grid--single { grid-template-columns: minmax(0, 280px); justify-content: center; margin-top: 24px; }
+
+@media (max-width: 989px) {
+  .simulator__layout { grid-template-columns: 1fr; gap: 24px; }
+  .simulator__stage { top: 56px; z-index: 5; gap: 0; margin-inline: -20px; }
+  .sim-preview { padding: 8px 12px 4px; border-inline: 0; display: grid; grid-template-columns: 1fr auto; align-items: center; }
+  .sim-preview__toolbar { grid-column: 2; grid-row: 1; flex-direction: column; }
+  .sim-preview__canvas { grid-column: 1; grid-row: 1; max-height: 28vh; height: 28vh; }
+  .sim-preview__fabric { grid-column: 1 / -1; font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sim-total { padding: 10px 20px; }
+  .sim-total__price { font-size: 1.5rem; }
+  .sim-summary__grid { grid-template-columns: 1fr; gap: 32px; }
+}
+
+@media (max-width: 599px) {
+  .sim-options { grid-template-columns: 1fr; }
+  .sim-fabrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sim-spec__row { grid-template-columns: 7em 1fr; }
+  .sim-total .button { padding-inline: 14px; font-size: 0.8rem; }
+}
+
+.demo-banner { background: #A8874F; color: #fff; text-align: center; font-size: 12px; padding: 6px 16px; letter-spacing: .08em; }
+</style>
+</head>
+<body>
+<div class="demo-banner">デモ表示：Shopify 上ではテーマエディタで生地・価格・文言を編集できます。フォーム送信とカート追加はデモでは動作しません。</div>
+<header class="site-header site-header--sticky">
+  <div class="site-header__inner container">
+    <span></span>
+    <a class="site-logo" href="#"><span class="site-logo__name">RO TAILOR</span><span class="site-logo__tagline">Haberdashery &amp; Bespoke</span></a>
+    <span></span>
+    <span></span>
+  </div>
+</header>
+<main>
+<section class="section simulator" data-suit-simulator data-section-id="demo">
+  <div class="container">
+    <div class="section-head simulator__head">
+      <p class="eyebrow">MADE TO MEASURE SIMULATOR</p>
+      <h1 class="section-title">オーダースーツを仕立てる</h1>
+      <div class="section-intro rte"><p>生地とディテールを選ぶと、仕上がりのイメージと概算価格がすぐにわかります。最終的なお見積もりは、サロンでの採寸時にご案内します。</p></div>
+    </div>
+    <div class="simulator__layout">
+      <div class="simulator__stage">
+        <div class="sim-preview">
+          <div class="sim-preview__toolbar" role="group" aria-label="表示の向き">
+            <button type="button" class="sim-chip is-active" data-view="front" aria-pressed="true">FRONT</button>
+            <button type="button" class="sim-chip" data-view="back" aria-pressed="false">BACK</button>
+          </div>
+          <div class="sim-preview__canvas" data-preview aria-live="polite"></div>
+          <div class="sim-preview__fabric" data-fabric-caption></div>
+        </div>
+        <div class="sim-total">
+          <div><p class="sim-total__label">概算価格（税込）</p><p class="sim-total__price" data-total>—</p></div>
+          <button type="button" class="button button--primary sim-total__next" data-go-summary>見積もりを確認</button>
+        </div>
+      </div>
+      <div class="simulator__panel">
+        <ol class="sim-steps" role="tablist" aria-label="シミュレーションの手順" data-steps-nav></ol>
+        <div class="sim-step-body" data-step-body></div>
+        <div class="sim-step-nav">
+          <button type="button" class="button button--ghost" data-prev>戻る</button>
+          <button type="button" class="button button--primary" data-next>次へ</button>
+        </div>
+      </div>
+    </div>
+    <div class="sim-summary" data-summary hidden tabindex="-1">
+      <div class="sim-summary__grid">
+        <div class="sim-summary__spec">
+          <p class="eyebrow">YOUR ORDER</p>
+          <h2 class="section-title">お仕立て内容の確認</h2>
+          <dl class="sim-spec" data-spec></dl>
+          <table class="sim-breakdown" data-breakdown></table>
+          <p class="sim-note">※ 表示価格は税込の概算です。体型補正や生地の在庫状況により、採寸時に最終価格をご案内します。</p>
+          <div class="sim-summary__tools">
+            <button type="button" class="button button--ghost" data-copy-link>この内容のリンクをコピー</button>
+            <button type="button" class="button button--ghost" data-reset>最初からやり直す</button>
+          </div>
+        </div>
+        <div class="sim-summary__actions">
+          <div class="sim-card">
+            <h3 class="sim-card__title">この内容でご来店予約</h3>
+            <p class="sim-card__text">選んだ内容はそのままテイラーに届きます。採寸・生地確認を含めて 60〜90 分ほどお時間をいただきます。</p>
+            <form class="sim-form" onsubmit="event.preventDefault(); alert('デモのため送信されません。Shopify 上ではストアのメールアドレスに届きます。');">
+              <textarea name="contact[シミュレーション内容]" data-form-spec hidden readonly></textarea>
+              <input type="hidden" data-form-total>
+              <label class="field"><span>お名前 <em>*</em></span><input type="text" required></label>
+              <label class="field"><span>メールアドレス <em>*</em></span><input type="email" required></label>
+              <label class="field"><span>電話番号</span><input type="tel"></label>
+              <div class="field-row">
+                <label class="field"><span>ご来店希望日（第1希望）</span><input type="date" data-min-today></label>
+                <label class="field"><span>第2希望</span><input type="date" data-min-today></label>
+              </div>
+              <label class="field"><span>着用シーン・ご要望</span><textarea rows="3" placeholder="例）秋の結婚式に。普段は 48 サイズの既製服を着ています。"></textarea></label>
+              <button type="submit" class="button button--primary button--block">予約をリクエストする</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="sim-pairing" data-pairing hidden></div>
+    </div>
+  </div>
+  <script type="application/json" data-simulator-config>{"moneyFormat": "¥{{amount_no_decimals}}", "threePiecePrice": 22000, "storageKey": "rotailor-sim-demo", "items": [{"id": "fab-navy", "type": "fabric", "name": "ミッドナイトネイビー 無地", "description": null, "price": 88000, "key": null, "color": "#1F2A44", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": "Vitale Barberis Canonico", "origin": "イタリア", "composition": "ウール 100%／250g", "season": "all", "comment": "初めての一着に。冠婚葬祭以外のほとんどの場面に馴染む、最も頼れる色です。ボルドーのネクタイと焦げ茶の靴が定番の組み合わせ。", "width": 0, "needsText": false, "isDefault": true}, {"id": "fab-charcoal", "type": "fabric", "name": "チャコールグレー 無地", "description": null, "price": 88000, "key": null, "color": "#3A3C40", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": "Vitale Barberis Canonico", "origin": "イタリア", "composition": "ウール 100%／250g", "season": "all", "comment": "改まった席も任せられる落ち着き。黒の内羽根の靴で格を揃えると、ぐっと端正に。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-navy-pin", "type": "fabric", "name": "ネイビー ピンストライプ", "description": null, "price": 132000, "key": null, "color": "#1C2540", "pattern": "pinstripe", "patternColor": "", "shirtColor": "", "image": "", "mill": "Ermenegildo Zegna", "origin": "イタリア", "composition": "ウール 100%／240g", "season": "all", "comment": "ビジネスの勝負服に。柄がある分、ネクタイは無地かごく細かな小紋で引き算を。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-navy-birdseye", "type": "fabric", "name": "ネイビー バーズアイ", "description": null, "price": 176000, "key": null, "color": "#22304D", "pattern": "birdseye", "patternColor": "", "shirtColor": "", "image": "", "mill": "Loro Piana", "origin": "イタリア", "composition": "ウール 100%／240g", "season": "all", "comment": "遠目には無地、近づくと上品な織り柄。光沢のあるシルクタイがよく映えます。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-grey-glen", "type": "fabric", "name": "グレー グレンチェック", "description": null, "price": 154000, "key": null, "color": "#7E8184", "pattern": "glen", "patternColor": "", "shirtColor": "", "image": "", "mill": "Dormeuil", "origin": "イギリス", "composition": "ウール 100%／290g", "season": "aw", "comment": "英国らしいクラシックな一着。ブラウンのスエード靴で、休日にも着こなせます。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-brown-hb", "type": "fabric", "name": "ブラウン ヘリンボーン", "description": null, "price": 143000, "key": null, "color": "#5A4232", "pattern": "herringbone", "patternColor": "", "shirtColor": "", "image": "", "mill": "Fox Brothers", "origin": "イギリス", "composition": "ウール フランネル／370g", "season": "aw", "comment": "秋冬らしい温かみのある表情。オリーブやマスタードのニットタイと好相性です。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-navy-chalk", "type": "fabric", "name": "ネイビー チョークストライプ", "description": null, "price": 154000, "key": null, "color": "#1E2639", "pattern": "chalkstripe", "patternColor": "", "shirtColor": "", "image": "", "mill": "Fox Brothers", "origin": "イギリス", "composition": "ウール フランネル／340g", "season": "aw", "comment": "ダブルブレストで仕立てると格別。ポケットチーフは白のリネンで潔く。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-sand", "type": "fabric", "name": "サンドベージュ 無地", "description": null, "price": 99000, "key": null, "color": "#B9A586", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": "尾州産（国内）", "origin": "日本", "composition": "ウール 100%／220g（トロピカル）", "season": "ss", "comment": "春夏の軽やかな一着に。ネイビーのニットタイとタンの靴で爽やかに。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-grey-pane", "type": "fabric", "name": "ライトグレー ウィンドウペン", "description": null, "price": 121000, "key": null, "color": "#9A9C9E", "pattern": "check", "patternColor": "", "shirtColor": "", "image": "", "mill": "Holland & Sherry", "origin": "イギリス", "composition": "ウール・モヘア／250g", "season": "ss", "comment": "モヘア混のさらりとした風合い。サックスブルーのシャツで涼しげにまとめて。", "width": 0, "needsText": false, "isDefault": false}, {"id": "sty-sb2", "type": "style", "name": "シングル 2つボタン", "description": "最もベーシックで、どんな場面にも。", "price": 0, "key": "sb2", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "sty-sb1", "type": "style", "name": "シングル 1つボタン", "description": "Vゾーンが深く、すっきりとモダンな印象に。", "price": 0, "key": "sb1", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "sty-sb3", "type": "style", "name": "シングル 3つボタン段返り", "description": "上のボタンを返して着る、イタリアの伝統的な型。", "price": 0, "key": "sb3", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "sty-db6", "type": "style", "name": "ダブル 6つボタン", "description": "重厚でクラシック。胸板を厚く見せます。", "price": 11000, "key": "db6", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "sty-db4", "type": "style", "name": "ダブル 4つボタン", "description": "ダブルの中でも軽快で現代的。", "price": 11000, "key": "db4", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "lap-notch", "type": "lapel", "name": "ノッチドラペル", "description": "最も汎用性の高い襟。", "price": 0, "key": "notch", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 8.5, "needsText": false, "isDefault": true}, {"id": "lap-notch-n", "type": "lapel", "name": "ナローノッチ", "description": "細身のネクタイと合わせて軽快に。", "price": 0, "key": "notch", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 7, "needsText": false, "isDefault": false}, {"id": "lap-peak", "type": "lapel", "name": "ピークドラペル", "description": "剣先が上を向いた、華やかで力強い襟。", "price": 0, "key": "peak", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 9.5, "needsText": false, "isDefault": false}, {"id": "lap-shawl", "type": "lapel", "name": "ショールカラー", "description": "丸みのある襟。ディナージャケットにも。", "price": 5500, "key": "shawl", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 9, "needsText": false, "isDefault": false}, {"id": "pk-flap", "type": "pocket", "name": "フラップポケット", "description": "", "price": 0, "key": "flap", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "pk-ticket", "type": "pocket", "name": "フラップ＋チェンジポケット", "description": "英国調の小さなポケットを右腰に。", "price": 3300, "key": "flap_ticket", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pk-slant", "type": "pocket", "name": "スラントポケット", "description": "斜めの角度で、ウエストをシャープに見せます。", "price": 3300, "key": "slant", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pk-jetted", "type": "pocket", "name": "両玉縁ポケット", "description": "フラップのない、最もドレッシーな仕様。", "price": 0, "key": "jetted", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pk-patch", "type": "pocket", "name": "パッチポケット", "description": "貼り付けポケットで、リラックスした雰囲気に。", "price": 5500, "key": "patch", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "vt-side", "type": "vent", "name": "サイドベンツ", "description": "動きやすく、後ろ姿もすっきり。", "price": 0, "key": "side", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "vt-center", "type": "vent", "name": "センターベント", "description": "軽快でアメリカントラッドな印象。", "price": 0, "key": "center", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "vt-none", "type": "vent", "name": "ノーベント", "description": "最もフォーマルで、シルエットが美しく。", "price": 0, "key": "none", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "btn-nut-navy", "type": "button", "name": "ナットボタン（ネイビー）", "description": "", "price": 0, "key": null, "color": "#26314A", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "btn-nut-brown", "type": "button", "name": "ナットボタン（ブラウン）", "description": "", "price": 0, "key": null, "color": "#5A3E2B", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "btn-horn", "type": "button", "name": "本水牛ホーン（ダークブラウン）", "description": "一つずつ異なる天然の縞模様。", "price": 5500, "key": null, "color": "#3A2A20", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "btn-metal", "type": "button", "name": "メタルボタン（ゴールド）", "description": "ブレザー仕立てにおすすめ。", "price": 8800, "key": null, "color": "#B8963E", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "lin-navy", "type": "lining", "name": "キュプラ ネイビー", "description": "", "price": 0, "key": null, "color": "#24304F", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "lin-bordeaux", "type": "lining", "name": "キュプラ ボルドー", "description": "", "price": 0, "key": null, "color": "#5C1E2A", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "lin-dot", "type": "lining", "name": "ドット（ネイビー×ブルー）", "description": "脱いだときにだけ見える遊び心。", "price": 5500, "key": null, "color": "#1C2540", "pattern": "birdseye", "patternColor": "#7E9AD0", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "lin-stripe", "type": "lining", "name": "ストライプ（ボルドー×ゴールド）", "description": "", "price": 5500, "key": null, "color": "#5C1E2A", "pattern": "pinstripe", "patternColor": "#C9A46A", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pl-none", "type": "pleat", "name": "ノータック", "description": "", "price": 0, "key": "none", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "pl-one", "type": "pleat", "name": "1タック", "description": "", "price": 0, "key": "one", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pl-two", "type": "pleat", "name": "2タック", "description": "", "price": 0, "key": "two", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "hem-single", "type": "hem", "name": "シングル", "description": "", "price": 0, "key": "single", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "hem-double", "type": "hem", "name": "ダブル（4cm）", "description": "", "price": 0, "key": "double", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "ex-kirihba", "type": "extra", "name": "本切羽（袖ボタンが開く仕様）", "description": "オーダーならではの証。袖口のボタンが実際に開閉します。", "price": 5500, "key": null, "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "ex-name", "type": "extra", "name": "ネーム刺繍", "description": "内ポケットにお名前を刺繍します（英字 20 文字まで）。", "price": 0, "key": null, "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": true, "isDefault": false}, {"id": "ex-daiba", "type": "extra", "name": "台場仕立て", "description": "内ポケット周りを表地で仕立て、裏地の交換を容易にします。", "price": 11000, "key": null, "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "ex-spare", "type": "extra", "name": "スペアパンツ", "description": "パンツの消耗を分散し、スーツを長持ちさせます。", "price": 27500, "key": null, "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "tie-bordeaux", "type": "tie", "name": "ボルドー 小紋", "description": "ネイビー・グレーどちらにも合う万能色。", "price": 0, "key": null, "color": "#6B1F2A", "pattern": "birdseye", "patternColor": "#C9A46A", "shirtColor": "#FFFFFF", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "tie-navy", "type": "tie", "name": "ネイビー ソリッド", "description": "", "price": 0, "key": null, "color": "#1E2A4A", "pattern": "solid", "patternColor": "", "shirtColor": "#FFFFFF", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "tie-green", "type": "tie", "name": "グリーン レジメンタル", "description": "サックスブルーのシャツと。", "price": 0, "key": null, "color": "#2F4A3A", "pattern": "pinstripe", "patternColor": "#C9B27A", "shirtColor": "#DCE6F2", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}]}</script>
+</section>
+</main>
+<script>/*
+ * RO Tailor — Made-to-Measure Suit Simulator
+ * ------------------------------------------------------------
+ * sections/suit-simulator.liquid が出力する JSON（ブロック設定）を読み込み、
+ * 生地・ディテールの選択 UI、SVG プレビュー、概算価格、来店予約フォーム、
+ * 予約金のカート追加までを担当します。外部ライブラリには依存しません。
+ */
+(function () {
+  'use strict';
+
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+
+  var GROUP_LABELS = {
+    fabric: '生地',
+    style: 'ジャケットの型',
+    lapel: 'ラペル',
+    pocket: '腰ポケット',
+    vent: 'ベント',
+    button: 'ボタン',
+    lining: '裏地',
+    pleat: 'パンツのタック',
+    hem: 'パンツの裾',
+    threePiece: 'ベスト',
+    extra: 'オプション',
+    tie: 'Vゾーン（ネクタイ）'
+  };
+
+  var STEPS = [
+    { id: 'fabric', label: '生地', groups: ['fabric'] },
+    { id: 'style', label: '型', groups: ['style', 'lapel'] },
+    { id: 'detail', label: 'ディテール', groups: ['pocket', 'vent', 'button', 'lining'] },
+    { id: 'trousers', label: 'パンツ・ベスト', groups: ['pleat', 'hem', 'threePiece'] },
+    { id: 'extra', label: 'オプション', groups: ['extra'] },
+    { id: 'vzone', label: 'Vゾーン', groups: ['tie'] }
+  ];
+
+  var SINGLE_GROUPS = ['fabric', 'style', 'lapel', 'pocket', 'vent', 'button', 'lining', 'pleat', 'hem', 'tie'];
+
+  var SEASON_LABELS = { all: 'オールシーズン', ss: '春夏', aw: '秋冬' };
+
+  var STYLE_GEOMETRY = {
+    sb1: { vY: 192, cx: 150, buttons: [[150, 206]], double: false },
+    sb2: { vY: 168, cx: 150, buttons: [[150, 182], [150, 226]], double: false },
+    sb3: { vY: 160, cx: 150, buttons: [[150, 176], [150, 220]], double: false, rollHole: true },
+    db6: { vY: 168, cx: 128, buttons: [[130, 176], [170, 176], [136, 208], [164, 208], [136, 240], [164, 240]], double: true },
+    db4: { vY: 186, cx: 128, buttons: [[136, 198], [164, 198], [136, 234], [164, 234]], double: true }
+  };
+
+  /* ---------------------------------------------------------- utilities */
+
+  function el(tag, attrs, children) {
+    var node = document.createElement(tag);
+    if (attrs) {
+      Object.keys(attrs).forEach(function (k) {
+        if (attrs[k] === null || attrs[k] === undefined || attrs[k] === false) return;
+        if (k === 'text') node.textContent = attrs[k];
+        else if (k === 'html') node.innerHTML = attrs[k];
+        else node.setAttribute(k, attrs[k] === true ? '' : attrs[k]);
+      });
+    }
+    (children || []).forEach(function (c) {
+      if (c) node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    });
+    return node;
+  }
+
+  function svg(tag, attrs, children) {
+    var node = document.createElementNS(SVG_NS, tag);
+    Object.keys(attrs || {}).forEach(function (k) {
+      if (attrs[k] === null || attrs[k] === undefined) return;
+      if (k === 'href') node.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', attrs[k]);
+      node.setAttribute(k, attrs[k]);
+    });
+    (children || []).forEach(function (c) { if (c) node.appendChild(c); });
+    return node;
+  }
+
+  function hexToRgb(hex) {
+    var h = String(hex || '').replace('#', '');
+    if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join('');
+    if (!/^[0-9a-f]{6}$/i.test(h)) return { r: 40, g: 46, b: 66 };
+    return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) };
+  }
+
+  function rgbToHex(c) {
+    return '#' + [c.r, c.g, c.b].map(function (v) {
+      var s = Math.max(0, Math.min(255, Math.round(v))).toString(16);
+      return s.length === 1 ? '0' + s : s;
+    }).join('');
+  }
+
+  function mix(hex, target, amount) {
+    var a = hexToRgb(hex);
+    var b = hexToRgb(target);
+    return rgbToHex({ r: a.r + (b.r - a.r) * amount, g: a.g + (b.g - a.g) * amount, b: a.b + (b.b - a.b) * amount });
+  }
+
+  function luminance(hex) {
+    var c = hexToRgb(hex);
+    return (0.299 * c.r + 0.587 * c.g + 0.114 * c.b) / 255;
+  }
+
+  function autoPatternColor(base) {
+    return luminance(base) < 0.45 ? mix(base, '#ffffff', 0.42) : mix(base, '#000000', 0.32);
+  }
+
+  function formatMoney(yen, format) {
+    var n = Math.round(Number(yen) || 0);
+    var withCommas = n.toLocaleString('en-US');
+    var fmt = format || '¥{{amount_no_decimals}}';
+    return fmt.replace(/\{\{\s*(\w+)\s*\}\}/, function (_, key) {
+      switch (key) {
+        case 'amount': return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        case 'amount_with_comma_separator': return n.toLocaleString('de-DE', { minimumFractionDigits: 2 });
+        case 'amount_no_decimals_with_comma_separator': return n.toLocaleString('de-DE');
+        case 'amount_with_apostrophe_separator': return withCommas.replace(/,/g, "'");
+        default: return withCommas;
+      }
+    }).replace(/<[^>]*>/g, '');
+  }
+
+  function encodeState(obj) {
+    try {
+      return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    } catch (e) { return ''; }
+  }
+
+  function decodeState(str) {
+    try {
+      var b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      return JSON.parse(decodeURIComponent(escape(atob(b64))));
+    } catch (e) { return null; }
+  }
+
+  function storageGet(key) {
+    try { return JSON.parse(window.localStorage.getItem(key) || 'null'); } catch (e) { return null; }
+  }
+
+  function storageSet(key, value) {
+    try { window.localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* storage unavailable */ }
+  }
+
+  /* --------------------------------------------------------- simulator */
+
+  function Simulator(root) {
+    this.root = root;
+    var configEl = root.querySelector('[data-simulator-config]');
+    this.config = JSON.parse(configEl.textContent);
+    this.uid = 'sim' + (root.getAttribute('data-section-id') || Math.random().toString(36).slice(2)).replace(/[^a-z0-9]/gi, '');
+    this.groups = {};
+    var self = this;
+    this.config.items.forEach(function (item) {
+      (self.groups[item.type] = self.groups[item.type] || []).push(item);
+    });
+    this.steps = STEPS.filter(function (step) {
+      return step.groups.some(function (g) { return self.hasGroup(g); });
+    });
+    this.view = 'front';
+    this.stepIndex = 0;
+    this.seasonFilter = 'all-filter';
+    this.state = this.loadState();
+    this.bind();
+    this.renderStepsNav();
+    this.renderStep();
+    this.update();
+  }
+
+  Simulator.prototype.hasGroup = function (g) {
+    if (g === 'threePiece') return this.config.threePiecePrice > 0;
+    return (this.groups[g] || []).length > 0;
+  };
+
+  Simulator.prototype.find = function (group, id) {
+    var list = this.groups[group] || [];
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+    return null;
+  };
+
+  Simulator.prototype.defaults = function () {
+    var self = this;
+    var state = { extras: {}, threePiece: false };
+    SINGLE_GROUPS.forEach(function (g) {
+      var list = self.groups[g] || [];
+      var picked = list.filter(function (i) { return i.isDefault; })[0] || list[0];
+      state[g] = picked ? picked.id : null;
+    });
+    (this.groups.extra || []).forEach(function (x) {
+      if (x.isDefault) state.extras[x.id] = x.needsText ? '' : true;
+    });
+    return state;
+  };
+
+  Simulator.prototype.sanitize = function (raw) {
+    var self = this;
+    var state = this.defaults();
+    if (!raw || typeof raw !== 'object') return state;
+    SINGLE_GROUPS.forEach(function (g) {
+      if (raw[g] && self.find(g, raw[g])) state[g] = raw[g];
+    });
+    state.threePiece = !!raw.threePiece && this.hasGroup('threePiece');
+    if (raw.extras && typeof raw.extras === 'object') {
+      state.extras = {};
+      Object.keys(raw.extras).forEach(function (id) {
+        var x = self.find('extra', id);
+        if (x) state.extras[id] = x.needsText ? String(raw.extras[id] === true ? '' : raw.extras[id]).slice(0, 40) : true;
+      });
+    }
+    return state;
+  };
+
+  Simulator.prototype.loadState = function () {
+    var match = window.location.hash.match(/sim=([A-Za-z0-9_-]+)/);
+    if (match) {
+      var fromHash = decodeState(match[1]);
+      if (fromHash) {
+        this.openSummaryOnLoad = true;
+        return this.sanitize(fromHash);
+      }
+    }
+    return this.sanitize(storageGet(this.config.storageKey));
+  };
+
+  Simulator.prototype.bind = function () {
+    var self = this;
+    var root = this.root;
+    this.$ = {
+      preview: root.querySelector('[data-preview]'),
+      caption: root.querySelector('[data-fabric-caption]'),
+      total: root.querySelector('[data-total]'),
+      nav: root.querySelector('[data-steps-nav]'),
+      body: root.querySelector('[data-step-body]'),
+      prev: root.querySelector('[data-prev]'),
+      next: root.querySelector('[data-next]'),
+      summary: root.querySelector('[data-summary]'),
+      spec: root.querySelector('[data-spec]'),
+      breakdown: root.querySelector('[data-breakdown]'),
+      formSpec: root.querySelector('[data-form-spec]'),
+      formTotal: root.querySelector('[data-form-total]'),
+      pairing: root.querySelector('[data-pairing]'),
+      pairingComment: root.querySelector('[data-pairing-comment]')
+    };
+
+    root.querySelectorAll('[data-view]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        self.view = btn.getAttribute('data-view');
+        root.querySelectorAll('[data-view]').forEach(function (b) {
+          var on = b === btn;
+          b.classList.toggle('is-active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        self.renderPreview();
+      });
+    });
+
+    this.$.prev.addEventListener('click', function () { self.goStep(self.stepIndex - 1); });
+    this.$.next.addEventListener('click', function () {
+      if (self.stepIndex >= self.steps.length - 1) self.openSummary();
+      else self.goStep(self.stepIndex + 1);
+    });
+    root.querySelectorAll('[data-go-summary]').forEach(function (b) {
+      b.addEventListener('click', function () { self.openSummary(); });
+    });
+
+    var copyBtn = root.querySelector('[data-copy-link]');
+    if (copyBtn) copyBtn.addEventListener('click', function () { self.copyLink(copyBtn); });
+
+    var resetBtn = root.querySelector('[data-reset]');
+    if (resetBtn) resetBtn.addEventListener('click', function () {
+      self.state = self.defaults();
+      self.stepIndex = 0;
+      self.renderStepsNav();
+      self.renderStep();
+      self.update();
+      root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    var depositBtn = root.querySelector('[data-add-deposit]');
+    if (depositBtn) depositBtn.addEventListener('click', function () { self.addDeposit(depositBtn); });
+
+    var today = new Date();
+    var iso = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    root.querySelectorAll('[data-min-today]').forEach(function (input) { input.min = iso; });
+
+    if (this.openSummaryOnLoad || root.querySelector('.form-message')) {
+      setTimeout(function () { self.openSummary(true); }, 0);
+    }
+  };
+
+  /* ------------------------------------------------------------ steps */
+
+  Simulator.prototype.renderStepsNav = function () {
+    var self = this;
+    var nav = this.$.nav;
+    nav.innerHTML = '';
+    this.steps.forEach(function (step, i) {
+      var btn = el('button', {
+        type: 'button',
+        role: 'tab',
+        class: 'sim-steps__btn',
+        'aria-selected': i === self.stepIndex ? 'true' : 'false'
+      }, [el('span', { class: 'sim-steps__num', text: String(i + 1) }), el('span', { text: step.label })]);
+      btn.addEventListener('click', function () { self.goStep(i); });
+      nav.appendChild(el('li', { class: 'sim-steps__item' + (i === self.stepIndex ? ' is-active' : '') + (i < self.stepIndex ? ' is-done' : '') }, [btn]));
+    });
+    this.$.prev.disabled = this.stepIndex === 0;
+    this.$.next.textContent = this.stepIndex >= this.steps.length - 1 ? '見積もりを確認' : '次へ';
+  };
+
+  Simulator.prototype.goStep = function (i) {
+    if (i < 0 || i >= this.steps.length) return;
+    this.stepIndex = i;
+    this.renderStepsNav();
+    this.renderStep();
+    var top = this.$.nav.getBoundingClientRect().top;
+    if (top < 0 || top > window.innerHeight * 0.6) {
+      this.$.nav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  Simulator.prototype.renderStep = function () {
+    var self = this;
+    var body = this.$.body;
+    body.innerHTML = '';
+    var step = this.steps[this.stepIndex];
+    if (!step) return;
+    step.groups.forEach(function (g) {
+      if (!self.hasGroup(g)) return;
+      if (g === 'fabric') body.appendChild(self.renderFabricGroup());
+      else if (g === 'extra') body.appendChild(self.renderExtras());
+      else if (g === 'threePiece') body.appendChild(self.renderThreePiece());
+      else body.appendChild(self.renderOptionGroup(g));
+    });
+  };
+
+  Simulator.prototype.priceLabel = function (price, standardText) {
+    if (!price) return standardText || '標準';
+    return (price > 0 ? '+' : '−') + formatMoney(Math.abs(price), this.config.moneyFormat);
+  };
+
+  Simulator.prototype.select = function (group, id) {
+    this.state[group] = id;
+    this.update();
+    var inputs = this.$.body.querySelectorAll('input[name="' + this.uid + '-' + group + '"]');
+    inputs.forEach(function (input) {
+      input.closest('.sim-option').classList.toggle('is-selected', input.checked);
+    });
+  };
+
+  Simulator.prototype.renderFabricGroup = function () {
+    var self = this;
+    var fabrics = this.groups.fabric;
+    var fieldset = el('fieldset', { class: 'sim-group' }, [el('legend', { class: 'sim-group__title', text: GROUP_LABELS.fabric })]);
+
+    var seasons = [];
+    fabrics.forEach(function (f) { if (f.season && seasons.indexOf(f.season) === -1) seasons.push(f.season); });
+    if (seasons.length > 1) {
+      var filters = el('div', { class: 'sim-filters', role: 'group', 'aria-label': 'シーズンで絞り込む' });
+      [['all-filter', 'すべて']].concat(seasons.map(function (s) { return [s, SEASON_LABELS[s] || s]; })).forEach(function (pair) {
+        var b = el('button', { type: 'button', class: 'sim-chip' + (self.seasonFilter === pair[0] ? ' is-active' : ''), 'aria-pressed': self.seasonFilter === pair[0] ? 'true' : 'false', text: pair[1] });
+        b.addEventListener('click', function () {
+          self.seasonFilter = pair[0];
+          self.renderStep();
+        });
+        filters.appendChild(b);
+      });
+      fieldset.appendChild(filters);
+    }
+
+    var grid = el('div', { class: 'sim-fabrics' });
+    fabrics.forEach(function (f) {
+      if (self.seasonFilter !== 'all-filter' && f.season !== self.seasonFilter && f.season !== 'all') return;
+      var checked = self.state.fabric === f.id;
+      var input = el('input', { type: 'radio', name: self.uid + '-fabric', value: f.id, class: 'visually-hidden', checked: checked });
+      input.addEventListener('change', function () { self.select('fabric', f.id); });
+      var swatch = el('span', { class: 'sim-fabric__swatch' });
+      swatch.appendChild(self.swatchSvg(f, 'sw-' + f.id));
+      var meta = [f.mill, SEASON_LABELS[f.season]].filter(Boolean).join(' ・ ');
+      grid.appendChild(el('label', { class: 'sim-option sim-fabric' + (checked ? ' is-selected' : '') }, [
+        input,
+        swatch,
+        el('span', { class: 'sim-fabric__body' }, [
+          el('span', { class: 'sim-fabric__name', text: f.name }),
+          meta ? el('span', { class: 'sim-fabric__meta', text: meta }) : null,
+          el('span', { class: 'sim-fabric__price', text: formatMoney(f.price, self.config.moneyFormat) + '〜' })
+        ])
+      ]));
+    });
+    fieldset.appendChild(grid);
+    return fieldset;
+  };
+
+  Simulator.prototype.renderOptionGroup = function (group) {
+    var self = this;
+    var list = this.groups[group] || [];
+    var fieldset = el('fieldset', { class: 'sim-group' }, [el('legend', { class: 'sim-group__title', text: GROUP_LABELS[group] || group })]);
+    var grid = el('div', { class: 'sim-options' + (group === 'button' || group === 'lining' || group === 'tie' ? ' sim-options--swatch' : '') });
+    list.forEach(function (item) {
+      var checked = self.state[group] === item.id;
+      var input = el('input', { type: 'radio', name: self.uid + '-' + group, value: item.id, class: 'visually-hidden', checked: checked });
+      input.addEventListener('change', function () { self.select(group, item.id); });
+
+      var visual = null;
+      if (group === 'button') {
+        visual = el('span', { class: 'sim-option__dot sim-option__dot--button', style: '--dot:' + (item.color || '#333') });
+      } else if (group === 'lining' || group === 'tie') {
+        visual = el('span', { class: 'sim-option__dot' });
+        visual.appendChild(self.swatchSvg(item, 'sw-' + item.id));
+      } else {
+        visual = self.optionIcon(group, item);
+      }
+
+      var title = item.name;
+      if (group === 'lapel' && item.width) title += '（' + item.width + 'cm）';
+      grid.appendChild(el('label', { class: 'sim-option' + (checked ? ' is-selected' : '') }, [
+        input,
+        visual,
+        el('span', { class: 'sim-option__body' }, [
+          el('span', { class: 'sim-option__name', text: title }),
+          group === 'tie' ? el('span', { class: 'sim-option__price', text: 'プレビュー用' }) : el('span', { class: 'sim-option__price', text: self.priceLabel(item.price) }),
+          item.description ? el('span', { class: 'sim-option__desc', text: item.description }) : null
+        ])
+      ]));
+    });
+    fieldset.appendChild(grid);
+    return fieldset;
+  };
+
+  Simulator.prototype.renderThreePiece = function () {
+    var self = this;
+    var fieldset = el('fieldset', { class: 'sim-group' }, [el('legend', { class: 'sim-group__title', text: 'スリーピース' })]);
+    var grid = el('div', { class: 'sim-options' });
+    [[false, 'ツーピース（上下）', '標準'], [true, 'スリーピース（ベスト付き）', this.priceLabel(this.config.threePiecePrice)]].forEach(function (opt) {
+      var checked = self.state.threePiece === opt[0];
+      var input = el('input', { type: 'radio', name: self.uid + '-three', class: 'visually-hidden', checked: checked });
+      input.addEventListener('change', function () {
+        self.state.threePiece = opt[0];
+        self.update();
+        grid.querySelectorAll('.sim-option').forEach(function (o) {
+          o.classList.toggle('is-selected', o.querySelector('input').checked);
+        });
+      });
+      grid.appendChild(el('label', { class: 'sim-option' + (checked ? ' is-selected' : '') }, [
+        input,
+        el('span', { class: 'sim-option__body' }, [
+          el('span', { class: 'sim-option__name', text: opt[1] }),
+          el('span', { class: 'sim-option__price', text: opt[2] })
+        ])
+      ]));
+    });
+    fieldset.appendChild(grid);
+    return fieldset;
+  };
+
+  Simulator.prototype.renderExtras = function () {
+    var self = this;
+    var fieldset = el('fieldset', { class: 'sim-group' }, [el('legend', { class: 'sim-group__title', text: GROUP_LABELS.extra })]);
+    var grid = el('div', { class: 'sim-options sim-options--list' });
+    this.groups.extra.forEach(function (x) {
+      var on = Object.prototype.hasOwnProperty.call(self.state.extras, x.id);
+      var input = el('input', { type: 'checkbox', class: 'sim-check', checked: on });
+      var textInput = null;
+      if (x.needsText) {
+        textInput = el('input', { type: 'text', class: 'sim-text', maxlength: '20', placeholder: '例）K.TANAKA', value: on ? self.state.extras[x.id] : '', 'aria-label': x.name + 'の内容' });
+        textInput.disabled = !on;
+        textInput.addEventListener('input', function () {
+          self.state.extras[x.id] = textInput.value;
+          self.update();
+        });
+      }
+      input.addEventListener('change', function () {
+        if (input.checked) self.state.extras[x.id] = x.needsText ? (textInput ? textInput.value : '') : true;
+        else delete self.state.extras[x.id];
+        if (textInput) {
+          textInput.disabled = !input.checked;
+          if (input.checked) textInput.focus();
+        }
+        label.classList.toggle('is-selected', input.checked);
+        self.update();
+      });
+      var label = el('label', { class: 'sim-option sim-option--check' + (on ? ' is-selected' : '') }, [
+        input,
+        el('span', { class: 'sim-option__body' }, [
+          el('span', { class: 'sim-option__name', text: x.name }),
+          el('span', { class: 'sim-option__price', text: self.priceLabel(x.price, '無料') }),
+          x.description ? el('span', { class: 'sim-option__desc', text: x.description }) : null
+        ])
+      ]);
+      var wrap = el('div', { class: 'sim-extra' }, [label, textInput]);
+      grid.appendChild(wrap);
+    });
+    fieldset.appendChild(grid);
+    return fieldset;
+  };
+
+  /* small line icons for option cards */
+  Simulator.prototype.optionIcon = function (group, item) {
+    var s = svg('svg', { viewBox: '0 0 48 48', class: 'sim-option__icon', 'aria-hidden': 'true' });
+    var stroke = { fill: 'none', stroke: 'currentColor', 'stroke-width': '1.6', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' };
+    function p(d) { s.appendChild(svg('path', Object.assign({ d: d }, stroke))); }
+    function c(x, y) { s.appendChild(svg('circle', { cx: x, cy: y, r: 2.2, fill: 'currentColor' })); }
+    var k = item.key;
+    if (group === 'style') {
+      p('M14 6 L24 30 L34 6');
+      if (k === 'db6' || k === 'db4') {
+        p('M18 30 V44');
+        c(19, 32); c(29, 32); c(19, 39); c(29, 39);
+        if (k === 'db6') { c(17, 25); c(31, 25); }
+      } else {
+        p('M24 30 V44');
+        if (k === 'sb1') c(24, 34);
+        else { c(24, 33); c(24, 41); if (k === 'sb3') c(24, 25); }
+      }
+    } else if (group === 'lapel') {
+      if (k === 'peak') p('M30 44 L18 20 L10 8 L22 14 L26 10 L30 4');
+      else if (k === 'shawl') p('M30 44 C16 30 12 16 22 4');
+      else p('M30 44 L16 20 L14 12 L22 13 L22 8 L28 4');
+    } else if (group === 'pocket') {
+      if (k === 'patch') p('M10 14 H38 V38 Q38 42 34 42 H14 Q10 42 10 38 Z');
+      else if (k === 'jetted') { p('M8 22 H40'); p('M8 26 H40'); }
+      else if (k === 'slant') p('M8 26 L40 18 L41 24 L9 32 Z');
+      else {
+        p('M8 24 H40 V32 H8 Z');
+        if (k === 'flap_ticket') p('M10 12 H34 V18 H10 Z');
+      }
+    } else if (group === 'vent') {
+      p('M8 6 H40 V42 H8 Z');
+      if (k === 'center') p('M24 26 V42');
+      if (k === 'side') { p('M13 28 V42'); p('M35 28 V42'); }
+    } else if (group === 'pleat') {
+      p('M10 6 H38 L36 44 H12 Z');
+      if (k === 'one' || k === 'two') p('M18 6 V16');
+      if (k === 'two') p('M23 6 V13');
+      p('M24 6 V12');
+    } else if (group === 'hem') {
+      p('M14 4 L12 40 H36 L34 4');
+      if (k === 'double') p('M12 34 H36');
+    } else {
+      p('M10 24 H38');
+    }
+    return s;
+  };
+
+  /* ------------------------------------------------------ pricing */
+
+  Simulator.prototype.lines = function () {
+    var self = this;
+    var st = this.state;
+    var rows = [];
+    var fabric = this.find('fabric', st.fabric);
+    if (fabric) rows.push({ label: '生地', priceLabel: 'スーツ本体（上下）', value: fabric.name, price: fabric.price });
+    ['style', 'lapel', 'pocket', 'vent', 'button', 'lining', 'pleat', 'hem'].forEach(function (g) {
+      var item = self.find(g, st[g]);
+      if (!item) return;
+      var value = item.name + (g === 'lapel' && item.width ? '（' + item.width + 'cm）' : '');
+      rows.push({ label: GROUP_LABELS[g], value: value, price: item.price || 0 });
+    });
+    if (this.hasGroup('threePiece')) {
+      rows.push({ label: 'ベスト', value: st.threePiece ? 'スリーピース（ベスト付き）' : 'なし', price: st.threePiece ? this.config.threePiecePrice : 0 });
+    }
+    Object.keys(st.extras).forEach(function (id) {
+      var x = self.find('extra', id);
+      if (!x) return;
+      var v = x.needsText ? (st.extras[id] ? '「' + st.extras[id] + '」' : '（内容は来店時に）') : 'あり';
+      rows.push({ label: x.name, value: v, price: x.price || 0, extra: true });
+    });
+    return rows;
+  };
+
+  Simulator.prototype.total = function () {
+    return this.lines().reduce(function (sum, r) { return sum + (r.price || 0); }, 0);
+  };
+
+  Simulator.prototype.specText = function () {
+    var self = this;
+    var tie = this.find('tie', this.state.tie);
+    var text = this.lines().map(function (r) {
+      return r.label + '：' + r.value + (r.price ? '（' + self.priceLabel(r.price) + '）' : '');
+    });
+    if (tie) text.push('Vゾーン（プレビュー）：' + tie.name);
+    text.push('概算合計：' + formatMoney(this.total(), this.config.moneyFormat));
+    text.push('シミュレーション URL：' + this.shareUrl());
+    return text.join('\n');
+  };
+
+  Simulator.prototype.shareUrl = function () {
+    return window.location.href.split('#')[0] + '#sim=' + encodeState(this.state);
+  };
+
+  /* ------------------------------------------------------- update */
+
+  Simulator.prototype.update = function () {
+    storageSet(this.config.storageKey, this.state);
+    this.renderPreview();
+    var total = formatMoney(this.total(), this.config.moneyFormat);
+    this.$.total.textContent = total;
+    this.renderSummary(total);
+    this.renderPairing();
+  };
+
+  Simulator.prototype.renderSummary = function (totalText) {
+    var self = this;
+    var spec = this.$.spec;
+    spec.innerHTML = '';
+    var tie = this.find('tie', this.state.tie);
+    this.lines().forEach(function (r) {
+      spec.appendChild(el('div', { class: 'sim-spec__row' }, [el('dt', { text: r.label }), el('dd', { text: r.value })]));
+    });
+    if (tie) spec.appendChild(el('div', { class: 'sim-spec__row' }, [el('dt', { text: 'Vゾーン' }), el('dd', { text: tie.name + '（別売）' })]));
+
+    var table = this.$.breakdown;
+    table.innerHTML = '';
+    var tbody = el('tbody');
+    this.lines().forEach(function (r, i) {
+      if (!r.price) return;
+      var text = i === 0 ? formatMoney(r.price, self.config.moneyFormat) : self.priceLabel(r.price);
+      tbody.appendChild(el('tr', null, [el('th', { scope: 'row', text: r.priceLabel || r.label }), el('td', { text: text })]));
+    });
+    table.appendChild(tbody);
+    table.appendChild(el('tfoot', null, [el('tr', null, [el('th', { scope: 'row', text: '概算合計（税込）' }), el('td', { text: totalText })])]));
+
+    if (this.$.formSpec) this.$.formSpec.value = this.specText();
+    if (this.$.formTotal) this.$.formTotal.value = totalText;
+  };
+
+  Simulator.prototype.renderPairing = function () {
+    var wrap = this.$.pairing;
+    if (!wrap) return;
+    var fabric = this.find('fabric', this.state.fabric);
+    var any = false;
+    var fabricGrid = fabric ? wrap.querySelector('[data-pairing-for="' + fabric.id + '"]') : null;
+    var fallback = wrap.querySelector('[data-pairing-for="fallback"]');
+    wrap.querySelectorAll('[data-pairing-for]').forEach(function (g) { g.hidden = true; });
+    if (fabricGrid) { fabricGrid.hidden = false; any = true; }
+    else if (fallback) { fallback.hidden = false; any = true; }
+    var tieId = this.state.tie;
+    wrap.querySelectorAll('[data-tie-product-for]').forEach(function (g) {
+      var on = g.getAttribute('data-tie-product-for') === tieId;
+      g.hidden = !on;
+      if (on) any = true;
+    });
+    if (this.$.pairingComment) this.$.pairingComment.textContent = fabric && fabric.comment ? fabric.comment : '';
+    wrap.hidden = !any;
+  };
+
+  Simulator.prototype.openSummary = function (instant) {
+    var s = this.$.summary;
+    s.hidden = false;
+    this.renderSummary(formatMoney(this.total(), this.config.moneyFormat));
+    s.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' });
+    s.focus({ preventScroll: true });
+  };
+
+  Simulator.prototype.copyLink = function (btn) {
+    var url = this.shareUrl();
+    var original = btn.textContent;
+    function done() {
+      btn.textContent = 'コピーしました';
+      setTimeout(function () { btn.textContent = original; }, 2000);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done, function () { window.prompt('このリンクをコピーしてください', url); });
+    } else {
+      window.prompt('このリンクをコピーしてください', url);
+    }
+  };
+
+  Simulator.prototype.addDeposit = function (btn) {
+    var self = this;
+    var properties = {};
+    this.lines().forEach(function (r) { properties[r.label] = r.value; });
+    properties['概算合計'] = formatMoney(this.total(), this.config.moneyFormat);
+    properties['_シミュレーション URL'] = this.shareUrl();
+    btn.disabled = true;
+    var addUrl = (window.routes && window.routes.cart_add_url ? window.routes.cart_add_url : '/cart/add') + '.js';
+    fetch(addUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ items: [{ id: Number(btn.getAttribute('data-variant-id')), quantity: 1, properties: properties }] })
+    })
+      .then(function (res) { if (!res.ok) throw new Error('add failed'); return res.json(); })
+      .then(function () {
+        document.dispatchEvent(new CustomEvent('theme:cart:changed'));
+        window.location.href = (window.routes && window.routes.cart_url) || '/cart';
+      })
+      .catch(function () {
+        btn.disabled = false;
+        window.alert((window.themeStrings && window.themeStrings.addError) || 'カートに追加できませんでした。');
+      })
+      .finally(function () { self.lastAdd = Date.now(); });
+  };
+
+  /* ------------------------------------------------------ drawing */
+
+  Simulator.prototype.patternFor = function (id, item, scale) {
+    scale = scale || 1;
+    var base = item.color || '#2b3245';
+    var pc = item.patternColor || autoPatternColor(base);
+    var kind = item.pattern || 'solid';
+    var size = { solid: 6, pinstripe: 9, chalkstripe: 14, check: 30, glen: 24, herringbone: 8, birdseye: 4 }[kind] || 6;
+    size *= scale;
+    var pat = svg('pattern', { id: id, patternUnits: 'userSpaceOnUse', width: size, height: size });
+
+    if (item.image) {
+      var imgSize = 60 * scale;
+      pat.setAttribute('width', imgSize);
+      pat.setAttribute('height', imgSize);
+      pat.appendChild(svg('rect', { width: imgSize, height: imgSize, fill: base }));
+      pat.appendChild(svg('image', { href: item.image, width: imgSize, height: imgSize, preserveAspectRatio: 'xMidYMid slice' }));
+      return pat;
+    }
+
+    pat.appendChild(svg('rect', { width: size, height: size, fill: base }));
+    function line(x1, y1, x2, y2, w, op, color) {
+      pat.appendChild(svg('line', { x1: x1, y1: y1, x2: x2, y2: y2, stroke: color || pc, 'stroke-width': w * scale, 'stroke-opacity': op, 'stroke-linecap': 'square' }));
+    }
+    // twill texture on every fabric
+    line(0, size, size, 0, 0.5, 0.08, luminance(base) < 0.45 ? '#ffffff' : '#000000');
+
+    switch (kind) {
+      case 'pinstripe':
+        line(size / 2, 0, size / 2, size, 0.45, 0.85);
+        break;
+      case 'chalkstripe':
+        line(size / 2, 0, size / 2, size, 1.4, 0.45);
+        break;
+      case 'check':
+        line(0, size / 2, size, size / 2, 0.6, 0.7);
+        line(size / 2, 0, size / 2, size, 0.6, 0.7);
+        break;
+      case 'glen':
+        for (var i = 0; i < 4; i++) {
+          line((i + 0.5) * size / 8, 0, (i + 0.5) * size / 8, size / 2, 0.35, 0.55);
+          line(size / 2, (i + 0.5) * size / 8 + size / 2, size, (i + 0.5) * size / 8 + size / 2, 0.35, 0.55);
+        }
+        line(0, size * 0.9, size, size * 0.9, 0.5, 0.75, mix(pc, '#b06a4a', 0.35));
+        break;
+      case 'herringbone':
+        pat.appendChild(svg('path', {
+          d: 'M0 0 L' + size / 2 + ' ' + size / 2 + ' L0 ' + size + ' M' + size / 2 + ' 0 L' + size + ' ' + size / 2 + ' L' + size / 2 + ' ' + size,
+          fill: 'none', stroke: pc, 'stroke-width': 0.6 * scale, 'stroke-opacity': 0.45
+        }));
+        break;
+      case 'birdseye':
+        pat.appendChild(svg('circle', { cx: size / 2, cy: size / 2, r: 0.55 * scale, fill: pc, 'fill-opacity': 0.7 }));
+        break;
+      default:
+        break;
+    }
+    return pat;
+  };
+
+  Simulator.prototype.swatchSvg = function (item, id) {
+    var pid = this.uid + '-' + id.replace(/[^a-z0-9-]/gi, '');
+    var s = svg('svg', { viewBox: '0 0 40 40', 'aria-hidden': 'true' });
+    s.appendChild(svg('defs', null, [this.patternFor(pid, item, 0.8)]));
+    s.appendChild(svg('rect', { width: 40, height: 40, fill: 'url(#' + pid + ')' }));
+    return s;
+  };
+
+  function lapelPoints(top, bottom, side, width, kind) {
+    var dx = bottom[0] - top[0];
+    var dy = bottom[1] - top[1];
+    var len = Math.sqrt(dx * dx + dy * dy);
+    var ux = dx / len;
+    var uy = dy / len;
+    var nx = -uy;
+    var ny = ux;
+    if ((side === 'left' && nx > 0) || (side === 'right' && nx < 0)) { nx = -nx; ny = -ny; }
+    var W = width * 2.5;
+    function P(s, o) { return [top[0] + dx * s + nx * W * o, top[1] + dy * s + ny * W * o]; }
+    var shapes = {
+      notch: [P(1, 0), P(0.64, 0.72), P(0.4, 1), P(0.24, 1.08), P(0.235, 0.6), P(0.17, 0.92), P(0.03, 0.58), P(0, 0)],
+      peak: [P(1, 0), P(0.62, 0.74), P(0.38, 1.04), P(0.16, 1.42), P(0.23, 0.66), P(0.19, 0.6), P(0.03, 0.5), P(0, 0)],
+      shawl: [P(1, 0), P(0.66, 0.66), P(0.42, 0.98), P(0.22, 0.95), P(0.08, 0.7), P(0, 0)]
+    };
+    return { points: shapes[kind] || shapes.notch, P: P };
+  }
+
+  function smoothPath(points) {
+    var d = 'M' + points[0].join(' ');
+    for (var i = 1; i < points.length - 1; i++) {
+      var mid = [(points[i][0] + points[i + 1][0]) / 2, (points[i][1] + points[i + 1][1]) / 2];
+      d += ' Q' + points[i].join(' ') + ' ' + mid.join(' ');
+    }
+    d += ' L' + points[points.length - 1].join(' ') + ' Z';
+    return d;
+  }
+
+  function polyPath(points, curveFirst) {
+    var d = 'M' + points[0].join(' ');
+    if (curveFirst) {
+      var a = points[0];
+      var b = points[1];
+      var ctrl = [(a[0] + b[0]) / 2 + (b[0] < a[0] ? -2 : 2), (a[1] + b[1]) / 2 + 4];
+      d += ' Q' + ctrl.join(' ') + ' ' + b.join(' ');
+      for (var i = 2; i < points.length; i++) d += ' L' + points[i].join(' ');
+    } else {
+      for (var j = 1; j < points.length; j++) d += ' L' + points[j].join(' ');
+    }
+    return d + ' Z';
+  }
+
+  // Mirror an absolute-command path horizontally around x = 150.
+  function mirrorPath(d) {
+    var out = [];
+    var tokens = d.match(/[A-Za-z]|-?\d*\.?\d+/g) || [];
+    var cmd = '';
+    var argIndex = 0;
+    tokens.forEach(function (t) {
+      if (/[A-Za-z]/.test(t)) {
+        cmd = t;
+        argIndex = 0;
+        out.push(t);
+        return;
+      }
+      var n = parseFloat(t);
+      var isX = cmd === 'H' || (cmd !== 'V' && argIndex % 2 === 0);
+      out.push(String(isX ? 300 - n : n));
+      argIndex++;
+    });
+    return out.join(' ');
+  }
+
+  Simulator.prototype.renderPreview = function () {
+    var st = this.state;
+    var fabric = this.find('fabric', st.fabric) || { color: '#2b3245', pattern: 'solid' };
+    var style = this.find('style', st.style) || { key: 'sb2' };
+    var lapel = this.find('lapel', st.lapel) || { key: 'notch', width: 8.5 };
+    var pocket = this.find('pocket', st.pocket) || { key: 'flap' };
+    var vent = this.find('vent', st.vent) || { key: 'side' };
+    var button = this.find('button', st.button) || { color: '#3a2a20' };
+    var lining = this.find('lining', st.lining);
+    var pleat = this.find('pleat', st.pleat) || { key: 'none' };
+    var hem = this.find('hem', st.hem) || { key: 'single' };
+    var tie = this.find('tie', st.tie);
+    var geo = STYLE_GEOMETRY[style.key] || STYLE_GEOMETRY.sb2;
+
+    var u = this.uid;
+    var fab = 'url(#' + u + '-fab)';
+    var seam = { fill: 'none', stroke: 'rgba(0,0,0,0.38)', 'stroke-width': 0.9, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
+    var hi = { fill: 'none', stroke: 'rgba(255,255,255,0.12)', 'stroke-width': 0.8 };
+    var fabricDark = mix(fabric.color || '#2b3245', '#000000', 0.25);
+
+    var root = svg('svg', { viewBox: '0 0 300 452', class: 'sim-svg', role: 'img', 'aria-label': 'スーツのプレビュー：' + (fabric.name || '') });
+    var defs = svg('defs');
+    defs.appendChild(this.patternFor(u + '-fab', fabric, 1));
+    if (tie) defs.appendChild(this.patternFor(u + '-tie', tie, 0.7));
+    if (lining) defs.appendChild(this.patternFor(u + '-lin', lining, 1));
+    var shade = svg('linearGradient', { id: u + '-shade', x1: '0', y1: '0', x2: '1', y2: '0' }, [
+      svg('stop', { offset: '0', 'stop-color': '#000', 'stop-opacity': '0.34' }),
+      svg('stop', { offset: '0.22', 'stop-color': '#000', 'stop-opacity': '0' }),
+      svg('stop', { offset: '0.5', 'stop-color': '#fff', 'stop-opacity': '0.07' }),
+      svg('stop', { offset: '0.78', 'stop-color': '#000', 'stop-opacity': '0' }),
+      svg('stop', { offset: '1', 'stop-color': '#000', 'stop-opacity': '0.34' })
+    ]);
+    var vshade = svg('linearGradient', { id: u + '-vshade', x1: '0', y1: '0', x2: '0', y2: '1' }, [
+      svg('stop', { offset: '0', 'stop-color': '#fff', 'stop-opacity': '0.06' }),
+      svg('stop', { offset: '1', 'stop-color': '#000', 'stop-opacity': '0.22' })
+    ]);
+    var floor = svg('radialGradient', { id: u + '-floor', cx: '0.5', cy: '0.5', r: '0.5' }, [
+      svg('stop', { offset: '0', 'stop-color': '#000', 'stop-opacity': '0.18' }),
+      svg('stop', { offset: '1', 'stop-color': '#000', 'stop-opacity': '0' })
+    ]);
+    defs.appendChild(shade);
+    defs.appendChild(vshade);
+    defs.appendChild(floor);
+    root.appendChild(defs);
+
+    function add(tag, attrs) { var n = svg(tag, attrs); root.appendChild(n); return n; }
+    function shaded(d, gradient) {
+      add('path', { d: d, fill: fab });
+      add('path', { d: d, fill: 'url(#' + u + '-' + (gradient || 'shade') + ')' });
+      add('path', Object.assign({ d: d }, seam));
+    }
+
+    var front = this.view === 'front';
+
+    // floor shadow + dress form neck
+    add('ellipse', { cx: 150, cy: 444, rx: 90, ry: 7, fill: 'url(#' + u + '-floor)' });
+    add('path', { d: 'M134 34 V14 Q134 6 150 6 Q166 6 166 14 V34 Z', fill: '#d6c7b0' });
+    add('path', { d: 'M134 14 Q150 20 166 14', fill: 'none', stroke: 'rgba(0,0,0,0.12)', 'stroke-width': 1 });
+
+    // trousers
+    var legL = 'M80 296 L148 296 L144 432 L98 432 Z';
+    var legR = mirrorPath(legL);
+    var hemDouble = hem.key === 'double';
+    shaded(legL, 'vshade');
+    shaded(legR, 'vshade');
+    add('path', Object.assign({ d: 'M114 306 L121 430' }, hi));
+    add('path', Object.assign({ d: mirrorPath('M114 306 L121 430') }, hi));
+    if (front) {
+      add('path', Object.assign({ d: 'M150 300 Q151 328 145 338' }, seam));
+      if (pleat.key === 'one' || pleat.key === 'two') {
+        add('path', Object.assign({ d: 'M127 302 L128 326' }, seam));
+        add('path', Object.assign({ d: mirrorPath('M127 302 L128 326') }, seam));
+      }
+      if (pleat.key === 'two') {
+        add('path', Object.assign({ d: 'M137 302 L137.5 318' }, seam));
+        add('path', Object.assign({ d: mirrorPath('M137 302 L137.5 318') }, seam));
+      }
+    } else {
+      add('path', Object.assign({ d: 'M150 300 V340' }, seam));
+      add('path', Object.assign({ d: 'M102 318 H126' }, seam));
+      add('path', Object.assign({ d: mirrorPath('M102 318 H126') }, seam));
+    }
+    if (hemDouble) {
+      add('path', Object.assign({ d: 'M98.6 420 L144.6 420' }, seam));
+      add('path', Object.assign({ d: mirrorPath('M98.6 420 L144.6 420') }, seam));
+    }
+    // shoes
+    var shoe = 'M97 432 Q96 444 104 446 L142 446 Q147 445 145 432 Z';
+    add('path', { d: front ? 'M92 432 Q88 446 104 447 L140 447 Q148 446 145 432 Z' : shoe, fill: '#2e211a' });
+    add('path', { d: mirrorPath(front ? 'M92 432 Q88 446 104 447 L140 447 Q148 446 145 432 Z' : shoe), fill: '#2e211a' });
+
+    if (front) {
+      // shirt + collar
+      add('path', { d: 'M126 30 Q150 36 174 30 L180 46 L180 220 L120 220 L120 46 Z', fill: (tie && tie.shirtColor) || '#fbfbf8' });
+      add('path', { d: 'M126 30 L150 50 L136 64 Z M174 30 L150 50 L164 64 Z', fill: (tie && tie.shirtColor) || '#fbfbf8', stroke: 'rgba(0,0,0,0.18)', 'stroke-width': 0.8 });
+      if (tie) {
+        add('path', { d: 'M144 50 L156 50 L154.5 62 L145.5 62 Z', fill: 'url(#' + u + '-tie)', stroke: 'rgba(0,0,0,0.25)', 'stroke-width': 0.6 });
+        add('path', { d: 'M145.5 62 L154.5 62 L163 160 L150 176 L137 160 Z', fill: 'url(#' + u + '-tie)', stroke: 'rgba(0,0,0,0.25)', 'stroke-width': 0.6 });
+        add('path', { d: 'M145.5 62 L154.5 62 L150 70 Z', fill: 'rgba(0,0,0,0.18)' });
+      }
+      // waistcoat
+      if (st.threePiece) {
+        var vd = 'M124 32 Q150 38 176 32 L182 44 L182 250 L118 250 L118 44 Z M127 33 L150 122 L173 33 Z';
+        add('path', { d: vd, fill: fab, 'fill-rule': 'evenodd' });
+        add('path', { d: vd, fill: 'url(#' + u + '-shade)', 'fill-rule': 'evenodd' });
+        add('path', Object.assign({ d: 'M127 34 L150 122 L173 34' }, seam));
+        [134, 150, 166].forEach(function (y) {
+          add('circle', { cx: 150, cy: y, r: 2.4, fill: button.color || '#3a2a20' });
+        });
+      }
+    }
+
+    // sleeves
+    var sleeveL = 'M66 62 C50 68 44 96 42 140 L36 296 L60 300 L69 170 Z';
+    shaded(sleeveL, 'vshade');
+    shaded(mirrorPath(sleeveL), 'vshade');
+    var cuff = [[41, 284], [45.5, 286], [50, 288], [54.5, 290]];
+    cuff.forEach(function (c) {
+      add('circle', { cx: c[0], cy: c[1], r: 1.7, fill: button.color || '#3a2a20' });
+      add('circle', { cx: 300 - c[0], cy: c[1], r: 1.7, fill: button.color || '#3a2a20' });
+    });
+
+    if (front) {
+      var vY = geo.vY;
+      var cx = geo.cx;
+      var hemY = 304;
+      var body;
+      if (geo.double) {
+        body = 'M122 36 L94 46 L66 62 C60 120 61 210 66 300 Q150 314 234 300 C239 210 240 120 234 62 L206 46 L178 36 L' + cx + ' ' + vY + ' Z';
+      } else {
+        body = 'M122 36 L94 46 L66 62 C60 120 61 210 66 300 Q100 306 132 310 Q147 302 150 286 Q153 302 168 310 Q200 306 234 300 C239 210 240 120 234 62 L206 46 L178 36 L150 ' + vY + ' Z';
+      }
+      shaded(body);
+      // front edge
+      if (geo.double) add('path', Object.assign({ d: 'M' + cx + ' ' + vY + ' L' + cx + ' 311' }, seam));
+      else add('path', Object.assign({ d: 'M150 ' + vY + ' L150 286' }, seam));
+      // darts
+      add('path', Object.assign({ d: 'M108 150 Q106 196 107 232' }, seam, { stroke: 'rgba(0,0,0,0.18)' }));
+      add('path', Object.assign({ d: mirrorPath('M108 150 Q106 196 107 232') }, seam, { stroke: 'rgba(0,0,0,0.18)' }));
+
+      // lapels
+      var width = lapel.width || 8.5;
+      var kind = lapel.key || 'notch';
+      var left = lapelPoints([130, 31], [cx, vY], 'left', width, kind);
+      var right = lapelPoints([170, 31], [cx, vY], 'right', width, kind);
+      [left, right].forEach(function (lp) {
+        var d = kind === 'shawl' ? smoothPath(lp.points) : polyPath(lp.points, true);
+        add('path', { d: d, fill: fab });
+        add('path', { d: d, fill: 'rgba(255,255,255,0.05)' });
+        add('path', Object.assign({ d: d }, seam));
+      });
+      // boutonniere on wearer's left lapel
+      var bh = right.P(0.3, 0.55);
+      add('path', Object.assign({ d: 'M' + (bh[0] - 3) + ' ' + (bh[1] - 1) + ' L' + (bh[0] + 3) + ' ' + (bh[1] + 1) }, seam, { 'stroke-width': 1.2 }));
+      if (geo.rollHole) {
+        var rh = left.P(0.86, 0.38);
+        add('path', Object.assign({ d: 'M' + (rh[0] - 3) + ' ' + rh[1] + ' L' + (rh[0] + 3) + ' ' + rh[1] }, seam, { 'stroke-width': 1.2 }));
+      }
+
+      // pockets
+      var pk = pocket.key || 'flap';
+      var chest = 'M180 124 L208 120 L208.6 125 L180.6 129 Z';
+      if (pk === 'patch') {
+        var patch = 'M74 228 H124 V276 Q124 282 118 282 H80 Q74 282 74 276 Z';
+        add('path', Object.assign({ d: patch }, seam));
+        add('path', Object.assign({ d: mirrorPath(patch) }, seam));
+        add('path', Object.assign({ d: 'M180 118 L206 115 L208 142 Q208 145 205 145 L184 147 Q181 147 181 144 Z' }, seam));
+      } else {
+        add('path', Object.assign({ d: chest }, seam));
+        if (pk === 'jetted') {
+          add('path', Object.assign({ d: 'M78 240 H122 M78 243 H122' }, seam));
+          add('path', Object.assign({ d: mirrorPath('M78 240 H122 M78 243 H122') }, seam));
+        } else if (pk === 'slant') {
+          var slant = 'M76 244 L120 236 L122 248 L78 256 Z';
+          add('path', { d: slant, fill: 'rgba(0,0,0,0.05)' });
+          add('path', Object.assign({ d: slant }, seam));
+          add('path', Object.assign({ d: mirrorPath(slant) }, seam));
+        } else {
+          var flap = 'M76 238 H122 V251 Q122 253 120 253 H78 Q76 253 76 251 Z';
+          add('path', { d: flap, fill: 'rgba(0,0,0,0.05)' });
+          add('path', Object.assign({ d: flap }, seam));
+          add('path', Object.assign({ d: mirrorPath(flap) }, seam));
+          if (pk === 'flap_ticket') {
+            var ticket = 'M80 218 H114 V227 Q114 229 112 229 H82 Q80 229 80 227 Z';
+            add('path', Object.assign({ d: ticket }, seam));
+          }
+        }
+      }
+
+      // buttons
+      geo.buttons.forEach(function (b) {
+        add('circle', { cx: b[0], cy: b[1], r: 4.2, fill: button.color || '#3a2a20' });
+        add('circle', { cx: b[0], cy: b[1], r: 4.2, fill: 'none', stroke: 'rgba(0,0,0,0.35)', 'stroke-width': 0.6 });
+        add('circle', { cx: b[0] - 1.2, cy: b[1] - 1.2, r: 1.2, fill: 'rgba(255,255,255,0.25)' });
+      });
+    } else {
+      // back view
+      var back = 'M110 34 Q150 42 190 34 L206 44 L234 62 C239 120 240 210 234 300 Q150 312 66 300 C61 210 60 120 66 62 L94 44 Z';
+      shaded(back);
+      var collar = 'M110 34 Q150 42 190 34 L188 46 Q150 54 112 46 Z';
+      add('path', { d: collar, fill: fab });
+      add('path', { d: collar, fill: 'rgba(0,0,0,0.12)' });
+      add('path', Object.assign({ d: collar }, seam));
+      var ventTop = 248;
+      add('path', Object.assign({ d: 'M150 50 L150 ' + (vent.key === 'center' ? ventTop : 306) }, seam));
+      add('path', Object.assign({ d: 'M96 88 Q88 200 88 ' + (vent.key === 'side' ? ventTop : 303) }, seam));
+      add('path', Object.assign({ d: mirrorPath('M96 88 Q88 200 88 ' + (vent.key === 'side' ? ventTop : 303)) }, seam));
+      if (vent.key === 'center') {
+        add('path', { d: 'M150 248 L155 254 L155 306 L150 306 Z', fill: fabricDark, 'fill-opacity': 0.7 });
+        add('path', Object.assign({ d: 'M150 248 L155 254 L155 306' }, seam));
+      } else if (vent.key === 'side') {
+        add('path', { d: 'M88 248 L93 254 L93 303 L88 303 Z', fill: fabricDark, 'fill-opacity': 0.7 });
+        add('path', { d: mirrorPath('M88 248 L93 254 L93 303 L88 303 Z'), fill: fabricDark, 'fill-opacity': 0.7 });
+        add('path', Object.assign({ d: 'M88 248 L93 254 L93 303' }, seam));
+        add('path', Object.assign({ d: mirrorPath('M88 248 L93 254 L93 303') }, seam));
+      }
+    }
+
+    // lining inset
+    if (lining) {
+      var g = svg('g', { transform: 'translate(30 34)' });
+      g.appendChild(svg('circle', { r: 20, fill: 'url(#' + u + '-lin)', stroke: 'rgba(0,0,0,0.2)', 'stroke-width': 1 }));
+      var label = svg('text', { y: 34, 'text-anchor': 'middle', 'font-size': 9, fill: 'currentColor', 'letter-spacing': '0.08em' });
+      label.textContent = 'LINING';
+      g.appendChild(label);
+      root.appendChild(g);
+    }
+
+    this.$.preview.innerHTML = '';
+    this.$.preview.appendChild(root);
+
+    if (this.$.caption) {
+      var parts = [fabric.name, fabric.mill, fabric.composition].filter(Boolean);
+      this.$.caption.textContent = parts.join(' ／ ');
+    }
+  };
+
+  /* ---------------------------------------------------------- boot */
+
+  function init(scope) {
+    (scope || document).querySelectorAll('[data-suit-simulator]').forEach(function (root) {
+      if (root.__simulator) return;
+      try {
+        root.__simulator = new Simulator(root);
+      } catch (e) {
+        if (window.console) console.error('[suit-simulator]', e);
+      }
+    });
+  }
+
+  window.RoTailorSimulator = { init: init, formatMoney: formatMoney };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { init(); });
+  else init();
+
+  document.addEventListener('shopify:section:load', function (e) { init(e.target); });
+})();
+</script>
+</body>
+</html>

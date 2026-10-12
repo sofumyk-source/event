@@ -1,0 +1,49 @@
+<div class="container">
+  <header class="page-header">
+    <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+    <h1 class="section-title">{{ blog.title }}</h1>
+    {%- if section.settings.intro != blank -%}
+      <div class="section-intro rte" style="margin-inline:auto;">{{ section.settings.intro }}</div>
+    {%- endif -%}
+  </header>
+
+  {%- if blog.all_tags.size > 0 -%}
+    <nav class="tag-filter" aria-label="カテゴリ">
+      <a href="{{ blog.url }}"{% if current_tags == blank %} aria-current="page"{% endif %}>{{ 'blogs.all_posts' | t }}</a>
+      {%- for tag in blog.all_tags -%}
+        <a href="{{ blog.url }}/tagged/{{ tag | handleize }}"{% if current_tags contains tag %} aria-current="page"{% endif %}>{{ tag }}</a>
+      {%- endfor -%}
+    </nav>
+  {%- endif -%}
+
+  {%- paginate blog.articles by section.settings.per_page -%}
+    {%- if blog.articles.size > 0 -%}
+      <div class="post-grid">
+        {%- for article in blog.articles -%}
+          {% render 'article-card', article: article, show_excerpt: true %}
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <p style="text-align:center;">{{ 'blogs.empty' | t }}</p>
+    {%- endif -%}
+    {% render 'pagination', paginate: paginate %}
+  {%- endpaginate -%}
+</div>
+<div class="section"></div>
+
+{% schema %}
+{
+  "name": "ブログ一覧",
+  "class": "section-main-blog",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "JOURNAL" },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "導入文",
+      "default": "<p>着こなしのコツ、新しく入荷した小物、お手入れの方法、サロンの日々のこと。テイラーが綴ります。</p>"
+    },
+    { "type": "range", "id": "per_page", "label": "1ページの記事数", "min": 3, "max": 24, "step": 3, "default": 9 }
+  ]
+}
+{% endschema %}

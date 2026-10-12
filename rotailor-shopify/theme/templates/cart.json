@@ -1,0 +1,13 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-cart",
+      "settings": {
+        "show_note": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "settings": {
+        "height": "small",
+        "eyebrow": "ABOUT US",
+        "heading": "ROテイラーについて",
+        "text": "",
+        "button_1_label": "",
+        "button_2_label": ""
+      }
+    },
+    "story": {
+      "type": "brand-story",
+      "settings": {
+        "eyebrow": "OUR STORY",
+        "heading": "一着のスーツから、\n装い全体へ。",
+        "button_label": ""
+      },
+      "blocks": {
+        "pt-1": {
+          "type": "point",
+          "settings": {
+            "title": "お一人ずつ、型紙から",
+            "text": "採寸した寸法と体の癖から、お客様ごとに型紙を引いて仕立てます。"
+          }
+        },
+        "pt-2": {
+          "type": "point",
+          "settings": {
+            "title": "生地は、手に取って選ぶ",
+            "text": "国内外のミルから集めた生地見本を、サロンで実際に触れて選んでいただけます。"
+          }
+        },
+        "pt-3": {
+          "type": "point",
+          "settings": {
+            "title": "仕立てたあとも",
+            "text": "お直しやお手入れのご相談まで、長くお付き合いいただける一着を。"
+          }
+        }
+      },
+      "block_order": [
+        "pt-1",
+        "pt-2",
+        "pt-3"
+      ]
+    },
+    "main": {
+      "type": "main-page",
+      "settings": {}
+    },
+    "visit": {
+      "type": "store-visit",
+      "settings": {}
+    }
+  },
+  "order": [
+    "hero",
+    "story",
+    "main",
+    "visit"
+  ]
+}

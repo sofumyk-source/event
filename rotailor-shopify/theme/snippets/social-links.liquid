@@ -1,0 +1,11 @@
+{%- liquid
+  assign links = 'instagram,line,facebook,x' | split: ','
+-%}
+<ul class="social">
+  {%- for name in links -%}
+    {%- assign key = 'social_' | append: name -%}
+    {%- if settings[key] != blank -%}
+      <li><a href="{{ settings[key] }}" target="_blank" rel="noopener" aria-label="{{ name }}">{% render 'icon', name: name %}</a></li>
+    {%- endif -%}
+  {%- endfor -%}
+</ul>

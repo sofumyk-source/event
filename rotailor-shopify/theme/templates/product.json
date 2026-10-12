@@ -1,0 +1,71 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "settings": {},
+      "blocks": {
+        "vendor": {
+          "type": "vendor",
+          "settings": {}
+        },
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "price": {
+          "type": "price",
+          "settings": {}
+        },
+        "hint": {
+          "type": "suit_hint",
+          "settings": {
+            "prefix": "おすすめ："
+          }
+        },
+        "buy": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_quantity": true
+          }
+        },
+        "note": {
+          "type": "tailor_note",
+          "settings": {}
+        },
+        "desc": {
+          "type": "description",
+          "settings": {}
+        },
+        "specs": {
+          "type": "specs",
+          "settings": {}
+        },
+        "cta": {
+          "type": "store_cta",
+          "settings": {
+            "text": "サロンで実物をスーツに合わせてご覧いただけます。"
+          }
+        }
+      },
+      "block_order": [
+        "vendor",
+        "title",
+        "price",
+        "hint",
+        "buy",
+        "note",
+        "desc",
+        "specs",
+        "cta"
+      ]
+    },
+    "pairing": {
+      "type": "product-pairing",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main",
+    "pairing"
+  ]
+}

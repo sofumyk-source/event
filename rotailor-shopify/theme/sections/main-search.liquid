@@ -1,0 +1,43 @@
+<div class="container">
+  <header class="page-header">
+    <h1 class="section-title">{{ 'search.title' | t }}</h1>
+  </header>
+  <form action="{{ routes.search_url }}" method="get" role="search" class="search-form">
+    <input type="search" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'search.placeholder' | t }}" aria-label="{{ 'search.placeholder' | t }}">
+    <input type="hidden" name="options[prefix]" value="last">
+    <button type="submit" class="button button--primary">{{ 'search.submit' | t }}</button>
+  </form>
+
+  {%- if search.performed -%}
+    {%- paginate search.results by 24 -%}
+      <p style="text-align:center;">
+        {%- if search.results_count > 0 -%}
+          {{ 'search.results' | t: terms: search.terms, count: search.results_count }}
+        {%- else -%}
+          {{ 'search.no_results' | t: terms: search.terms }}
+        {%- endif -%}
+      </p>
+      <div class="product-grid" style="margin-top:32px;">
+        {%- for item in search.results -%}
+          {%- case item.object_type -%}
+            {%- when 'product' -%}
+              {% render 'product-card', product: item %}
+            {%- when 'article' -%}
+              {% render 'article-card', article: item, show_excerpt: false %}
+            {%- when 'page' -%}
+              <article class="post-card"><h3 class="post-card__title"><a href="{{ item.url }}">{{ item.title }}</a></h3></article>
+          {%- endcase -%}
+        {%- endfor -%}
+      </div>
+      {% render 'pagination', paginate: paginate %}
+    {%- endpaginate -%}
+  {%- endif -%}
+</div>
+<div class="section"></div>
+
+{% schema %}
+{
+  "name": "検索結果",
+  "class": "section-main-search"
+}
+{% endschema %}

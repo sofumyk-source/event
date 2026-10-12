@@ -1,0 +1,164 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "settings": {
+        "height": "large",
+        "overlay": 35,
+        "button_2_link": "/pages/suit-simulator"
+      }
+    },
+    "categories": {
+      "type": "collection-list",
+      "settings": {},
+      "blocks": {
+        "cat-shoes": {
+          "type": "collection",
+          "settings": {
+            "title": "シューズ",
+            "label_en": "Shoes"
+          }
+        },
+        "cat-bags": {
+          "type": "collection",
+          "settings": {
+            "title": "バッグ",
+            "label_en": "Bags"
+          }
+        },
+        "cat-ties": {
+          "type": "collection",
+          "settings": {
+            "title": "ネクタイ",
+            "label_en": "Neckwear"
+          }
+        },
+        "cat-acc": {
+          "type": "collection",
+          "settings": {
+            "title": "ベルト・小物",
+            "label_en": "Accessories"
+          }
+        }
+      },
+      "block_order": [
+        "cat-shoes",
+        "cat-bags",
+        "cat-ties",
+        "cat-acc"
+      ]
+    },
+    "brand": {
+      "type": "brand-story",
+      "settings": {
+        "button_link": "/pages/about"
+      },
+      "blocks": {
+        "pt-1": {
+          "type": "point",
+          "settings": {
+            "title": "スーツから逆算して選ぶ",
+            "text": "ラペル幅とネクタイ幅、パンツの裾幅と靴のボリューム。スーツとの釣り合いを基準に選んでいます。"
+          }
+        },
+        "pt-2": {
+          "type": "point",
+          "settings": {
+            "title": "仕立て屋が自分で使う",
+            "text": "店頭に並べる前に、スタッフ自身が使い込んで確かめたものだけを扱います。"
+          }
+        },
+        "pt-3": {
+          "type": "point",
+          "settings": {
+            "title": "サロンで合わせて確かめられる",
+            "text": "オーダーの採寸時に、実際のスーツ生地と合わせてご覧いただけます。"
+          }
+        }
+      },
+      "block_order": [
+        "pt-1",
+        "pt-2",
+        "pt-3"
+      ]
+    },
+    "pairing": {
+      "type": "suit-pairing",
+      "settings": {},
+      "blocks": {
+        "suit-navy": {
+          "type": "suit",
+          "settings": {
+            "suit_name": "ネイビー",
+            "swatch_color": "#1F2A44",
+            "title": "一着目のネイビーには、ボルドーと焦げ茶を。",
+            "advice": "<p>ネイビーは最も合わせやすい色だからこそ、小物で差が出ます。ネクタイは補色に近いボルドーで血色よく、靴とベルトは黒よりも濃い茶で柔らかさを。</p>",
+            "rule_tie": "ボルドーの小紋、ネイビーのソリッド",
+            "rule_shoes": "ダークブラウンのストレートチップ",
+            "rule_bag": "靴と同じ茶系で揃える"
+          }
+        },
+        "suit-charcoal": {
+          "type": "suit",
+          "settings": {
+            "suit_name": "チャコールグレー",
+            "swatch_color": "#3B3D40",
+            "title": "チャコールには、黒の靴と銀鼠のネクタイで端正に。",
+            "advice": "<p>改まった場にも対応できるチャコールグレーは、黒の内羽根で格を揃えるのが基本。ネクタイは同系のグレーか、深いグリーンで奥行きを出します。</p>",
+            "rule_tie": "シルバーグレー、深いグリーン",
+            "rule_shoes": "ブラックのキャップトゥ",
+            "rule_bag": "黒のブリーフケースで引き締める"
+          }
+        },
+        "suit-brown": {
+          "type": "suit",
+          "settings": {
+            "suit_name": "ブラウン",
+            "swatch_color": "#5A4232",
+            "title": "ブラウンのスーツは、同系色でまとめて上品に。",
+            "advice": "<p>秋冬に映えるブラウンは、黒の小物を合わせると重く見えがち。スエードやヌメ革など、素材の表情で軽さを足すのがテイラーのおすすめです。</p>",
+            "rule_tie": "オリーブ、マスタードのニットタイ",
+            "rule_shoes": "スエードのダークブラウン",
+            "rule_bag": "ヌメ革やタンの小物で軽さを出す"
+          }
+        }
+      },
+      "block_order": [
+        "suit-navy",
+        "suit-charcoal",
+        "suit-brown"
+      ]
+    },
+    "new": {
+      "type": "featured-collection",
+      "settings": {
+        "limit": 8
+      }
+    },
+    "simulator": {
+      "type": "simulator-promo",
+      "settings": {}
+    },
+    "journal": {
+      "type": "blog-posts",
+      "settings": {
+        "limit": 3,
+        "show_excerpt": true
+      }
+    },
+    "visit": {
+      "type": "store-visit",
+      "settings": {}
+    }
+  },
+  "order": [
+    "hero",
+    "categories",
+    "brand",
+    "pairing",
+    "new",
+    "simulator",
+    "journal",
+    "visit"
+  ]
+}

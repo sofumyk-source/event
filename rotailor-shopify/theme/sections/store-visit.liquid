@@ -1,0 +1,60 @@
+<section class="section store-visit">
+  <div class="container">
+    <div class="store-visit__grid">
+      <div class="store-visit__media">
+        {%- if section.settings.image -%}
+          {{
+            section.settings.image
+            | image_url: width: 1400
+            | image_tag:
+              loading: 'lazy',
+              widths: '600, 900, 1200, 1400',
+              sizes: '(min-width: 990px) 50vw, 100vw',
+              alt: section.settings.image.alt
+              | escape
+          }}
+        {%- else -%}
+          {{ 'lifestyle-2' | placeholder_svg_tag: 'placeholder' }}
+        {%- endif -%}
+      </div>
+      <div class="store-visit__body">
+        {%- if section.settings.eyebrow != blank -%}<p class="eyebrow">{{ section.settings.eyebrow }}</p>{%- endif -%}
+        <h2 class="section-title">{{ section.settings.heading }}</h2>
+        <div class="rte">{{ section.settings.text }}</div>
+        <dl class="store-visit__info">
+          <div><dt>住所</dt><dd>{{ settings.store_address | newline_to_br }}</dd></div>
+          {%- if settings.store_hours != blank -%}<div><dt>営業時間</dt><dd>{{ settings.store_hours }}</dd></div>{%- endif -%}
+          {%- if settings.store_phone != blank -%}<div><dt>電話</dt><dd><a href="tel:{{ settings.store_phone | remove: '-' }}">{{ settings.store_phone }}</a></dd></div>{%- endif -%}
+        </dl>
+        <div class="store-visit__actions">
+          {%- if settings.reservation_url != blank -%}
+            <a href="{{ settings.reservation_url }}" class="button button--primary">{{ settings.reservation_label }}</a>
+          {%- endif -%}
+          {%- if section.settings.map_url != blank -%}
+            <a href="{{ section.settings.map_url }}" class="button" target="_blank" rel="noopener">地図を見る</a>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "サロンのご案内",
+  "class": "section-store-visit",
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "店舗の写真" },
+    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "VISIT THE SALON" },
+    { "type": "text", "id": "heading", "label": "見出し", "default": "サロンで、実物を合わせてみませんか。" },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "本文",
+      "default": "<p>オンラインでご紹介している小物は、すべてサロンでもご覧いただけます。お手持ちのスーツをお持ちいただければ、テイラーがその場で合わせ方をご提案します。</p>"
+    },
+    { "type": "url", "id": "map_url", "label": "地図の URL（Google マップなど）" }
+  ],
+  "presets": [{ "name": "サロンのご案内" }]
+}
+{% endschema %}

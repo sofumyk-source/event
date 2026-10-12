@@ -1,0 +1,111 @@
+{%- assign related = article.metafields.custom.related_products.value -%}
+<article class="section" itemscope itemtype="http://schema.org/BlogPosting">
+  <div class="container">
+    <header class="article__header">
+      <p class="article__meta">
+        <time datetime="{{ article.published_at | date: '%Y-%m-%d' }}" itemprop="datePublished">{{ article.published_at | date: '%Y.%m.%d' }}</time>
+        {%- for tag in article.tags limit: 2 -%}
+          ・<a href="{{ blog.url }}/tagged/{{ tag | handleize }}">{{ tag }}</a>
+        {%- endfor -%}
+      </p>
+      <h1 class="article__title" itemprop="headline">{{ article.title }}</h1>
+    </header>
+
+    {%- if article.image -%}
+      <div class="article__hero">
+        {{
+          article.image
+          | image_url: width: 2000
+          | image_tag:
+            loading: 'eager',
+            widths: '750, 1100, 1500, 2000',
+            sizes: '100vw',
+            alt: article.image.alt
+            | default: article.title
+            | escape
+        }}
+      </div>
+    {%- endif -%}
+
+    <div class="container--narrow" style="margin-inline:auto;">
+      <div class="article__body rte" itemprop="articleBody">{{ article.content }}</div>
+
+      {%- if section.settings.show_author -%}
+        <div class="article__author">
+          <span class="article__author-mark">RO</span>
+          <div>
+            <strong>{{ article.author }}</strong>
+            <p>{{ section.settings.author_bio }}</p>
+          </div>
+        </div>
+      {%- endif -%}
+
+      <nav class="article__nav" aria-label="記事">
+        <a href="{{ blog.url }}" class="link-arrow">{{ 'blogs.back_to_blog' | t: title: blog.title }}</a>
+        {%- if blog.next_article -%}
+          <a href="{{ blog.next_article.url }}">{{ blog.next_article.title | truncate: 24 }} &rarr;</a>
+        {%- endif -%}
+      </nav>
+    </div>
+  </div>
+</article>
+
+{%- if related.count > 0 -%}
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">FEATURED ITEMS</p>
+        <h2 class="section-title">{{ 'blogs.related_products' | t }}</h2>
+      </div>
+      <div class="product-grid">
+        {%- for item in related limit: 8 -%}
+          {% render 'product-card', product: item %}
+        {%- endfor -%}
+      </div>
+    </div>
+  </section>
+{%- endif -%}
+
+{%- if blog.comments_enabled? -%}
+  <section class="section">
+    <div class="container container--narrow comments">
+      <h2 class="section-title">{{ 'blogs.comments' | t }}（{{ article.comments_count }}）</h2>
+      {%- paginate article.comments by 20 -%}
+        {%- for comment in article.comments -%}
+          <div class="comment">
+            <div class="rte">{{ comment.content }}</div>
+            <p class="comment__meta">{{ comment.author }} ・ {{ comment.created_at | date: '%Y.%m.%d' }}</p>
+          </div>
+        {%- endfor -%}
+        {% render 'pagination', paginate: paginate %}
+      {%- endpaginate -%}
+
+      {%- form 'new_comment', article, class: 'sim-form', style: 'margin-top: 32px;' -%}
+        {%- if form.posted_successfully? -%}
+          <p class="form-message form-message--success">
+            {%- if blog.moderated? -%}{{ 'blogs.comment_moderated' | t }}{%- else -%}{{ 'blogs.comment_posted' | t }}{%- endif -%}
+          </p>
+        {%- endif -%}
+        {%- if form.errors -%}<div class="form-message form-message--error">{{ form.errors | default_errors }}</div>{%- endif -%}
+        <div class="field-row">
+          <label class="field"><span>{{ 'blogs.comment_name' | t }}</span><input type="text" name="comment[author]" value="{{ form.author }}" required></label>
+          <label class="field"><span>{{ 'blogs.comment_email' | t }}</span><input type="email" name="comment[email]" value="{{ form.email }}" required></label>
+        </div>
+        <label class="field"><span>{{ 'blogs.comment_body' | t }}</span><textarea name="comment[body]" rows="5" required>{{ form.body }}</textarea></label>
+        <button type="submit" class="button button--primary">{{ 'blogs.comment_submit' | t }}</button>
+      {%- endform -%}
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "ブログ記事",
+  "class": "section-main-article",
+  "settings": [
+    { "type": "checkbox", "id": "show_author", "label": "執筆者を表示", "default": true },
+    { "type": "textarea", "id": "author_bio", "label": "執筆者の紹介", "default": "ROテイラー スタッフ。採寸からお仕立て、小物のセレクトまでを担当しています。" },
+    { "type": "paragraph", "content": "記事メタフィールド custom.related_products（商品リスト）に登録した商品が、記事の下に表示されます。" }
+  ]
+}
+{% endschema %}

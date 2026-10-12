@@ -1,0 +1,10 @@
+<article class="card">
+  <div class="card__media">
+    {{ 'product-apparel-' | append: index | placeholder_svg_tag: 'card__img placeholder' }}
+  </div>
+  <div class="card__body">
+    <p class="card__vendor">RO TAILOR</p>
+    <h3 class="card__title">{{ title | default: '商品名' }}</h3>
+    <div class="price"><span class="price__current">¥0</span></div>
+  </div>
+</article>

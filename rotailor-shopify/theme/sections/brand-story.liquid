@@ -1,0 +1,90 @@
+<section class="section brand-story" style="--section-bg: {{ section.settings.background }};">
+  <div class="container brand-story__grid{% if section.settings.image_right %} brand-story__grid--reverse{% endif %}">
+    <div class="brand-story__media">
+      {%- if section.settings.image -%}
+        {{
+          section.settings.image
+          | image_url: width: 1400
+          | image_tag:
+            loading: 'lazy',
+            widths: '600, 900, 1200, 1400',
+            sizes: '(min-width: 990px) 50vw, 100vw',
+            alt: section.settings.image.alt
+            | escape
+        }}
+      {%- else -%}
+        {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder' }}
+      {%- endif -%}
+      {%- if section.settings.caption != blank -%}
+        <p class="brand-story__caption">{{ section.settings.caption }}</p>
+      {%- endif -%}
+    </div>
+    <div class="brand-story__body">
+      {%- if section.settings.eyebrow != blank -%}<p class="eyebrow">{{ section.settings.eyebrow }}</p>{%- endif -%}
+      <h2 class="section-title">{{ section.settings.heading | newline_to_br }}</h2>
+      <div class="rte">{{ section.settings.text }}</div>
+
+      {%- if section.blocks.size > 0 -%}
+        <ol class="brand-points">
+          {%- for block in section.blocks -%}
+            <li class="brand-points__item" {{ block.shopify_attributes }}>
+              <span class="brand-points__num">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
+              <div>
+                <h3 class="brand-points__title">{{ block.settings.title }}</h3>
+                <p>{{ block.settings.text }}</p>
+              </div>
+            </li>
+          {%- endfor -%}
+        </ol>
+      {%- endif -%}
+
+      {%- if section.settings.button_label != blank -%}
+        <a href="{{ section.settings.button_link | default: '#' }}" class="link-arrow">{{ section.settings.button_label }} {% render 'icon', name: 'arrow' %}</a>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "ブランドストーリー",
+  "class": "section-brand-story",
+  "max_blocks": 4,
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "画像", "info": "店内、職人の手元、生地棚などの写真がおすすめです" },
+    { "type": "text", "id": "caption", "label": "画像のキャプション", "default": "サロンにて、採寸の合間に。" },
+    { "type": "checkbox", "id": "image_right", "label": "画像を右に配置", "default": false },
+    { "type": "color", "id": "background", "label": "背景色" },
+    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "ABOUT RO TAILOR" },
+    { "type": "textarea", "id": "heading", "label": "見出し", "default": "仕立て屋の目で選ぶ、\nという約束。" },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "本文",
+      "default": "<p>ROテイラーは、お一人おひとりの体と暮らしに合わせてスーツを仕立てるオーダーサロンです。このオンラインストアでは、私たちが日々のフィッティングで実際におすすめしているシューズ、バッグ、ネクタイなどの小物をご紹介しています。</p>"
+    },
+    { "type": "text", "id": "button_label", "label": "リンクの文言", "default": "ROテイラーについて" },
+    { "type": "url", "id": "button_link", "label": "リンク先" }
+  ],
+  "blocks": [
+    {
+      "type": "point",
+      "name": "こだわり",
+      "settings": [
+        { "type": "text", "id": "title", "label": "見出し", "default": "スーツから逆算して選ぶ" },
+        { "type": "textarea", "id": "text", "label": "説明", "default": "ラペル幅とネクタイ幅、パンツの裾幅と靴のボリューム。スーツとの釣り合いを基準に選んでいます。" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "ブランドストーリー",
+      "blocks": [
+        { "type": "point", "settings": { "title": "スーツから逆算して選ぶ", "text": "ラペル幅とネクタイ幅、パンツの裾幅と靴のボリューム。スーツとの釣り合いを基準に選んでいます。" } },
+        { "type": "point", "settings": { "title": "仕立て屋が自分で使う", "text": "店頭に並べる前に、スタッフ自身が使い込んで確かめたものだけを扱います。" } },
+        { "type": "point", "settings": { "title": "サロンで合わせて確かめられる", "text": "オーダーの採寸時に、実際のスーツ生地と合わせてご覧いただけます。" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

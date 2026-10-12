@@ -1,0 +1,32 @@
+<div class="container container--narrow page-body">
+  {%- form 'contact', id: 'ContactForm', class: 'sim-form' -%}
+    {%- if form.posted_successfully? -%}
+      <p class="form-message form-message--success" role="status">{{ 'contact.success' | t }}</p>
+    {%- endif -%}
+    {%- if form.errors -%}<div class="form-message form-message--error" role="alert">{{ form.errors | default_errors }}</div>{%- endif -%}
+    <label class="field">
+      <span>お問い合わせの種類</span>
+      <select name="contact[種類]">
+        <option>オーダースーツについて</option>
+        <option>商品について</option>
+        <option>ご注文・配送について</option>
+        <option>その他</option>
+      </select>
+    </label>
+    <div class="field-row">
+      <label class="field"><span>{{ 'contact.name' | t }} <em>*</em></span><input type="text" name="contact[name]" required autocomplete="name" value="{{ form.name }}"></label>
+      <label class="field"><span>{{ 'contact.phone' | t }}</span><input type="tel" name="contact[phone]" autocomplete="tel" value="{{ form.phone }}"></label>
+    </div>
+    <label class="field"><span>{{ 'contact.email' | t }} <em>*</em></span><input type="email" name="contact[email]" required autocomplete="email" value="{{ form.email }}"></label>
+    <label class="field"><span>{{ 'contact.message' | t }} <em>*</em></span><textarea name="contact[body]" rows="6" required>{{ form.body }}</textarea></label>
+    <button type="submit" class="button button--primary">{{ 'contact.send' | t }}</button>
+  {%- endform -%}
+</div>
+
+{% schema %}
+{
+  "name": "お問い合わせフォーム",
+  "class": "section-main-contact",
+  "presets": [{ "name": "お問い合わせフォーム" }]
+}
+{% endschema %}

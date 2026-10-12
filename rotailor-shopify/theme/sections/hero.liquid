@@ -1,0 +1,71 @@
+<section class="hero hero--{{ section.settings.height }}" style="--hero-overlay: {{ section.settings.overlay | divided_by: 100.0 }};">
+  <div class="hero__media">
+    {%- if section.settings.image -%}
+      {{
+        section.settings.image
+        | image_url: width: 2400
+        | image_tag:
+          loading: 'eager',
+          fetchpriority: 'high',
+          widths: '750, 1100, 1500, 1800, 2400',
+          sizes: '100vw',
+          alt: section.settings.image.alt
+          | escape
+      }}
+    {%- else -%}
+      {{ 'lifestyle-2' | placeholder_svg_tag: 'placeholder' }}
+    {%- endif -%}
+  </div>
+  <div class="hero__content container">
+    {%- if section.settings.eyebrow != blank -%}
+      <p class="eyebrow eyebrow--light">{{ section.settings.eyebrow }}</p>
+    {%- endif -%}
+    <h1 class="hero__title">{{ section.settings.heading | newline_to_br }}</h1>
+    {%- if section.settings.text != blank -%}
+      <div class="hero__text rte">{{ section.settings.text }}</div>
+    {%- endif -%}
+    <div class="hero__actions">
+      {%- if section.settings.button_1_label != blank -%}
+        <a href="{{ section.settings.button_1_link | default: routes.all_products_collection_url }}" class="button button--light">{{ section.settings.button_1_label }}</a>
+      {%- endif -%}
+      {%- if section.settings.button_2_label != blank -%}
+        <a href="{{ section.settings.button_2_link | default: '#' }}" class="button button--outline-light">{{ section.settings.button_2_label }}</a>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "メインビジュアル",
+  "class": "section-hero",
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "背景画像" },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "高さ",
+      "options": [
+        { "value": "small", "label": "小" },
+        { "value": "medium", "label": "中" },
+        { "value": "large", "label": "大（画面いっぱい）" }
+      ],
+      "default": "large"
+    },
+    { "type": "range", "id": "overlay", "label": "画像の暗さ", "min": 0, "max": 80, "step": 5, "unit": "%", "default": 35 },
+    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "THE TAILOR'S HABERDASHERY" },
+    { "type": "textarea", "id": "heading", "label": "見出し", "default": "スーツを知り尽くした\n仕立て屋が選ぶ、小物たち。" },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "本文",
+      "default": "<p>ネクタイの幅は、ラペルの幅から。靴の色は、スーツの色から。<br>毎日スーツと向き合うテイラーだからこそ提案できる、装いの仕上げをお届けします。</p>"
+    },
+    { "type": "text", "id": "button_1_label", "label": "ボタン 1 の文言", "default": "アイテムを見る" },
+    { "type": "url", "id": "button_1_link", "label": "ボタン 1 のリンク" },
+    { "type": "text", "id": "button_2_label", "label": "ボタン 2 の文言", "default": "オーダースーツを仕立てる" },
+    { "type": "url", "id": "button_2_link", "label": "ボタン 2 のリンク" }
+  ],
+  "presets": [{ "name": "メインビジュアル" }]
+}
+{% endschema %}

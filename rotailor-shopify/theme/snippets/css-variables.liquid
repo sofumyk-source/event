@@ -1,0 +1,28 @@
+{%- liquid
+  case settings.card_image_ratio
+    when 'square'
+      assign card_ratio = '1 / 1'
+    when 'natural'
+      assign card_ratio = 'auto'
+    else
+      assign card_ratio = '4 / 5'
+  endcase
+-%}
+<style>
+  :root {
+    --color-primary: {{ settings.color_primary }};
+    --color-primary-rgb: {{ settings.color_primary.red }}, {{ settings.color_primary.green }}, {{ settings.color_primary.blue }};
+    --color-accent: {{ settings.color_accent }};
+    --color-bg: {{ settings.color_background }};
+    --color-surface: {{ settings.color_surface }};
+    --color-text: {{ settings.color_text }};
+    --color-muted: {{ settings.color_muted }};
+    --color-border: {{ settings.color_border }};
+    --color-sale: {{ settings.color_sale }};
+    --font-serif: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    --font-display: 'Cormorant Garamond', 'Shippori Mincho', serif;
+    --font-sans: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    --card-ratio: {{ card_ratio }};
+    --logo-width: {{ settings.logo_width }}px;
+  }
+</style>

@@ -1,0 +1,14 @@
+{
+  "type": "footer",
+  "name": "フッター",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "menu_1": "footer",
+        "show_newsletter": true
+      }
+    }
+  },
+  "order": ["footer"]
+}

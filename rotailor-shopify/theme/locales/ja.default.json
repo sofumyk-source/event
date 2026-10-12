@@ -1,0 +1,96 @@
+{
+  "general": {
+    "tagged_with": "タグ「{{ tags }}」",
+    "page": "{{ page }}ページ目",
+    "menu": "メニュー",
+    "close": "閉じる",
+    "search": "検索",
+    "cart": "カート",
+    "account": "アカウント",
+    "view_all": "すべて見る",
+    "read_more": "続きを読む",
+    "back": "戻る",
+    "home": "ホーム"
+  },
+  "accessibility": {
+    "skip_to_content": "本文へスキップ",
+    "previous_page": "前のページ",
+    "next_page": "次のページ",
+    "cart_count": "カート内の商品数"
+  },
+  "products": {
+    "add_to_cart": "カートに入れる",
+    "sold_out": "売り切れ",
+    "unavailable": "お取り扱いなし",
+    "sale": "SALE",
+    "from_price": "{{ price }}〜",
+    "quantity": "数量",
+    "tax_included": "税込",
+    "tailor_note_heading": "テイラーのひとこと",
+    "pairing_heading": "テイラーが選ぶ、合わせたい小物",
+    "recommendations_heading": "あわせて見たい",
+    "details": "仕様・素材",
+    "material": "素材",
+    "origin": "生産国",
+    "care": "お手入れ"
+  },
+  "collections": {
+    "empty": "現在、このカテゴリに商品はありません。",
+    "sort_by": "並び替え",
+    "count": "{{ count }} 点"
+  },
+  "cart": {
+    "title": "カート",
+    "empty": "カートに商品が入っていません。",
+    "continue_shopping": "お買い物を続ける",
+    "subtotal": "小計",
+    "checkout": "ご購入手続きへ",
+    "remove": "削除",
+    "update": "更新",
+    "view_cart": "カートを見る",
+    "added": "カートに追加しました",
+    "add_error": "カートに追加できませんでした。時間をおいて再度お試しください。",
+    "taxes_note": "税込・送料はご購入手続き画面で計算されます。",
+    "note": "ご要望・ギフト包装について"
+  },
+  "blogs": {
+    "all_posts": "すべての記事",
+    "back_to_blog": "{{ title }} の一覧へ",
+    "related_products": "この記事で紹介したアイテム",
+    "comments": "コメント",
+    "comment_name": "お名前",
+    "comment_email": "メールアドレス",
+    "comment_body": "コメント",
+    "comment_submit": "コメントを送信",
+    "comment_moderated": "コメントは承認後に公開されます。",
+    "comment_posted": "コメントを投稿しました。",
+    "empty": "まだ記事がありません。"
+  },
+  "search": {
+    "title": "検索",
+    "placeholder": "キーワードを入力",
+    "submit": "検索する",
+    "results": "「{{ terms }}」の検索結果：{{ count }} 件",
+    "no_results": "「{{ terms }}」に一致する結果は見つかりませんでした。"
+  },
+  "templates": {
+    "404": {
+      "title": "ページが見つかりません",
+      "subtext": "お探しのページは移動または削除された可能性があります。"
+    }
+  },
+  "contact": {
+    "name": "お名前",
+    "email": "メールアドレス",
+    "phone": "電話番号",
+    "message": "お問い合わせ内容",
+    "send": "送信する",
+    "success": "送信しました。担当者より折り返しご連絡いたします。"
+  },
+  "password": {
+    "heading": "まもなくオープン",
+    "enter": "パスワードを入力",
+    "submit": "入る",
+    "store_owner": "ストアオーナーの方はこちら"
+  }
+}
