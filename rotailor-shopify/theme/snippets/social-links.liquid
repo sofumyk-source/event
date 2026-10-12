@@ -1,11 +1,12 @@
 {%- liquid
-  assign links = 'instagram,line,facebook,x' | split: ','
+  assign links = 'instagram,instagram2,tiktok,line,facebook,x' | split: ','
 -%}
 <ul class="social">
   {%- for name in links -%}
     {%- assign key = 'social_' | append: name -%}
     {%- if settings[key] != blank -%}
-      <li><a href="{{ settings[key] }}" target="_blank" rel="noopener" aria-label="{{ name }}">{% render 'icon', name: name %}</a></li>
+      {%- assign icon = name | remove: '2' -%}
+      <li><a href="{{ settings[key] }}" target="_blank" rel="noopener" aria-label="{{ icon }}">{% render 'icon', name: icon %}</a></li>
     {%- endif -%}
   {%- endfor -%}
 </ul>

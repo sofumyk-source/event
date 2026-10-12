@@ -4,8 +4,10 @@
       "type": "hero",
       "settings": {
         "height": "small",
-        "eyebrow": "ABOUT US",
-        "heading": "ROテイラーについて",
+        "overlay": 45,
+        "fallback_image": "ro-interior.jpg",
+        "eyebrow": "About ROtailor",
+        "heading": "ROtailorについて",
         "text": "",
         "button_1_label": "",
         "button_2_label": ""
@@ -14,30 +16,31 @@
     "story": {
       "type": "brand-story",
       "settings": {
-        "eyebrow": "OUR STORY",
-        "heading": "一着のスーツから、\n装い全体へ。",
-        "button_label": ""
+        "eyebrow": "Philosophy",
+        "heading": "非日常を日常に。\nオーダーメイドをもっと身近に。",
+        "button_label": "",
+        "text": "<p>「スーツを纏うことで自分自身に自信を持ち、少し背伸びした気分になる。そこにあるのは、日常でなく非日常の感動。」</p><p>2019年の創業以来、大手チェーンにはできない1人ひとりへの深いヒアリング、6,000種類を超える生地からの選択、0.5cm単位のサイズ調整で、オーダーの喜びを一人でも多くの方に届けてきました。</p>"
       },
       "blocks": {
         "pt-1": {
           "type": "point",
           "settings": {
-            "title": "お一人ずつ、型紙から",
-            "text": "採寸した寸法と体の癖から、お客様ごとに型紙を引いて仕立てます。"
+            "title": "カジュアルもオーダーできる店として",
+            "text": "他店にはない、遊び心のある生地を扱います。"
           }
         },
         "pt-2": {
           "type": "point",
           "settings": {
-            "title": "生地は、手に取って選ぶ",
-            "text": "国内外のミルから集めた生地見本を、サロンで実際に触れて選んでいただけます。"
+            "title": "敷居が高く堅苦しいイメージを払拭",
+            "text": "お客様に寄り添った接客をします。"
           }
         },
         "pt-3": {
           "type": "point",
           "settings": {
-            "title": "仕立てたあとも",
-            "text": "お直しやお手入れのご相談まで、長くお付き合いいただける一着を。"
+            "title": "出来上がり満足度100%を目指して",
+            "text": "出来上がり時のお直しは無料で行います。"
           }
         }
       },
@@ -53,7 +56,49 @@
     },
     "visit": {
       "type": "store-visit",
-      "settings": {}
+      "settings": {
+        "eyebrow": "Our Shops",
+        "heading": "実物は、広島の2店舗で。",
+        "text": "<p>オンラインでご紹介しているアイテムは、店頭でもご覧いただけます。まずは袋町で体験を。もっと深めたくなったら、laboratoryへ。</p>"
+      },
+      "blocks": {
+        "shop1": {
+          "type": "shop",
+          "settings": {
+            "label": "Shop 01 — Fukuromachi",
+            "catch": "オーダーを気軽に楽しむ",
+            "name": "ROtailor",
+            "subtitle": "紳士の集まる大人のサボり場",
+            "description": "広島・袋町。はじめてオーダースーツの扉を叩く場所。肩肘張らず、友達の家に来るような気分でどうぞ。",
+            "address": "広島市中区袋町8-14-1F",
+            "hours": "11:00〜19:00",
+            "closed": "毎週火曜日",
+            "phone": "082-205-3295",
+            "access": "広島電鉄 袋町駅・立町駅 徒歩5分",
+            "price": "¥44,000〜"
+          }
+        },
+        "shop2": {
+          "type": "shop",
+          "settings": {
+            "label": "Shop 02 — Nishi-Kannon",
+            "catch": "オーダーを深めて楽しむ",
+            "name": "ROtailor -laboratory-",
+            "subtitle": "紳士の為の秘密のラボ",
+            "description": "西観音町。スーツにこだわりを持つ経営者・営業職の方々が集まる、探求の場。会話から生まれる新しいものづくりを、ここで一緒に研究しましょう。",
+            "address": "広島市西区西観音町8-2-1F",
+            "hours": "12:00〜18:00",
+            "closed": "毎週水曜・木曜",
+            "phone": "050-5574-1819",
+            "access": "広島電鉄 西観音町駅・天満町駅 徒歩5分",
+            "price": "¥55,000〜"
+          }
+        }
+      },
+      "block_order": [
+        "shop1",
+        "shop2"
+      ]
     }
   },
   "order": [

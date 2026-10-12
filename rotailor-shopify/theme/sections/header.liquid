@@ -29,18 +29,18 @@
       </div>
     </details>
 
-    <a href="{{ routes.root_url }}" class="site-logo">
+    <a href="{{ routes.root_url }}" class="site-logo" aria-label="{{ shop.name }}">
       {%- if settings.logo -%}
         {{
           settings.logo
-          | image_url: width: 520
-          | image_tag: alt: shop.name, class: 'site-logo__img', loading: 'eager', widths: '260, 520'
+          | image_url: height: 160
+          | image_tag: alt: shop.name, class: 'site-logo__img', loading: 'eager'
         }}
       {%- else -%}
-        <span class="site-logo__name">{{ settings.brand_name | default: shop.name }}</span>
-        {%- if settings.brand_tagline != blank -%}
-          <span class="site-logo__tagline">{{ settings.brand_tagline }}</span>
-        {%- endif -%}
+        <img src="{{ 'ro-logo.jpg' | asset_url }}" alt="{{ shop.name }}" class="site-logo__img" width="542" height="709" loading="eager">
+      {%- endif -%}
+      {%- if settings.brand_tagline != blank -%}
+        <span class="site-logo__tagline">{{ settings.brand_tagline }}</span>
       {%- endif -%}
     </a>
 

@@ -1,7 +1,13 @@
 <footer class="site-footer">
   <div class="container site-footer__grid">
     <div class="site-footer__brand">
-      <p class="site-footer__logo">{{ settings.brand_name | default: shop.name }}</p>
+      <p class="site-footer__logo">
+        {%- if settings.logo -%}
+          {{ settings.logo | image_url: height: 200 | image_tag: alt: shop.name, class: 'site-footer__logo-img' }}
+        {%- else -%}
+          <img src="{{ 'ro-logo.jpg' | asset_url }}" alt="{{ shop.name }}" class="site-footer__logo-img" width="542" height="709" loading="lazy">
+        {%- endif -%}
+      </p>
       {%- if section.settings.about != blank -%}
         <div class="site-footer__about rte">{{ section.settings.about }}</div>
       {%- endif -%}
@@ -10,15 +16,22 @@
 
     <div class="site-footer__store">
       <h2 class="site-footer__heading">{{ section.settings.store_heading }}</h2>
-      <address>
-        {{ settings.store_address | newline_to_br }}
-      </address>
-      {%- if settings.store_hours != blank -%}<p>{{ settings.store_hours }}</p>{%- endif -%}
-      {%- if settings.store_phone != blank -%}
-        <p><a href="tel:{{ settings.store_phone | remove: '-' }}">TEL {{ settings.store_phone }}</a></p>
+      <div class="site-footer__shop">
+        <p class="site-footer__shop-name">{{ settings.shop1_name }}</p>
+        <address>{{ settings.store_address | newline_to_br }}</address>
+        {%- if settings.store_hours != blank -%}<p>{{ settings.store_hours }}</p>{%- endif -%}
+        {%- if settings.store_phone != blank -%}<p><a href="tel:{{ settings.store_phone | remove: '-' }}">TEL {{ settings.store_phone }}</a></p>{%- endif -%}
+      </div>
+      {%- if settings.shop2_name != blank -%}
+        <div class="site-footer__shop">
+          <p class="site-footer__shop-name">{{ settings.shop2_name }}</p>
+          <address>{{ settings.shop2_address | newline_to_br }}</address>
+          {%- if settings.shop2_hours != blank -%}<p>{{ settings.shop2_hours }}</p>{%- endif -%}
+          {%- if settings.shop2_phone != blank -%}<p><a href="tel:{{ settings.shop2_phone | remove: '-' }}">TEL {{ settings.shop2_phone }}</a></p>{%- endif -%}
+        </div>
       {%- endif -%}
       {%- if settings.reservation_url != blank -%}
-        <a href="{{ settings.reservation_url }}" class="button button--outline-light">{{ settings.reservation_label }}</a>
+        <a href="{{ settings.reservation_url }}" class="button button--primary" target="_blank" rel="noopener">{{ settings.reservation_label }}</a>
       {%- endif -%}
     </div>
 
@@ -77,9 +90,9 @@
       "type": "richtext",
       "id": "about",
       "label": "ブランド紹介文",
-      "default": "<p>スーツを仕立てるテイラーが、スーツに合わせるための小物だけを選びました。</p>"
+      "default": "<p>非日常を日常に。オーダーをもっと身近に。<br>広島のオーダースーツ専門店 ROtailor のオンラインストアです。</p>"
     },
-    { "type": "text", "id": "store_heading", "label": "店舗情報の見出し", "default": "サロン" },
+    { "type": "text", "id": "store_heading", "label": "店舗情報の見出し", "default": "Shops" },
     { "type": "link_list", "id": "menu_1", "label": "メニュー 1", "default": "footer" },
     { "type": "link_list", "id": "menu_2", "label": "メニュー 2" },
     { "type": "header", "content": "メールマガジン" },

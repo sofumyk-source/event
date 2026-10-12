@@ -8,8 +8,8 @@
         "msg-1": {
           "type": "message",
           "settings": {
-            "text": "オーダースーツのご相談は、ご来店予約がスムーズです",
-            "link": ""
+            "text": "オーダースーツのご予約・ご相談は LINE から",
+            "link": "https://lin.ee/SaICq3So"
           }
         },
         "msg-2": {
@@ -20,7 +20,10 @@
           }
         }
       },
-      "block_order": ["msg-1", "msg-2"],
+      "block_order": [
+        "msg-1",
+        "msg-2"
+      ],
       "settings": {}
     },
     "header": {
@@ -33,5 +36,8 @@
       }
     }
   },
-  "order": ["announcement", "header"]
+  "order": [
+    "announcement",
+    "header"
+  ]
 }

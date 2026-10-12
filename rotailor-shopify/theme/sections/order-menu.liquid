@@ -1,0 +1,75 @@
+{%- comment -%} 取り扱いメニュー（オーダー品と価格） {%- endcomment -%}
+{%- liquid
+  assign fallbacks = 'ro-suit.jpg,ro-shirt.jpg,ro-shoes.jpg,ro-ties.jpg,ro-belts.jpg,ro-tuxedo.jpg' | split: ','
+-%}
+<section class="section order-menu">
+  <div class="container">
+    <div class="section-head">
+      {%- if section.settings.eyebrow != blank -%}<p class="eyebrow">{{ section.settings.eyebrow }}</p>{%- endif -%}
+      <h2 class="section-title">{{ section.settings.heading }}</h2>
+      {%- if section.settings.text != blank -%}<div class="section-intro rte">{{ section.settings.text }}</div>{%- endif -%}
+    </div>
+    <div class="order-menu__grid">
+      {%- for block in section.blocks -%}
+        {%- assign fb_index = forloop.index0 | modulo: 6 -%}
+        {%- assign link = block.settings.link | default: settings.reservation_url -%}
+        <a class="menu-card" href="{{ link | default: '#' }}" {{ block.shopify_attributes }}>
+          <div class="menu-card__media">
+            {%- if block.settings.image -%}
+              {%- assign image_alt = block.settings.name | escape -%}
+              {{ block.settings.image | image_url: width: 900 | image_tag: loading: 'lazy', widths: '450, 900', sizes: '(min-width: 990px) 33vw, 50vw', alt: image_alt }}
+            {%- else -%}
+              <img src="{{ fallbacks[fb_index] | asset_url }}" alt="{{ block.settings.name | escape }}" loading="lazy" width="900" height="601">
+            {%- endif -%}
+          </div>
+          <div class="menu-card__body">
+            <p class="menu-card__en">{{ block.settings.label }}</p>
+            <h3 class="menu-card__name">{{ block.settings.name }}</h3>
+            <p class="menu-card__desc">{{ block.settings.description }}</p>
+            <p class="menu-card__price">{{ block.settings.price }}</p>
+          </div>
+        </a>
+      {%- endfor -%}
+    </div>
+    {%- if section.settings.note != blank -%}<p class="order-menu__note">{{ section.settings.note }}</p>{%- endif -%}
+    <div class="order-menu__actions">
+      {%- if settings.reservation_url != blank -%}
+        <a href="{{ settings.reservation_url }}" class="button button--primary" target="_blank" rel="noopener">{{ settings.reservation_label }}</a>
+      {%- endif -%}
+      {%- if section.settings.simulator_page != blank -%}
+        <a href="{{ section.settings.simulator_page.url }}" class="button">{{ section.settings.simulator_label }}</a>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "オーダーメニュー",
+  "class": "section-order-menu",
+  "max_blocks": 9,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "Menu & Price" },
+    { "type": "text", "id": "heading", "label": "見出し", "default": "店頭で仕立てる、オーダーメニュー" },
+    { "type": "richtext", "id": "text", "label": "本文", "default": "<p>スーツだけではありません。トータルコーディネートで、あなたをもっと輝かせます。</p>" },
+    { "type": "text", "id": "note", "label": "注記", "default": "価格はすべて税込です。オーダー品は店頭での採寸・お打ち合わせのうえお仕立てします。" },
+    { "type": "page", "id": "simulator_page", "label": "シミュレーションのページ" },
+    { "type": "text", "id": "simulator_label", "label": "シミュレーションボタンの文言", "default": "スーツを仕立ててみる" }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "メニュー",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "写真（未設定なら店舗写真）" },
+        { "type": "text", "id": "label", "label": "英字ラベル", "default": "Suit" },
+        { "type": "text", "id": "name", "label": "名称", "default": "オーダースーツ" },
+        { "type": "textarea", "id": "description", "label": "説明" },
+        { "type": "text", "id": "price", "label": "価格", "default": "¥44,000〜" },
+        { "type": "url", "id": "link", "label": "リンク先（未設定なら予約リンク）" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "オーダーメニュー", "blocks": [{ "type": "item" }, { "type": "item" }, { "type": "item" }] }]
+}
+{% endschema %}

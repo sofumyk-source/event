@@ -77,7 +77,7 @@ html = f"""<!doctype html>
 <header class="site-header site-header--sticky">
   <div class="site-header__inner container">
     <span></span>
-    <a class="site-logo" href="#"><span class="site-logo__name">RO TAILOR</span><span class="site-logo__tagline">Haberdashery &amp; Bespoke</span></a>
+    <a class="site-logo" href="#"><span class="site-logo__name">ROtailor</span><span class="site-logo__tagline">Haberdashery &amp; Bespoke</span></a>
     <span></span>
     <span></span>
   </div>
@@ -88,7 +88,7 @@ html = f"""<!doctype html>
     <div class="section-head simulator__head">
       <p class="eyebrow">MADE TO MEASURE SIMULATOR</p>
       <h1 class="section-title">オーダースーツを仕立てる</h1>
-      <div class="section-intro rte"><p>生地やラペル、ボタン、裏地まで。好きな組み合わせを選んで、あなただけの一着を思い描いてみてください。気に入ったイメージは、そのままサロンでのご相談にお持ちいただけます。</p></div>
+      <div class="section-intro rte"><p>生地やラペル、ボタン、裏地まで。好きな組み合わせを選んで、あなただけの一着を思い描いてみてください。気に入ったイメージは、そのまま店頭でのご相談にお持ちいただけます。</p></div>
     </div>
     <div class="sim-stylist" data-stylist>
       <div class="sim-stylist__intro">
@@ -183,7 +183,7 @@ html = f"""<!doctype html>
         <div class="sim-summary__actions">
           <div class="sim-estimate">
             <p class="eyebrow">ESTIMATE</p>
-            <h3 class="sim-card__title">お見積もりは、サロンで。</h3>
+            <h3 class="sim-card__title">お見積もりは、店頭で。</h3>
             <p class="sim-card__text">お仕立ての価格は、生地・仕立て方・サイズによって一着ずつ異なります。このイメージをお持ちいただければ、テイラーが実際の生地を手に取りながら、ご予算に合わせてご提案します。</p>
             <a href="#" class="button button--accent" onclick="event.preventDefault()">ご来店予約</a>
           </div>

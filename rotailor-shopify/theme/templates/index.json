@@ -4,13 +4,23 @@
       "type": "hero",
       "settings": {
         "height": "large",
-        "overlay": 35,
+        "overlay": 45,
+        "fallback_image": "ro-hero.jpg",
+        "eyebrow": "ROtailor Online Store — Hiroshima",
+        "heading": "非日常を日常に。\nオーダーをもっと身近に。",
+        "text": "<p>広島のオーダースーツ専門店 ROtailor のオンラインストア。<br>仕立ての現場で選び抜いたシューズ・ネクタイ・ベルト・バッグを、全国へお届けします。</p>",
+        "button_1_label": "アイテムを見る",
+        "button_1_link": "/collections/all",
+        "button_2_label": "オーダースーツを仕立てる",
         "button_2_link": "/pages/suit-simulator"
       }
     },
     "categories": {
       "type": "collection-list",
-      "settings": {},
+      "settings": {
+        "eyebrow": "Categories",
+        "heading": "アイテムから探す"
+      },
       "blocks": {
         "cat-shoes": {
           "type": "collection",
@@ -51,28 +61,33 @@
     "brand": {
       "type": "brand-story",
       "settings": {
+        "eyebrow": "About ROtailor",
+        "heading": "スーツを纏うことで、\n少し背伸びした気分になる。",
+        "caption": "ROtailor 袋町店にて。",
+        "text": "<p>ROtailor は、2019年に広島で創業したオーダースーツ専門店です。1人ひとりへの深いヒアリングと、スーツだけでなくシャツ・シューズ・ベルト・ネクタイまでのトータルコーディネート。このオンラインストアでは、私たちが店頭で実際にお客様へ合わせているアイテムをご紹介します。</p>",
+        "button_label": "ROtailorについて",
         "button_link": "/pages/about"
       },
       "blocks": {
         "pt-1": {
           "type": "point",
           "settings": {
-            "title": "スーツから逆算して選ぶ",
-            "text": "ラペル幅とネクタイ幅、パンツの裾幅と靴のボリューム。スーツとの釣り合いを基準に選んでいます。"
+            "title": "約6,000種類の生地と、トータルコーディネート",
+            "text": "生地約6,000種類、裏地約2,000種類、ボタン約1,000種類。スーツに合わせる小物も、同じ目線で選んでいます。"
           }
         },
         "pt-2": {
           "type": "point",
           "settings": {
-            "title": "仕立て屋が自分で使う",
-            "text": "店頭に並べる前に、スタッフ自身が使い込んで確かめたものだけを扱います。"
+            "title": "「自分が嫌なことはしない」",
+            "text": "押しつけない。不良在庫は売らない。本当に似合うと思えるものだけをご提案します。"
           }
         },
         "pt-3": {
           "type": "point",
           "settings": {
-            "title": "サロンで合わせて確かめられる",
-            "text": "オーダーの採寸時に、実際のスーツ生地と合わせてご覧いただけます。"
+            "title": "店頭で、実物を合わせて",
+            "text": "広島の2店舗では、お手持ちのスーツや仕立て中の一着と合わせてご覧いただけます。"
           }
         }
       },
@@ -84,7 +99,11 @@
     },
     "pairing": {
       "type": "suit-pairing",
-      "settings": {},
+      "settings": {
+        "eyebrow": "Pairing Guide",
+        "heading": "スーツの色から選ぶ小物",
+        "intro": "<p>お手持ちのスーツの色を選んでください。テイラーが店頭で実際にお伝えしている合わせ方と、おすすめのアイテムをご紹介します。</p>"
+      },
       "blocks": {
         "suit-navy": {
           "type": "suit",
@@ -132,23 +151,148 @@
     "new": {
       "type": "featured-collection",
       "settings": {
+        "eyebrow": "New Arrivals",
+        "heading": "新着アイテム",
         "limit": 8
       }
     },
     "simulator": {
       "type": "simulator-promo",
-      "settings": {}
+      "settings": {
+        "eyebrow": "Made to Order",
+        "heading": "あなたの一着を、\nまずは画面の上で。",
+        "text": "<p>好きな色と着ていく場面を選ぶと、テイラーが一着を仕立てます。生地やラペル、裏地まで着せ替えて、オーダーの楽しさを体験してください。本物の一着は、約6,000種類の生地から店頭で。</p>",
+        "button_label": "スーツを仕立ててみる"
+      }
     },
     "journal": {
       "type": "blog-posts",
       "settings": {
+        "eyebrow": "Journal",
+        "heading": "テイラーの手帖",
         "limit": 3,
         "show_excerpt": true
       }
     },
     "visit": {
       "type": "store-visit",
-      "settings": {}
+      "settings": {
+        "eyebrow": "Our Shops",
+        "heading": "実物は、広島の2店舗で。",
+        "text": "<p>オンラインでご紹介しているアイテムは、店頭でもご覧いただけます。まずは袋町で体験を。もっと深めたくなったら、laboratoryへ。</p>"
+      },
+      "blocks": {
+        "shop1": {
+          "type": "shop",
+          "settings": {
+            "label": "Shop 01 — Fukuromachi",
+            "catch": "オーダーを気軽に楽しむ",
+            "name": "ROtailor",
+            "subtitle": "紳士の集まる大人のサボり場",
+            "description": "広島・袋町。はじめてオーダースーツの扉を叩く場所。肩肘張らず、友達の家に来るような気分でどうぞ。",
+            "address": "広島市中区袋町8-14-1F",
+            "hours": "11:00〜19:00",
+            "closed": "毎週火曜日",
+            "phone": "082-205-3295",
+            "access": "広島電鉄 袋町駅・立町駅 徒歩5分",
+            "price": "¥44,000〜"
+          }
+        },
+        "shop2": {
+          "type": "shop",
+          "settings": {
+            "label": "Shop 02 — Nishi-Kannon",
+            "catch": "オーダーを深めて楽しむ",
+            "name": "ROtailor -laboratory-",
+            "subtitle": "紳士の為の秘密のラボ",
+            "description": "西観音町。スーツにこだわりを持つ経営者・営業職の方々が集まる、探求の場。会話から生まれる新しいものづくりを、ここで一緒に研究しましょう。",
+            "address": "広島市西区西観音町8-2-1F",
+            "hours": "12:00〜18:00",
+            "closed": "毎週水曜・木曜",
+            "phone": "050-5574-1819",
+            "access": "広島電鉄 西観音町駅・天満町駅 徒歩5分",
+            "price": "¥55,000〜"
+          }
+        }
+      },
+      "block_order": [
+        "shop1",
+        "shop2"
+      ]
+    },
+    "menu": {
+      "type": "order-menu",
+      "settings": {
+        "eyebrow": "Menu & Price",
+        "heading": "店頭で仕立てる、オーダーメニュー",
+        "text": "<p>スーツだけではありません。トータルコーディネートで、あなたをもっと輝かせます。</p>",
+        "note": "価格はすべて税込です。オーダー品は店頭での採寸・お打ち合わせのうえお仕立てします。",
+        "simulator_label": "スーツを仕立ててみる"
+      },
+      "blocks": {
+        "m1": {
+          "type": "item",
+          "settings": {
+            "label": "Suit",
+            "name": "オーダースーツ",
+            "description": "イージーオーダーながらフルオーダーに近いカスタム幅と体型補正。4つの工場を使い分け、国内縫製にこだわります。",
+            "price": "¥44,000〜"
+          }
+        },
+        "m2": {
+          "type": "item",
+          "settings": {
+            "label": "Shirt",
+            "name": "オーダーシャツ",
+            "description": "ビジネスからカジュアルまで約1,000種類の生地。襟型・カフス型・ボタンの色までカスタマイズ可能。",
+            "price": "¥12,100〜"
+          }
+        },
+        "m3": {
+          "type": "item",
+          "settings": {
+            "label": "Shoes",
+            "name": "オーダーシューズ",
+            "description": "国内老舗ファクトリー使用。コストパフォーマンスに優れたパターンオーダーシューズ。",
+            "price": "¥59,400〜"
+          }
+        },
+        "m4": {
+          "type": "item",
+          "settings": {
+            "label": "Tie",
+            "name": "オーダーネクタイ",
+            "description": "国産・イタリア製生地含め約100種類以上。お好みの仕立てをお選びいただけます。",
+            "price": "¥15,400〜"
+          }
+        },
+        "m5": {
+          "type": "item",
+          "settings": {
+            "label": "Belt",
+            "name": "オーダーベルト",
+            "description": "革の質感・カラー・バックルの形をチョイスして、オリジナルの1本を。全身のバランスの要。",
+            "price": "¥16,500〜"
+          }
+        },
+        "m6": {
+          "type": "item",
+          "settings": {
+            "label": "Tuxedo — MEMORIA",
+            "name": "オーダータキシード",
+            "description": "レンタルでは残らない幸せのかたち。人生の大切な瞬間を、世界にひとつの一着で。",
+            "price": "¥66,000〜"
+          }
+        }
+      },
+      "block_order": [
+        "m1",
+        "m2",
+        "m3",
+        "m4",
+        "m5",
+        "m6"
+      ]
     }
   },
   "order": [
@@ -158,6 +302,7 @@
     "pairing",
     "new",
     "simulator",
+    "menu",
     "journal",
     "visit"
   ]

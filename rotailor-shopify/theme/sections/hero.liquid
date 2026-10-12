@@ -12,7 +12,7 @@
           sizes: '100vw',
           alt: image_alt }}
     {%- else -%}
-      {{ 'lifestyle-2' | placeholder_svg_tag: 'placeholder' }}
+      <img src="{{ section.settings.fallback_image | default: 'ro-hero.jpg' | asset_url }}" alt="" loading="eager" width="900" height="601">
     {%- endif -%}
   </div>
   <div class="hero__content container">
@@ -40,6 +40,18 @@
   "class": "section-hero",
   "settings": [
     { "type": "image_picker", "id": "image", "label": "背景画像" },
+    {
+      "type": "select",
+      "id": "fallback_image",
+      "label": "背景画像が未設定のときの写真",
+      "options": [
+        { "value": "ro-hero.jpg", "label": "ジャケットと採寸テープ" },
+        { "value": "ro-shop-exterior.jpg", "label": "店舗（袋町）" },
+        { "value": "ro-interior.jpg", "label": "店内" },
+        { "value": "ro-fabrics.jpg", "label": "生地棚" }
+      ],
+      "default": "ro-hero.jpg"
+    },
     {
       "type": "select",
       "id": "height",

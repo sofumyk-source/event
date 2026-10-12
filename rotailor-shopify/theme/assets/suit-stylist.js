@@ -259,7 +259,7 @@
       threePiece: threePiece,
       title: title,
       comment: comment,
-      salonNote: 'サロンでは、実際の生地見本を手に取りながらこのイメージをさらに磨けます。',
+      salonNote: '店頭では、約6,000種類の生地見本を手に取りながらこのイメージをさらに磨けます。',
       source: 'local',
       matched: p.moods.length > 0
     };

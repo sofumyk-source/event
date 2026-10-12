@@ -12,7 +12,7 @@
             sizes: '(min-width: 990px) 50vw, 100vw',
             alt: image_alt }}
       {%- else -%}
-        {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder' }}
+        <img src="{{ 'ro-measure.jpg' | asset_url }}" alt="" loading="lazy" width="900" height="601">
       {%- endif -%}
       {%- if section.settings.caption != blank -%}
         <p class="brand-story__caption">{{ section.settings.caption }}</p>
@@ -51,18 +51,18 @@
   "max_blocks": 4,
   "settings": [
     { "type": "image_picker", "id": "image", "label": "画像", "info": "店内、職人の手元、生地棚などの写真がおすすめです" },
-    { "type": "text", "id": "caption", "label": "画像のキャプション", "default": "サロンにて、採寸の合間に。" },
+    { "type": "text", "id": "caption", "label": "画像のキャプション", "default": "ROtailor 袋町店にて。" },
     { "type": "checkbox", "id": "image_right", "label": "画像を右に配置", "default": false },
     { "type": "color", "id": "background", "label": "背景色" },
-    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "ABOUT RO TAILOR" },
+    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "ABOUT ROtailor" },
     { "type": "textarea", "id": "heading", "label": "見出し", "default": "仕立て屋の目で選ぶ、\nという約束。" },
     {
       "type": "richtext",
       "id": "text",
       "label": "本文",
-      "default": "<p>ROテイラーは、お一人おひとりの体と暮らしに合わせてスーツを仕立てるオーダーサロンです。このオンラインストアでは、私たちが日々のフィッティングで実際におすすめしているシューズ、バッグ、ネクタイなどの小物をご紹介しています。</p>"
+      "default": "<p>ROtailor は、2019年に広島で創業したオーダースーツ専門店です。このオンラインストアでは、私たちが日々のフィッティングで実際におすすめしているシューズ、バッグ、ネクタイなどの小物をご紹介しています。</p>"
     },
-    { "type": "text", "id": "button_label", "label": "リンクの文言", "default": "ROテイラーについて" },
+    { "type": "text", "id": "button_label", "label": "リンクの文言", "default": "ROtailorについて" },
     { "type": "url", "id": "button_link", "label": "リンク先" }
   ],
   "blocks": [
@@ -81,7 +81,7 @@
       "blocks": [
         { "type": "point", "settings": { "title": "スーツから逆算して選ぶ", "text": "ラペル幅とネクタイ幅、パンツの裾幅と靴のボリューム。スーツとの釣り合いを基準に選んでいます。" } },
         { "type": "point", "settings": { "title": "仕立て屋が自分で使う", "text": "店頭に並べる前に、スタッフ自身が使い込んで確かめたものだけを扱います。" } },
-        { "type": "point", "settings": { "title": "サロンで合わせて確かめられる", "text": "オーダーの採寸時に、実際のスーツ生地と合わせてご覧いただけます。" } }
+        { "type": "point", "settings": { "title": "店頭で合わせて確かめられる", "text": "オーダーの採寸時に、実際のスーツ生地と合わせてご覧いただけます。" } }
       ]
     }
   ]

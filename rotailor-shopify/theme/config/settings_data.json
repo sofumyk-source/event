@@ -2,14 +2,18 @@
   "current": "Default",
   "presets": {
     "Default": {
-      "color_primary": "#1C2333",
-      "color_accent": "#A8874F",
-      "color_background": "#F7F4EE",
-      "color_surface": "#FFFFFF",
-      "color_text": "#1E1E1E",
-      "color_muted": "#6B6559",
-      "color_border": "#DDD6C8",
-      "color_sale": "#8C2F2F"
+      "color_background": "#080808",
+      "color_deep": "#101010",
+      "color_surface": "#161616",
+      "color_surface_2": "#1E1E1E",
+      "color_text": "#FFFFFF",
+      "color_muted": "#888880",
+      "color_border": "#262624",
+      "color_primary": "#C9A55A",
+      "color_on_primary": "#080808",
+      "color_accent": "#C9A55A",
+      "color_accent_light": "#E4C47A",
+      "color_sale": "#D46A5A"
     }
   }
 }

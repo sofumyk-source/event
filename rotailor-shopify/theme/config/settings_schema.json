@@ -13,29 +13,30 @@
       {
         "type": "image_picker",
         "id": "logo",
-        "label": "ロゴ画像"
+        "label": "ロゴ画像",
+        "info": "未設定の場合は ROtailor のロゴ（テーマ内の画像）を表示します"
       },
       {
         "type": "range",
         "id": "logo_width",
-        "label": "ロゴの幅",
-        "min": 60,
-        "max": 260,
-        "step": 10,
+        "label": "ロゴの高さ",
+        "min": 30,
+        "max": 90,
+        "step": 2,
         "unit": "px",
-        "default": 140
+        "default": 48
       },
       {
         "type": "text",
         "id": "brand_name",
         "label": "ブランド名（ロゴ画像がない場合に表示）",
-        "default": "RO TAILOR"
+        "default": "ROtailor"
       },
       {
         "type": "text",
         "id": "brand_tagline",
         "label": "ブランドの添え書き",
-        "default": "Haberdashery & Bespoke"
+        "default": "Hiroshima Custom Tailor — Est. 2019"
       },
       {
         "type": "image_picker",
@@ -56,51 +57,75 @@
     "settings": [
       {
         "type": "color",
-        "id": "color_primary",
-        "label": "メインカラー（ミッドナイトネイビー）",
-        "default": "#1C2333"
-      },
-      {
-        "type": "color",
-        "id": "color_accent",
-        "label": "アクセントカラー（真鍮）",
-        "default": "#A8874F"
-      },
-      {
-        "type": "color",
         "id": "color_background",
         "label": "背景色",
-        "default": "#F7F4EE"
+        "default": "#080808"
+      },
+      {
+        "type": "color",
+        "id": "color_deep",
+        "label": "帯・フッターの背景色",
+        "default": "#101010"
       },
       {
         "type": "color",
         "id": "color_surface",
         "label": "カード・パネルの背景色",
-        "default": "#FFFFFF"
+        "default": "#161616"
+      },
+      {
+        "type": "color",
+        "id": "color_surface_2",
+        "label": "画像の下地の色",
+        "default": "#1E1E1E"
       },
       {
         "type": "color",
         "id": "color_text",
         "label": "文字色",
-        "default": "#1E1E1E"
+        "default": "#FFFFFF"
       },
       {
         "type": "color",
         "id": "color_muted",
         "label": "補足テキストの色",
-        "default": "#6B6559"
+        "default": "#888880"
       },
       {
         "type": "color",
         "id": "color_border",
         "label": "罫線の色",
-        "default": "#DDD6C8"
+        "default": "#262624"
+      },
+      {
+        "type": "color",
+        "id": "color_primary",
+        "label": "ボタン・強調の色（ゴールド）",
+        "default": "#C9A55A"
+      },
+      {
+        "type": "color",
+        "id": "color_on_primary",
+        "label": "ボタン上の文字色",
+        "default": "#080808"
+      },
+      {
+        "type": "color",
+        "id": "color_accent",
+        "label": "アクセントカラー（ゴールド）",
+        "default": "#C9A55A"
+      },
+      {
+        "type": "color",
+        "id": "color_accent_light",
+        "label": "アクセントカラー（明るいゴールド）",
+        "default": "#E4C47A"
       },
       {
         "type": "color",
         "id": "color_sale",
         "label": "セール価格の色",
-        "default": "#8C2F2F"
+        "default": "#D46A5A"
       }
     ]
   },
@@ -147,32 +172,71 @@
       {
         "type": "url",
         "id": "reservation_url",
-        "label": "来店予約ページの URL",
-        "info": "外部の予約システム（STORES 予約、RESERVA など）や問い合わせページを指定します"
+        "label": "予約ボタンのリンク先",
+        "default": "https://lin.ee/SaICq3So",
+        "info": "LINE 公式アカウントや予約システムの URL"
       },
       {
         "type": "text",
         "id": "reservation_label",
         "label": "予約ボタンの文言",
-        "default": "ご来店予約"
+        "default": "LINEで予約する"
+      },
+      {
+        "type": "header",
+        "content": "店舗 1"
+      },
+      {
+        "type": "text",
+        "id": "shop1_name",
+        "label": "店舗名",
+        "default": "ROtailor 袋町店"
       },
       {
         "type": "textarea",
         "id": "store_address",
-        "label": "店舗住所",
-        "default": "〒000-0000\n住所をここに入力してください"
+        "label": "住所",
+        "default": "広島市中区袋町8-14-1F"
       },
       {
         "type": "text",
         "id": "store_hours",
-        "label": "営業時間",
-        "default": "11:00 – 19:00（火曜定休）"
+        "label": "営業時間・定休日",
+        "default": "11:00〜19:00（毎週火曜定休）"
       },
       {
         "type": "text",
         "id": "store_phone",
         "label": "電話番号",
-        "default": "000-000-0000"
+        "default": "082-205-3295"
+      },
+      {
+        "type": "header",
+        "content": "店舗 2（空欄なら非表示）"
+      },
+      {
+        "type": "text",
+        "id": "shop2_name",
+        "label": "店舗名",
+        "default": "ROtailor -laboratory-"
+      },
+      {
+        "type": "textarea",
+        "id": "shop2_address",
+        "label": "住所",
+        "default": "広島市西区西観音町8-2-1F"
+      },
+      {
+        "type": "text",
+        "id": "shop2_hours",
+        "label": "営業時間・定休日",
+        "default": "12:00〜18:00（毎週水・木曜定休）"
+      },
+      {
+        "type": "text",
+        "id": "shop2_phone",
+        "label": "電話番号",
+        "default": "050-5574-1819"
       }
     ]
   },
@@ -206,12 +270,26 @@
       {
         "type": "url",
         "id": "social_instagram",
-        "label": "Instagram"
+        "label": "Instagram",
+        "default": "https://www.instagram.com/rotailor77/"
+      },
+      {
+        "type": "url",
+        "id": "social_instagram2",
+        "label": "Instagram（2つ目）",
+        "default": "https://www.instagram.com/rotailor_laboratory_/"
+      },
+      {
+        "type": "url",
+        "id": "social_tiktok",
+        "label": "TikTok",
+        "default": "https://www.tiktok.com/@rotailor"
       },
       {
         "type": "url",
         "id": "social_line",
-        "label": "LINE 公式アカウント"
+        "label": "LINE 公式アカウント",
+        "default": "https://lin.ee/SaICq3So"
       },
       {
         "type": "url",

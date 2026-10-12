@@ -116,6 +116,8 @@ engine.registerFilter('money_with_currency', (c) => yen(c, true));
 engine.registerFilter('money_without_currency', (c) => String(Math.round((Number(c) || 0) / 100)));
 engine.registerFilter('handle', (s) => String(s || '').toLowerCase().trim().replace(/[^\w぀-ヿ一-龯]+/g, '-'));
 engine.registerFilter('handleize', (s) => String(s || '').toLowerCase().trim().replace(/[^\w぀-ヿ一-龯]+/g, '-'));
+// Shopify と同じく、未定義の値は null として出力する
+engine.registerFilter('json', (v) => JSON.stringify(v === undefined ? null : v, (k, x) => (x && typeof x.valueOf === 'function' && x.constructor && x.constructor.name === 'Color' ? x.valueOf() : x)));
 engine.registerFilter('structured_data', () => '{}');
 engine.registerFilter('payment_button', () => '');
 engine.registerFilter('default_errors', () => '');
@@ -305,6 +307,8 @@ async function renderPage(file, templateName, scope) {
     /(<body[^>]*>)/,
     `$1<div class="preview-banner">プレビュー（サンプルデータ）：見た目の確認用です。カート追加・フォーム送信・検索候補は Shopify 上でのみ動作します。</div>`,
   );
+  // プレビューでは画像をすぐ読み込む（スクロールなしでも全画像が見えるように）
+  html = html.replace(/loading="lazy"/g, 'loading="eager"');
   fs.writeFileSync(path.join(OUT, file), html);
   return file;
 }

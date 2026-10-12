@@ -9,7 +9,14 @@
         {%- assign collection = block.settings.collection -%}
         <a href="{{ collection.url | default: '#' }}" class="category-tile" {{ block.shopify_attributes }}>
           <div class="category-tile__media">
-            {%- assign tile_image = block.settings.image | default: collection.featured_image -%}
+            {%- liquid
+              assign fallbacks = 'ro-shoes.jpg,ro-bags.jpg,ro-ties.jpg,ro-belts.jpg' | split: ','
+              assign tile_image = block.settings.image
+              assign tile_fallback = fallbacks[forloop.index0]
+              if tile_image == blank and tile_fallback == blank
+                assign tile_image = collection.featured_image
+              endif
+            -%}
             {%- if tile_image -%}
               {%- assign image_alt = collection.title | escape -%}
               {{
@@ -20,6 +27,8 @@
                   widths: '400, 600, 900',
                   sizes: '(min-width: 990px) 25vw, 50vw',
                   alt: image_alt }}
+            {%- elsif tile_fallback -%}
+              <img src="{{ tile_fallback | asset_url }}" alt="{{ block.settings.title | default: collection.title | escape }}" loading="lazy" width="900" height="601">
             {%- else -%}
               {{ 'collection-' | append: forloop.index | placeholder_svg_tag: 'placeholder' }}
             {%- endif -%}
@@ -49,7 +58,7 @@
       "name": "カテゴリ",
       "settings": [
         { "type": "collection", "id": "collection", "label": "コレクション" },
-        { "type": "image_picker", "id": "image", "label": "画像（未設定ならコレクション画像）" },
+        { "type": "image_picker", "id": "image", "label": "画像（未設定なら店舗写真・コレクション画像）" },
         { "type": "text", "id": "title", "label": "表示名（未設定ならコレクション名）" },
         { "type": "text", "id": "label_en", "label": "英字ラベル", "default": "Shoes" }
       ]

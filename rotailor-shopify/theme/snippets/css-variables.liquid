@@ -10,19 +10,24 @@
 -%}
 <style>
   :root {
-    --color-primary: {{ settings.color_primary }};
-    --color-primary-rgb: {{ settings.color_primary.red }}, {{ settings.color_primary.green }}, {{ settings.color_primary.blue }};
-    --color-accent: {{ settings.color_accent }};
     --color-bg: {{ settings.color_background }};
+    --color-deep: {{ settings.color_deep }};
     --color-surface: {{ settings.color_surface }};
+    --color-surface-2: {{ settings.color_surface_2 }};
     --color-text: {{ settings.color_text }};
     --color-muted: {{ settings.color_muted }};
     --color-border: {{ settings.color_border }};
+    --color-primary: {{ settings.color_primary }};
+    --color-primary-rgb: {{ settings.color_primary.red }}, {{ settings.color_primary.green }}, {{ settings.color_primary.blue }};
+    --color-on-primary: {{ settings.color_on_primary }};
+    --color-accent: {{ settings.color_accent }};
+    --color-accent-light: {{ settings.color_accent_light }};
     --color-sale: {{ settings.color_sale }};
     --font-serif: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
-    --font-display: 'Cormorant Garamond', 'Shippori Mincho', serif;
+    --font-display: 'EB Garamond', 'Shippori Mincho', serif;
     --font-sans: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif;
     --card-ratio: {{ card_ratio }};
     --logo-width: {{ settings.logo_width }}px;
+    color-scheme: dark;
   }
 </style>

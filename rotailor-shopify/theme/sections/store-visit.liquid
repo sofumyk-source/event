@@ -1,59 +1,82 @@
-<section class="section store-visit">
+{%- comment -%} 店舗紹介（ブロック = 店舗） {%- endcomment -%}
+<section class="section shops">
   <div class="container">
-    <div class="store-visit__grid">
-      <div class="store-visit__media">
-        {%- if section.settings.image -%}
-          {%- assign image_alt = section.settings.image.alt | escape -%}
-          {{
-            section.settings.image
-            | image_url: width: 1400
-            | image_tag:
-              loading: 'lazy',
-              widths: '600, 900, 1200, 1400',
-              sizes: '(min-width: 990px) 50vw, 100vw',
-              alt: image_alt }}
-        {%- else -%}
-          {{ 'lifestyle-2' | placeholder_svg_tag: 'placeholder' }}
-        {%- endif -%}
-      </div>
-      <div class="store-visit__body">
-        {%- if section.settings.eyebrow != blank -%}<p class="eyebrow">{{ section.settings.eyebrow }}</p>{%- endif -%}
-        <h2 class="section-title">{{ section.settings.heading }}</h2>
-        <div class="rte">{{ section.settings.text }}</div>
-        <dl class="store-visit__info">
-          <div><dt>住所</dt><dd>{{ settings.store_address | newline_to_br }}</dd></div>
-          {%- if settings.store_hours != blank -%}<div><dt>営業時間</dt><dd>{{ settings.store_hours }}</dd></div>{%- endif -%}
-          {%- if settings.store_phone != blank -%}<div><dt>電話</dt><dd><a href="tel:{{ settings.store_phone | remove: '-' }}">{{ settings.store_phone }}</a></dd></div>{%- endif -%}
-        </dl>
-        <div class="store-visit__actions">
-          {%- if settings.reservation_url != blank -%}
-            <a href="{{ settings.reservation_url }}" class="button button--primary">{{ settings.reservation_label }}</a>
-          {%- endif -%}
-          {%- if section.settings.map_url != blank -%}
-            <a href="{{ section.settings.map_url }}" class="button" target="_blank" rel="noopener">地図を見る</a>
-          {%- endif -%}
-        </div>
-      </div>
+    <div class="section-head">
+      {%- if section.settings.eyebrow != blank -%}<p class="eyebrow">{{ section.settings.eyebrow }}</p>{%- endif -%}
+      <h2 class="section-title">{{ section.settings.heading }}</h2>
+      {%- if section.settings.text != blank -%}<div class="section-intro rte">{{ section.settings.text }}</div>{%- endif -%}
     </div>
+    <div class="shops__grid">
+      {%- for block in section.blocks -%}
+        {%- assign fallback = 'ro-shop-fukuromachi.jpg' -%}
+        {%- if forloop.index == 2 -%}{%- assign fallback = 'ro-shop-laboratory.jpg' -%}{%- endif -%}
+        <article class="shop-card" {{ block.shopify_attributes }}>
+          <div class="shop-card__media">
+            {%- if block.settings.image -%}
+              {%- assign image_alt = block.settings.name | escape -%}
+              {{ block.settings.image | image_url: width: 1200 | image_tag: loading: 'lazy', widths: '600, 900, 1200', sizes: '(min-width: 990px) 50vw, 100vw', alt: image_alt }}
+            {%- else -%}
+              <img src="{{ fallback | asset_url }}" alt="{{ block.settings.name | escape }}" loading="lazy" width="900" height="601">
+            {%- endif -%}
+          </div>
+          <div class="shop-card__body">
+            {%- if block.settings.label != blank -%}<p class="eyebrow">{{ block.settings.label }}</p>{%- endif -%}
+            {%- if block.settings.catch != blank -%}<p class="shop-card__catch">{{ block.settings.catch }}</p>{%- endif -%}
+            <h3 class="shop-card__name">{{ block.settings.name }}</h3>
+            {%- if block.settings.subtitle != blank -%}<p class="shop-card__subtitle">{{ block.settings.subtitle }}</p>{%- endif -%}
+            {%- if block.settings.description != blank -%}<p class="shop-card__desc">{{ block.settings.description }}</p>{%- endif -%}
+            <dl class="shop-card__info">
+              {%- if block.settings.address != blank -%}<div><dt>住所</dt><dd>{{ block.settings.address }}</dd></div>{%- endif -%}
+              {%- if block.settings.hours != blank -%}<div><dt>営業</dt><dd>{{ block.settings.hours }}</dd></div>{%- endif -%}
+              {%- if block.settings.closed != blank -%}<div><dt>定休</dt><dd>{{ block.settings.closed }}</dd></div>{%- endif -%}
+              {%- if block.settings.phone != blank -%}<div><dt>TEL</dt><dd><a href="tel:{{ block.settings.phone | remove: '-' }}">{{ block.settings.phone }}</a></dd></div>{%- endif -%}
+              {%- if block.settings.access != blank -%}<div><dt>アクセス</dt><dd>{{ block.settings.access }}</dd></div>{%- endif -%}
+              {%- if block.settings.price != blank -%}<div><dt>スーツ</dt><dd class="shop-card__price">{{ block.settings.price }}</dd></div>{%- endif -%}
+            </dl>
+            {%- if block.settings.map_url != blank -%}
+              <a href="{{ block.settings.map_url }}" class="link-arrow" target="_blank" rel="noopener">地図を見る {% render 'icon', name: 'arrow' %}</a>
+            {%- endif -%}
+          </div>
+        </article>
+      {%- endfor -%}
+    </div>
+    {%- if settings.reservation_url != blank -%}
+      <p class="shops__cta"><a href="{{ settings.reservation_url }}" class="button button--primary" target="_blank" rel="noopener">{{ settings.reservation_label }}</a></p>
+    {%- endif -%}
   </div>
 </section>
 
 {% schema %}
 {
-  "name": "サロンのご案内",
+  "name": "店舗のご案内",
   "class": "section-store-visit",
+  "max_blocks": 4,
   "settings": [
-    { "type": "image_picker", "id": "image", "label": "店舗の写真" },
-    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "VISIT THE SALON" },
-    { "type": "text", "id": "heading", "label": "見出し", "default": "サロンで、実物を合わせてみませんか。" },
-    {
-      "type": "richtext",
-      "id": "text",
-      "label": "本文",
-      "default": "<p>オンラインでご紹介している小物は、すべてサロンでもご覧いただけます。お手持ちのスーツをお持ちいただければ、テイラーがその場で合わせ方をご提案します。</p>"
-    },
-    { "type": "url", "id": "map_url", "label": "地図の URL（Google マップなど）" }
+    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "Our Shops" },
+    { "type": "text", "id": "heading", "label": "見出し", "default": "実物は、広島の2店舗で。" },
+    { "type": "richtext", "id": "text", "label": "本文", "default": "<p>オンラインでご紹介しているアイテムは、店頭でもご覧いただけます。まずは袋町で体験を。もっと深めたくなったら、laboratoryへ。</p>" }
   ],
-  "presets": [{ "name": "サロンのご案内" }]
+  "blocks": [
+    {
+      "type": "shop",
+      "name": "店舗",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "写真" },
+        { "type": "text", "id": "label", "label": "英字ラベル", "default": "Shop 01 — Fukuromachi" },
+        { "type": "text", "id": "catch", "label": "キャッチ", "default": "オーダーを気軽に楽しむ" },
+        { "type": "text", "id": "name", "label": "店舗名", "default": "ROtailor" },
+        { "type": "text", "id": "subtitle", "label": "サブタイトル", "default": "紳士の集まる大人のサボり場" },
+        { "type": "textarea", "id": "description", "label": "説明" },
+        { "type": "text", "id": "address", "label": "住所" },
+        { "type": "text", "id": "hours", "label": "営業時間" },
+        { "type": "text", "id": "closed", "label": "定休日" },
+        { "type": "text", "id": "phone", "label": "電話番号" },
+        { "type": "text", "id": "access", "label": "アクセス" },
+        { "type": "text", "id": "price", "label": "スーツの価格" },
+        { "type": "url", "id": "map_url", "label": "地図の URL" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "店舗のご案内", "blocks": [{ "type": "shop" }, { "type": "shop" }] }]
 }
 {% endschema %}

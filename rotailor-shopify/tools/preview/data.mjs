@@ -62,7 +62,7 @@ function colorFor(p) {
 }
 
 const frame = (bg, inner) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000"><defs><radialGradient id="bg" cx="0.5" cy="0.38" r="0.8"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="${bg}"/></radialGradient><linearGradient id="sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#000" stop-opacity="0.25"/></linearGradient></defs><rect width="800" height="1000" fill="url(#bg)"/><ellipse cx="400" cy="800" rx="270" ry="26" fill="#000" opacity="0.08"/>${inner}</svg>`;
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000"><defs><radialGradient id="bg" cx="0.5" cy="0.38" r="0.8"><stop offset="0" stop-color="#2c2b29"/><stop offset="1" stop-color="#121212"/></radialGradient><linearGradient id="sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#000" stop-opacity="0.25"/></linearGradient></defs><rect width="800" height="1000" fill="url(#bg)"/><ellipse cx="400" cy="800" rx="270" ry="26" fill="#000" opacity="0.45"/>${inner}</svg>`;
 
 const art = {
   shoe(c, alt) {
@@ -218,7 +218,7 @@ export function buildData({ outDir, Color }) {
     const img = writeImg(imgName + '.svg', `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#e6dfd2"/><rect x="0" y="520" width="1200" height="280" fill="#d8cfbf"/><circle cx="${300 + i * 260}" cy="330" r="190" fill="${color}" opacity="0.9"/><path d="M0 520 H1200" stroke="#a8874f" stroke-width="4"/></svg>`);
     return {
       handle, title, url: `article-${handle}.html`, content, excerpt_or_content: strip(content).slice(0, 120), image: { ...img, alt: title },
-      published_at: new Date(2026, 9, 8 - i * 7), tags: [tag], author: 'ROテイラー', comments_count: 0,
+      published_at: new Date(2026, 9, 8 - i * 7), tags: [tag], author: 'ROtailor', comments_count: 0,
       metafields: { custom: { related_products: { value: pick(...rel) } } },
     };
   });
@@ -228,7 +228,7 @@ export function buildData({ outDir, Color }) {
   };
 
   const pages = {
-    about: { title: 'ROテイラーについて', url: 'about.html', content: readContent('page-about.html') },
+    about: { title: 'ROtailorについて', url: 'about.html', content: readContent('page-about.html') },
     simulator: { title: 'オーダースーツを仕立てる', url: 'simulator.html', content: '' },
     contact: { title: 'お問い合わせ', url: 'contact.html', content: '<p>商品やオーダースーツについて、お気軽にお問い合わせください。</p>' },
     shipping: { title: '配送・返品について', url: 'shipping.html', content: readContent('page-shipping.html') },
@@ -242,11 +242,12 @@ export function buildData({ outDir, Color }) {
       links: [
         link('アイテム', 'collection-all.html', [link('シューズ', 'collection-shoes.html'), link('バッグ', 'collection-bags.html'), link('ネクタイ', 'collection-ties.html'), link('ベルト・小物', 'collection-accessories.html')]),
         link('オーダースーツ', 'simulator.html'),
+        link('店舗', 'about.html'),
         link('テイラーの手帖', 'blog.html'),
-        link('ROテイラーについて', 'about.html'),
+        link('ROtailorについて', 'about.html'),
       ],
     },
-    footer: { title: 'ご案内', links: [link('配送・返品について', 'shipping.html'), link('お問い合わせ', 'contact.html'), link('ROテイラーについて', 'about.html'), link('カテゴリ一覧', 'collections.html')] },
+    footer: { title: 'ご案内', links: [link('配送・返品について', 'shipping.html'), link('お問い合わせ', 'contact.html'), link('ROtailorについて', 'about.html'), link('カテゴリ一覧', 'collections.html')] },
   };
 
   const cartItem = (h, qty) => {
@@ -268,10 +269,7 @@ export function buildData({ outDir, Color }) {
     else if (['image_picker', 'url', 'page', 'collection', 'product', 'blog'].includes(s.type)) settings[s.id] = s.default ?? null;
     else settings[s.id] = s.default ?? '';
   }
-  Object.assign(settings, {
-    reservation_url: 'contact.html', social_instagram: '#', social_line: '#',
-    store_address: '〒700-0000\n岡山県岡山市北区（サンプル）', store_phone: '086-000-0000',
-  });
+  // プレビューでは HP と同じ実際の値（schema の初期値）をそのまま使う
 
   // 空欄の設定をサンプルで埋めるルール
   const pairingByIndex = [
@@ -305,10 +303,8 @@ export function buildData({ outDir, Color }) {
       if (info.id === 'shipping_page') return pages.shipping;
       return '';
     },
-    image(info) {
-      if (info.section === 'hero') return sceneImg('hero');
-      if (info.section === 'brand-story') return { ...sceneImg('brand'), width: 800, height: 1000 };
-      if (info.section === 'store-visit') return sceneImg('salon');
+    image() {
+      // 未設定の画像は、テーマ内の ROtailor の写真（フォールバック）を表示させる
       return '';
     },
   };
@@ -319,7 +315,7 @@ export function buildData({ outDir, Color }) {
       return {
         settings,
         shop: {
-          name: 'ROテイラー', url: '', description: 'スーツを知り尽くした仕立て屋が選ぶ小物のオンラインストア',
+          name: 'ROtailor', url: '', description: 'スーツを知り尽くした仕立て屋が選ぶ小物のオンラインストア',
           money_format: '¥{{amount_no_decimals}}', customer_accounts_enabled: true, checkout: { guest_login: false },
           policies: [{ title: '返品ポリシー', url: 'shipping.html' }, { title: 'プライバシーポリシー', url: '#' }, { title: '特定商取引法に基づく表記', url: '#' }],
           metaobjects: { suit_fabric: { values: [] } },
