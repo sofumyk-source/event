@@ -793,11 +793,78 @@ button { font: inherit; }
   .sim-total .button { padding-inline: 14px; font-size: 0.8rem; }
 }
 
+/* ===== イメージから仕立てる（AI テイラー） ===== */
+.sim-stylist {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 40px;
+  align-items: center;
+  margin-top: 40px;
+  padding: 36px 40px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(168, 135, 79, 0.22), transparent 55%),
+    var(--color-primary);
+  color: rgba(255, 255, 255, 0.86);
+}
+.sim-stylist .eyebrow { color: #d9c49b; }
+.sim-stylist__title { font-size: clamp(1.25rem, 2.2vw, 1.6rem); color: #fff; margin-bottom: 8px; }
+.sim-stylist__text { font-size: 0.85rem; line-height: 1.9; margin: 0; }
+.sim-stylist__form { display: grid; gap: 12px; }
+.sim-stylist__input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.7;
+  resize: vertical;
+}
+.sim-stylist__input::placeholder { color: rgba(255, 255, 255, 0.45); }
+.sim-stylist__input:focus { outline: none; border-color: #d9c49b; background: rgba(255, 255, 255, 0.1); }
+.sim-stylist__examples { display: flex; flex-wrap: wrap; gap: 6px; }
+.sim-stylist__examples .sim-chip { background: transparent; color: rgba(255, 255, 255, 0.8); border-color: rgba(255, 255, 255, 0.25); }
+.sim-stylist__examples .sim-chip:hover { border-color: #d9c49b; color: #fff; }
+.sim-stylist__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.sim-stylist__progress { margin: 0; font-size: 0.85rem; color: #d9c49b; letter-spacing: 0.06em; }
+.sim-stylist__progress::after { content: ''; display: inline-block; width: 1.2em; text-align: left; animation: sim-dots 1.2s steps(4) infinite; }
+@keyframes sim-dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+.sim-stylist.is-working .sim-stylist__input { opacity: 0.6; }
+
+.sim-look {
+  position: relative;
+  margin-bottom: 28px;
+  padding: 24px 24px 20px 28px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  animation: sim-fade-up 0.6s ease both;
+}
+.sim-look[hidden] { display: none; }
+.sim-look__eyebrow { margin: 0; font-family: var(--font-display); font-size: 0.78rem; letter-spacing: 0.22em; color: var(--color-accent); }
+.sim-look__title { margin: 4px 0 6px; font-family: var(--font-serif); font-size: 1.35rem; font-weight: 600; letter-spacing: 0.08em; }
+.sim-look__request { margin: 0 0 10px; font-size: 0.8rem; color: var(--color-muted); }
+.sim-look__comment { margin: 0 0 10px; font-family: var(--font-serif); font-size: 0.95rem; line-height: 2; }
+.sim-look__salon { margin: 0; padding-top: 10px; border-top: 1px dotted var(--color-border); font-size: 0.8rem; color: var(--color-primary); }
+.sim-spec__row--look dd { font-family: var(--font-serif); font-weight: 600; }
+
+.sim-preview__canvas.is-revealed .sim-svg { animation: sim-reveal 0.9s ease both; }
+@keyframes sim-reveal {
+  0% { opacity: 0; transform: translateY(12px) scale(0.97); filter: blur(4px); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+@keyframes sim-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 989px) {
+  .sim-stylist { grid-template-columns: 1fr; gap: 20px; margin-inline: -20px; padding: 28px 20px; }
+}
+
 .demo-banner { background: #A8874F; color: #fff; text-align: center; font-size: 12px; padding: 6px 16px; letter-spacing: .08em; }
 </style>
 </head>
 <body>
-<div class="demo-banner">デモ表示：Shopify 上ではテーマエディタで生地・選択肢・文言を編集できます。フォーム送信はデモでは動作しません。</div>
+<div class="demo-banner">デモ表示：イメージ入力はサイト内蔵の辞書で動いています（AI 版は API の設定後に有効）。フォーム送信はデモでは動作しません。</div>
 <header class="site-header site-header--sticky">
   <div class="site-header__inner container">
     <span></span>
@@ -813,6 +880,26 @@ button { font: inherit; }
       <p class="eyebrow">MADE TO MEASURE SIMULATOR</p>
       <h1 class="section-title">オーダースーツを仕立てる</h1>
       <div class="section-intro rte"><p>生地やラペル、ボタン、裏地まで。好きな組み合わせを選んで、あなただけの一着を思い描いてみてください。気に入ったイメージは、そのままサロンでのご相談にお持ちいただけます。</p></div>
+    </div>
+    <div class="sim-stylist" data-stylist>
+      <div class="sim-stylist__intro">
+        <p class="eyebrow">TELL THE TAILOR</p>
+        <h2 class="sim-stylist__title">どんな一着にしたいですか？</h2>
+        <p class="sim-stylist__text">着ていく場面、好きな景色、なりたい自分。思いつくままに書いてください。テイラーがあなたの言葉から一着を仕立てます。</p>
+      </div>
+      <form class="sim-stylist__form" novalidate>
+        <textarea class="sim-stylist__input" data-stylist-input rows="2" maxlength="200" placeholder="例）秋の夕暮れ、港町のレストランで大切な人と食事をする日に" aria-label="どんな一着にしたいですか？"></textarea>
+        <div class="sim-stylist__examples">
+          <button type="button" class="sim-chip" data-stylist-example>夏の海辺の結婚式</button>
+          <button type="button" class="sim-chip" data-stylist-example>勝負の商談に挑む日</button>
+          <button type="button" class="sim-chip" data-stylist-example>ジャズバーで過ごす冬の夜</button>
+          <button type="button" class="sim-chip" data-stylist-example>桜の季節の入社式</button>
+        </div>
+        <div class="sim-stylist__actions">
+          <button type="submit" class="button button--accent">テイラーに仕立ててもらう</button>
+          <p class="sim-stylist__progress" data-stylist-progress hidden aria-live="polite"></p>
+        </div>
+      </form>
     </div>
     <div class="simulator__layout">
       <div class="simulator__stage">
@@ -831,6 +918,7 @@ button { font: inherit; }
         </div>
       </div>
       <div class="simulator__panel">
+        <div class="sim-look" data-look hidden aria-live="polite"></div>
         <ol class="sim-steps" role="tablist" aria-label="シミュレーションの手順" data-steps-nav></ol>
         <div class="sim-step-body" data-step-body></div>
         <div class="sim-step-nav">
@@ -881,9 +969,226 @@ button { font: inherit; }
       <div class="sim-pairing" data-pairing hidden></div>
     </div>
   </div>
-  <script type="application/json" data-simulator-config>{"threePieceEnabled": true, "storageKey": "rotailor-sim-demo", "items": [{"id": "fab-navy", "type": "fabric", "name": "ミッドナイトネイビー 無地", "description": null, "key": null, "color": "#1F2A44", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": "Vitale Barberis Canonico", "origin": "イタリア", "composition": "ウール 100%／250g", "season": "all", "comment": "初めての一着に。冠婚葬祭以外のほとんどの場面に馴染む、最も頼れる色です。ボルドーのネクタイと焦げ茶の靴が定番の組み合わせ。", "width": 0, "needsText": false, "isDefault": true}, {"id": "fab-charcoal", "type": "fabric", "name": "チャコールグレー 無地", "description": null, "key": null, "color": "#3A3C40", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": "Vitale Barberis Canonico", "origin": "イタリア", "composition": "ウール 100%／250g", "season": "all", "comment": "改まった席も任せられる落ち着き。黒の内羽根の靴で格を揃えると、ぐっと端正に。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-navy-pin", "type": "fabric", "name": "ネイビー ピンストライプ", "description": null, "key": null, "color": "#1C2540", "pattern": "pinstripe", "patternColor": "", "shirtColor": "", "image": "", "mill": "Ermenegildo Zegna", "origin": "イタリア", "composition": "ウール 100%／240g", "season": "all", "comment": "ビジネスの勝負服に。柄がある分、ネクタイは無地かごく細かな小紋で引き算を。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-navy-birdseye", "type": "fabric", "name": "ネイビー バーズアイ", "description": null, "key": null, "color": "#22304D", "pattern": "birdseye", "patternColor": "", "shirtColor": "", "image": "", "mill": "Loro Piana", "origin": "イタリア", "composition": "ウール 100%／240g", "season": "all", "comment": "遠目には無地、近づくと上品な織り柄。光沢のあるシルクタイがよく映えます。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-grey-glen", "type": "fabric", "name": "グレー グレンチェック", "description": null, "key": null, "color": "#7E8184", "pattern": "glen", "patternColor": "", "shirtColor": "", "image": "", "mill": "Dormeuil", "origin": "イギリス", "composition": "ウール 100%／290g", "season": "aw", "comment": "英国らしいクラシックな一着。ブラウンのスエード靴で、休日にも着こなせます。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-brown-hb", "type": "fabric", "name": "ブラウン ヘリンボーン", "description": null, "key": null, "color": "#5A4232", "pattern": "herringbone", "patternColor": "", "shirtColor": "", "image": "", "mill": "Fox Brothers", "origin": "イギリス", "composition": "ウール フランネル／370g", "season": "aw", "comment": "秋冬らしい温かみのある表情。オリーブやマスタードのニットタイと好相性です。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-navy-chalk", "type": "fabric", "name": "ネイビー チョークストライプ", "description": null, "key": null, "color": "#1E2639", "pattern": "chalkstripe", "patternColor": "", "shirtColor": "", "image": "", "mill": "Fox Brothers", "origin": "イギリス", "composition": "ウール フランネル／340g", "season": "aw", "comment": "ダブルブレストで仕立てると格別。ポケットチーフは白のリネンで潔く。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-sand", "type": "fabric", "name": "サンドベージュ 無地", "description": null, "key": null, "color": "#B9A586", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": "尾州産（国内）", "origin": "日本", "composition": "ウール 100%／220g（トロピカル）", "season": "ss", "comment": "春夏の軽やかな一着に。ネイビーのニットタイとタンの靴で爽やかに。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-grey-pane", "type": "fabric", "name": "ライトグレー ウィンドウペン", "description": null, "key": null, "color": "#9A9C9E", "pattern": "check", "patternColor": "", "shirtColor": "", "image": "", "mill": "Holland & Sherry", "origin": "イギリス", "composition": "ウール・モヘア／250g", "season": "ss", "comment": "モヘア混のさらりとした風合い。サックスブルーのシャツで涼しげにまとめて。", "width": 0, "needsText": false, "isDefault": false}, {"id": "sty-sb2", "type": "style", "name": "シングル 2つボタン", "description": "最もベーシックで、どんな場面にも。", "key": "sb2", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "sty-sb1", "type": "style", "name": "シングル 1つボタン", "description": "Vゾーンが深く、すっきりとモダンな印象に。", "key": "sb1", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "sty-sb3", "type": "style", "name": "シングル 3つボタン段返り", "description": "上のボタンを返して着る、イタリアの伝統的な型。", "key": "sb3", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "sty-db6", "type": "style", "name": "ダブル 6つボタン", "description": "重厚でクラシック。胸板を厚く見せます。", "key": "db6", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "sty-db4", "type": "style", "name": "ダブル 4つボタン", "description": "ダブルの中でも軽快で現代的。", "key": "db4", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "lap-notch", "type": "lapel", "name": "ノッチドラペル", "description": "最も汎用性の高い襟。", "key": "notch", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 8.5, "needsText": false, "isDefault": true}, {"id": "lap-notch-n", "type": "lapel", "name": "ナローノッチ", "description": "細身のネクタイと合わせて軽快に。", "key": "notch", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 7, "needsText": false, "isDefault": false}, {"id": "lap-peak", "type": "lapel", "name": "ピークドラペル", "description": "剣先が上を向いた、華やかで力強い襟。", "key": "peak", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 9.5, "needsText": false, "isDefault": false}, {"id": "lap-shawl", "type": "lapel", "name": "ショールカラー", "description": "丸みのある襟。ディナージャケットにも。", "key": "shawl", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 9, "needsText": false, "isDefault": false}, {"id": "pk-flap", "type": "pocket", "name": "フラップポケット", "description": "", "key": "flap", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "pk-ticket", "type": "pocket", "name": "フラップ＋チェンジポケット", "description": "英国調の小さなポケットを右腰に。", "key": "flap_ticket", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pk-slant", "type": "pocket", "name": "スラントポケット", "description": "斜めの角度で、ウエストをシャープに見せます。", "key": "slant", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pk-jetted", "type": "pocket", "name": "両玉縁ポケット", "description": "フラップのない、最もドレッシーな仕様。", "key": "jetted", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pk-patch", "type": "pocket", "name": "パッチポケット", "description": "貼り付けポケットで、リラックスした雰囲気に。", "key": "patch", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "vt-side", "type": "vent", "name": "サイドベンツ", "description": "動きやすく、後ろ姿もすっきり。", "key": "side", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "vt-center", "type": "vent", "name": "センターベント", "description": "軽快でアメリカントラッドな印象。", "key": "center", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "vt-none", "type": "vent", "name": "ノーベント", "description": "最もフォーマルで、シルエットが美しく。", "key": "none", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "btn-nut-navy", "type": "button", "name": "ナットボタン（ネイビー）", "description": "", "key": null, "color": "#26314A", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "btn-nut-brown", "type": "button", "name": "ナットボタン（ブラウン）", "description": "", "key": null, "color": "#5A3E2B", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "btn-horn", "type": "button", "name": "本水牛ホーン（ダークブラウン）", "description": "一つずつ異なる天然の縞模様。", "key": null, "color": "#3A2A20", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "btn-metal", "type": "button", "name": "メタルボタン（ゴールド）", "description": "ブレザー仕立てにおすすめ。", "key": null, "color": "#B8963E", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "lin-navy", "type": "lining", "name": "キュプラ ネイビー", "description": "", "key": null, "color": "#24304F", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "lin-bordeaux", "type": "lining", "name": "キュプラ ボルドー", "description": "", "key": null, "color": "#5C1E2A", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "lin-dot", "type": "lining", "name": "ドット（ネイビー×ブルー）", "description": "脱いだときにだけ見える遊び心。", "key": null, "color": "#1C2540", "pattern": "birdseye", "patternColor": "#7E9AD0", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "lin-stripe", "type": "lining", "name": "ストライプ（ボルドー×ゴールド）", "description": "", "key": null, "color": "#5C1E2A", "pattern": "pinstripe", "patternColor": "#C9A46A", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pl-none", "type": "pleat", "name": "ノータック", "description": "", "key": "none", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "pl-one", "type": "pleat", "name": "1タック", "description": "", "key": "one", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pl-two", "type": "pleat", "name": "2タック", "description": "", "key": "two", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "hem-single", "type": "hem", "name": "シングル", "description": "", "key": "single", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "hem-double", "type": "hem", "name": "ダブル（4cm）", "description": "", "key": "double", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "ex-kirihba", "type": "extra", "name": "本切羽（袖ボタンが開く仕様）", "description": "オーダーならではの証。袖口のボタンが実際に開閉します。", "key": null, "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "ex-name", "type": "extra", "name": "ネーム刺繍", "description": "内ポケットにお名前を刺繍します（英字 20 文字まで）。", "key": null, "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": true, "isDefault": false}, {"id": "ex-daiba", "type": "extra", "name": "台場仕立て", "description": "内ポケット周りを表地で仕立て、裏地の交換を容易にします。", "key": null, "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "ex-spare", "type": "extra", "name": "スペアパンツ", "description": "パンツの消耗を分散し、スーツを長持ちさせます。", "key": null, "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "tie-bordeaux", "type": "tie", "name": "ボルドー 小紋", "description": "ネイビー・グレーどちらにも合う万能色。", "key": null, "color": "#6B1F2A", "pattern": "birdseye", "patternColor": "#C9A46A", "shirtColor": "#FFFFFF", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "tie-navy", "type": "tie", "name": "ネイビー ソリッド", "description": "", "key": null, "color": "#1E2A4A", "pattern": "solid", "patternColor": "", "shirtColor": "#FFFFFF", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "tie-green", "type": "tie", "name": "グリーン レジメンタル", "description": "サックスブルーのシャツと。", "key": null, "color": "#2F4A3A", "pattern": "pinstripe", "patternColor": "#C9B27A", "shirtColor": "#DCE6F2", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}]}</script>
+  <script type="application/json" data-simulator-config>{"threePieceEnabled": true, "stylistEndpoint": "", "storageKey": "rotailor-sim-demo", "items": [{"id": "fab-navy", "type": "fabric", "name": "ミッドナイトネイビー 無地", "description": null, "key": null, "color": "#1F2A44", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": "Vitale Barberis Canonico", "origin": "イタリア", "composition": "ウール 100%／250g", "season": "all", "comment": "初めての一着に。冠婚葬祭以外のほとんどの場面に馴染む、最も頼れる色です。ボルドーのネクタイと焦げ茶の靴が定番の組み合わせ。", "width": 0, "needsText": false, "isDefault": true}, {"id": "fab-charcoal", "type": "fabric", "name": "チャコールグレー 無地", "description": null, "key": null, "color": "#3A3C40", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": "Vitale Barberis Canonico", "origin": "イタリア", "composition": "ウール 100%／250g", "season": "all", "comment": "改まった席も任せられる落ち着き。黒の内羽根の靴で格を揃えると、ぐっと端正に。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-navy-pin", "type": "fabric", "name": "ネイビー ピンストライプ", "description": null, "key": null, "color": "#1C2540", "pattern": "pinstripe", "patternColor": "", "shirtColor": "", "image": "", "mill": "Ermenegildo Zegna", "origin": "イタリア", "composition": "ウール 100%／240g", "season": "all", "comment": "ビジネスの勝負服に。柄がある分、ネクタイは無地かごく細かな小紋で引き算を。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-navy-birdseye", "type": "fabric", "name": "ネイビー バーズアイ", "description": null, "key": null, "color": "#22304D", "pattern": "birdseye", "patternColor": "", "shirtColor": "", "image": "", "mill": "Loro Piana", "origin": "イタリア", "composition": "ウール 100%／240g", "season": "all", "comment": "遠目には無地、近づくと上品な織り柄。光沢のあるシルクタイがよく映えます。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-grey-glen", "type": "fabric", "name": "グレー グレンチェック", "description": null, "key": null, "color": "#7E8184", "pattern": "glen", "patternColor": "", "shirtColor": "", "image": "", "mill": "Dormeuil", "origin": "イギリス", "composition": "ウール 100%／290g", "season": "aw", "comment": "英国らしいクラシックな一着。ブラウンのスエード靴で、休日にも着こなせます。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-brown-hb", "type": "fabric", "name": "ブラウン ヘリンボーン", "description": null, "key": null, "color": "#5A4232", "pattern": "herringbone", "patternColor": "", "shirtColor": "", "image": "", "mill": "Fox Brothers", "origin": "イギリス", "composition": "ウール フランネル／370g", "season": "aw", "comment": "秋冬らしい温かみのある表情。オリーブやマスタードのニットタイと好相性です。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-navy-chalk", "type": "fabric", "name": "ネイビー チョークストライプ", "description": null, "key": null, "color": "#1E2639", "pattern": "chalkstripe", "patternColor": "", "shirtColor": "", "image": "", "mill": "Fox Brothers", "origin": "イギリス", "composition": "ウール フランネル／340g", "season": "aw", "comment": "ダブルブレストで仕立てると格別。ポケットチーフは白のリネンで潔く。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-sand", "type": "fabric", "name": "サンドベージュ 無地", "description": null, "key": null, "color": "#B9A586", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": "尾州産（国内）", "origin": "日本", "composition": "ウール 100%／220g（トロピカル）", "season": "ss", "comment": "春夏の軽やかな一着に。ネイビーのニットタイとタンの靴で爽やかに。", "width": 0, "needsText": false, "isDefault": false}, {"id": "fab-grey-pane", "type": "fabric", "name": "ライトグレー ウィンドウペン", "description": null, "key": null, "color": "#9A9C9E", "pattern": "check", "patternColor": "", "shirtColor": "", "image": "", "mill": "Holland & Sherry", "origin": "イギリス", "composition": "ウール・モヘア／250g", "season": "ss", "comment": "モヘア混のさらりとした風合い。サックスブルーのシャツで涼しげにまとめて。", "width": 0, "needsText": false, "isDefault": false}, {"id": "sty-sb2", "type": "style", "name": "シングル 2つボタン", "description": "最もベーシックで、どんな場面にも。", "key": "sb2", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "sty-sb1", "type": "style", "name": "シングル 1つボタン", "description": "Vゾーンが深く、すっきりとモダンな印象に。", "key": "sb1", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "sty-sb3", "type": "style", "name": "シングル 3つボタン段返り", "description": "上のボタンを返して着る、イタリアの伝統的な型。", "key": "sb3", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "sty-db6", "type": "style", "name": "ダブル 6つボタン", "description": "重厚でクラシック。胸板を厚く見せます。", "key": "db6", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "sty-db4", "type": "style", "name": "ダブル 4つボタン", "description": "ダブルの中でも軽快で現代的。", "key": "db4", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "lap-notch", "type": "lapel", "name": "ノッチドラペル", "description": "最も汎用性の高い襟。", "key": "notch", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 8.5, "needsText": false, "isDefault": true}, {"id": "lap-notch-n", "type": "lapel", "name": "ナローノッチ", "description": "細身のネクタイと合わせて軽快に。", "key": "notch", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 7, "needsText": false, "isDefault": false}, {"id": "lap-peak", "type": "lapel", "name": "ピークドラペル", "description": "剣先が上を向いた、華やかで力強い襟。", "key": "peak", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 9.5, "needsText": false, "isDefault": false}, {"id": "lap-shawl", "type": "lapel", "name": "ショールカラー", "description": "丸みのある襟。ディナージャケットにも。", "key": "shawl", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 9, "needsText": false, "isDefault": false}, {"id": "pk-flap", "type": "pocket", "name": "フラップポケット", "description": "", "key": "flap", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "pk-ticket", "type": "pocket", "name": "フラップ＋チェンジポケット", "description": "英国調の小さなポケットを右腰に。", "key": "flap_ticket", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pk-slant", "type": "pocket", "name": "スラントポケット", "description": "斜めの角度で、ウエストをシャープに見せます。", "key": "slant", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pk-jetted", "type": "pocket", "name": "両玉縁ポケット", "description": "フラップのない、最もドレッシーな仕様。", "key": "jetted", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pk-patch", "type": "pocket", "name": "パッチポケット", "description": "貼り付けポケットで、リラックスした雰囲気に。", "key": "patch", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "vt-side", "type": "vent", "name": "サイドベンツ", "description": "動きやすく、後ろ姿もすっきり。", "key": "side", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "vt-center", "type": "vent", "name": "センターベント", "description": "軽快でアメリカントラッドな印象。", "key": "center", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "vt-none", "type": "vent", "name": "ノーベント", "description": "最もフォーマルで、シルエットが美しく。", "key": "none", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "btn-nut-navy", "type": "button", "name": "ナットボタン（ネイビー）", "description": "", "key": null, "color": "#26314A", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "btn-nut-brown", "type": "button", "name": "ナットボタン（ブラウン）", "description": "", "key": null, "color": "#5A3E2B", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "btn-horn", "type": "button", "name": "本水牛ホーン（ダークブラウン）", "description": "一つずつ異なる天然の縞模様。", "key": null, "color": "#3A2A20", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "btn-metal", "type": "button", "name": "メタルボタン（ゴールド）", "description": "ブレザー仕立てにおすすめ。", "key": null, "color": "#B8963E", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "lin-navy", "type": "lining", "name": "キュプラ ネイビー", "description": "", "key": null, "color": "#24304F", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "lin-bordeaux", "type": "lining", "name": "キュプラ ボルドー", "description": "", "key": null, "color": "#5C1E2A", "pattern": "solid", "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "lin-dot", "type": "lining", "name": "ドット（ネイビー×ブルー）", "description": "脱いだときにだけ見える遊び心。", "key": null, "color": "#1C2540", "pattern": "birdseye", "patternColor": "#7E9AD0", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "lin-stripe", "type": "lining", "name": "ストライプ（ボルドー×ゴールド）", "description": "", "key": null, "color": "#5C1E2A", "pattern": "pinstripe", "patternColor": "#C9A46A", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pl-none", "type": "pleat", "name": "ノータック", "description": "", "key": "none", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "pl-one", "type": "pleat", "name": "1タック", "description": "", "key": "one", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "pl-two", "type": "pleat", "name": "2タック", "description": "", "key": "two", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "hem-single", "type": "hem", "name": "シングル", "description": "", "key": "single", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "hem-double", "type": "hem", "name": "ダブル（4cm）", "description": "", "key": "double", "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "ex-kirihba", "type": "extra", "name": "本切羽（袖ボタンが開く仕様）", "description": "オーダーならではの証。袖口のボタンが実際に開閉します。", "key": null, "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "ex-name", "type": "extra", "name": "ネーム刺繍", "description": "内ポケットにお名前を刺繍します（英字 20 文字まで）。", "key": null, "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": true, "isDefault": false}, {"id": "ex-daiba", "type": "extra", "name": "台場仕立て", "description": "内ポケット周りを表地で仕立て、裏地の交換を容易にします。", "key": null, "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "ex-spare", "type": "extra", "name": "スペアパンツ", "description": "パンツの消耗を分散し、スーツを長持ちさせます。", "key": null, "color": "", "pattern": null, "patternColor": "", "shirtColor": "", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "tie-bordeaux", "type": "tie", "name": "ボルドー 小紋", "description": "ネイビー・グレーどちらにも合う万能色。", "key": null, "color": "#6B1F2A", "pattern": "birdseye", "patternColor": "#C9A46A", "shirtColor": "#FFFFFF", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": true}, {"id": "tie-navy", "type": "tie", "name": "ネイビー ソリッド", "description": "", "key": null, "color": "#1E2A4A", "pattern": "solid", "patternColor": "", "shirtColor": "#FFFFFF", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}, {"id": "tie-green", "type": "tie", "name": "グリーン レジメンタル", "description": "サックスブルーのシャツと。", "key": null, "color": "#2F4A3A", "pattern": "pinstripe", "patternColor": "#C9B27A", "shirtColor": "#DCE6F2", "image": "", "mill": null, "origin": null, "composition": null, "season": null, "comment": null, "width": 0, "needsText": false, "isDefault": false}]}</script>
 </section>
 </main>
+<script>/*
+ * RO Tailor — ローカル・スタイリスト（AI が使えないときの代わり）
+ * ------------------------------------------------------------
+ * 入力文に含まれる言葉（季節・場面・気分・色・景色など）から好みを推定し、
+ * シミュレーターの選択肢を点数づけして一着を組み立てます。
+ * AI 版（stylist-api）が未設定・通信失敗のときに使われます。
+ * 同じ言葉を入れれば、いつも同じ一着になります。
+ */
+(function () {
+  'use strict';
+
+  /*
+   * 言葉の辞書。
+   * color: 生地の目標色 / tie: ネクタイの目標色 / pattern: 好む柄
+   * season: ss|aw / formal, bold, relaxed: -2〜+2 の傾き / mood: コメントに使う言い回し
+   */
+  var DICTIONARY = [
+    { words: ['結婚式', 'ウェディング', '披露宴', '二次会', '祝'], formal: 2, tie: '#9ea3a8', title: '祝宴', mood: '祝いの席にふさわしい華やかさ' },
+    { words: ['式典', '授賞', '表彰', 'パーティ', 'パーティー', 'ガラ', '晩餐'], formal: 2, bold: 1, title: '晴れ舞台', mood: '晴れの場で映える品格' },
+    { words: ['商談', 'プレゼン', '勝負', '交渉', '面接', '会議', '就活'], formal: 1, color: '#1c2540', pattern: ['solid', 'pinstripe'], tie: '#6b1f2a', title: '勝負服', mood: '信頼を勝ち取る誠実さ' },
+    { words: ['社長', '経営', 'リーダー', '役員', 'ボス', '貫禄', '威厳'], formal: 2, bold: 1, color: '#1e2639', pattern: ['chalkstripe', 'pinstripe'], title: '貫禄', mood: '人の上に立つ貫禄' },
+    { words: ['デート', '初デート', '恋', 'ロマンチック', '告白', 'プロポーズ'], relaxed: 1, tie: '#6b1f2a', title: '逢瀬', mood: 'さりげない色気' },
+    { words: ['休日', '週末', 'カジュアル', 'リラックス', 'ゆったり', 'のんびり', '旅行', '旅'], relaxed: 2, formal: -1, title: '休日', mood: '肩の力が抜けた心地よさ' },
+    { words: ['クラシック', '英国', 'イギリス', 'ロンドン', '伝統', '紳士', 'ジェントル'], formal: 1, pattern: ['glen', 'herringbone', 'chalkstripe'], classic: 2, title: '英国紳士', mood: '英国紳士の伝統' },
+    { words: ['イタリア', 'ナポリ', 'ミラノ', '色気', 'セクシー', '艶'], relaxed: 1, bold: 1, title: '艶', mood: 'イタリアらしい艶' },
+    { words: ['モダン', 'シンプル', 'ミニマル', '都会', 'スタイリッシュ', 'シャープ', 'クール'], formal: 1, color: '#2c2f33', pattern: ['solid'], slim: 2, title: '鋭角', mood: '都会的でシャープな線' },
+    { words: ['派手', '目立', '華やか', '大胆', 'ド派手', '個性', 'インパクト'], bold: 2, title: '主役', mood: '誰よりも目を引く存在感' },
+    { words: ['控えめ', '上品', '品', '落ち着', '大人', '静か', '穏やか'], formal: 1, bold: -1, title: '静謐', mood: '静かに漂う上品さ' },
+    { words: ['元気', '明る', '楽し', 'ハッピー', '陽気', 'ポップ', '笑顔'], bold: 1, light: 1, tie: '#c9a43e', title: '陽光', mood: '明るく前向きな空気' },
+    { words: ['ミステリアス', '夜', '闇', 'ダーク', '影', '黒'], color: '#202226', light: -2, tie: '#2a2c30', title: '夜想', mood: '夜に溶けるようなミステリアスさ' },
+
+    { words: ['春', '桜', 'さくら', '新緑', '入学', '入社'], season: 'ss', light: 1, tie: '#c98a9a', title: '春風', mood: '春の軽やかさ' },
+    { words: ['夏', '真夏', '猛暑', '涼', 'サマー', '太陽', 'ひまわり'], season: 'ss', light: 2, color: '#b9a586', tie: '#2e4f7a', title: '涼風', mood: '夏を涼やかに過ごす軽さ' },
+    { words: ['秋', '紅葉', '落ち葉', '収穫', 'ハロウィン'], season: 'aw', color: '#5a4232', pattern: ['herringbone', 'glen'], tie: '#8a5a2b', title: '秋思', mood: '深まる秋の温もり' },
+    { words: ['冬', '雪', 'クリスマス', '年末', '寒', '暖か'], season: 'aw', color: '#3a3c40', pattern: ['herringbone', 'chalkstripe'], tie: '#6b1f2a', title: '冬凛', mood: '冬の凛とした空気' },
+
+    { words: ['海', '波', 'マリン', '港', '船', '湘南', '沖縄'], color: '#22304d', pattern: ['birdseye', 'solid'], tie: '#2e5f8a', title: '深海', mood: '深い海の青' },
+    { words: ['空', '青空', '晴れ', 'ブルー', '青'], color: '#2a3f66', tie: '#5a86b8', title: '青天', mood: '澄みきった空の青' },
+    { words: ['森', '山', '自然', '緑', 'グリーン', '抹茶', '庭'], color: '#3a3c40', tie: '#2f4a3a', pattern: ['herringbone', 'birdseye'], title: '森閑', mood: '森のような深い緑の気配' },
+    { words: ['夕日', '夕焼け', '夕暮れ', 'オレンジ', '黄昏'], color: '#5a4232', tie: '#b5652e', title: '黄昏', mood: '夕暮れの温かな光' },
+    { words: ['月', '星', '宇宙', '銀河', '星空'], color: '#1c2540', pattern: ['birdseye', 'pinstripe'], tie: '#9ea3a8', title: '星屑', mood: '星空のようなきらめき' },
+    { words: ['街', 'シティ', '東京', 'ニューヨーク', 'ビル'], color: '#3a3c40', pattern: ['pinstripe', 'check'], slim: 1, title: '摩天楼', mood: '都会の街並みに映える端正さ' },
+    { words: ['和', '京都', '日本', '侍', '武士', '着物', '茶'], color: '#22304d', formal: 1, classic: 1, tie: '#4a3a5c', title: '和魂', mood: '凛とした和の佇まい' },
+    { words: ['コーヒー', 'カフェ', 'チョコ', 'ウイスキー', 'ワイン', 'バー'], color: '#5a4232', relaxed: 1, tie: '#6b1f2a', title: '琥珀', mood: '深い琥珀色のくつろぎ' },
+    { words: ['ジャズ', '音楽', 'ピアノ', 'クラブ'], color: '#202226', bold: 1, title: '夜奏', mood: 'ジャズの夜の粋' },
+    { words: ['スポーツ', 'ゴルフ', '野球', 'サッカー', '走'], relaxed: 1, light: 1, title: '颯爽', mood: '軽快で動きやすい躍動感' },
+
+    { words: ['赤', 'レッド', '情熱', '炎', '燃'], tie: '#8c1f24', bold: 1, liningRed: true, title: '情熱', mood: '内に秘めた情熱' },
+    { words: ['黄', 'イエロー', '金', 'ゴールド', '稲妻', '雷'], tie: '#c9a43e', bold: 1, gold: true, title: '閃光', mood: '光を放つような明るさ' },
+    { words: ['ピンク', '桃'], tie: '#c98a9a', title: '桜色', mood: 'やわらかな華やぎ' },
+    { words: ['紫', 'パープル', 'ラベンダー'], tie: '#4a3a5c', title: '紫苑', mood: '高貴な紫の気配' },
+    { words: ['白', 'ホワイト', '純白', '清潔', '爽やか'], light: 2, color: '#9a9c9e', title: '白昼', mood: '清らかな爽やかさ' },
+    { words: ['グレー', '灰', 'シルバー', '銀'], color: '#6f7276', tie: '#9ea3a8', title: '銀灰', mood: '洗練されたグレーの陰影' },
+    { words: ['茶', 'ブラウン', 'ベージュ', '土'], color: '#5a4232', title: '大地', mood: '大地のような温かみ' },
+    { words: ['ネイビー', '紺'], color: '#1f2a44', title: '紺碧', mood: '頼れる紺の深み' }
+  ];
+
+  function hexToRgb(hex) {
+    var h = String(hex || '').replace('#', '');
+    if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join('');
+    if (!/^[0-9a-f]{6}$/i.test(h)) return null;
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+
+  function distance(a, b) {
+    var x = hexToRgb(a);
+    var y = hexToRgb(b);
+    if (!x || !y) return 200;
+    return Math.sqrt(Math.pow(x[0] - y[0], 2) + Math.pow(x[1] - y[1], 2) + Math.pow(x[2] - y[2], 2));
+  }
+
+  function lightness(hex) {
+    var c = hexToRgb(hex);
+    return c ? (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 255 : 0.3;
+  }
+
+  // 同じ文字列から同じ乱数列をつくる（mulberry32）
+  function seeded(text) {
+    var h = 2166136261;
+    for (var i = 0; i < text.length; i++) {
+      h ^= text.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return function () {
+      h += 0x6d2b79f5;
+      var t = h;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function best(list, score, rand) {
+    var top = null;
+    var topScore = -Infinity;
+    list.forEach(function (item) {
+      var s = score(item) + rand() * 0.6; // 同点のときは揺らぎで選ぶ
+      if (s > topScore) { topScore = s; top = item; }
+    });
+    return top;
+  }
+
+  function analyse(text) {
+    var prefs = { titles: [], formal: 0, bold: 0, relaxed: 0, light: 0, classic: 0, slim: 0, colors: [], ties: [], patterns: [], season: null, moods: [], gold: false, liningRed: false };
+    DICTIONARY.forEach(function (entry) {
+      var hit = entry.words.some(function (w) { return text.indexOf(w) !== -1; });
+      if (!hit) return;
+      ['formal', 'bold', 'relaxed', 'light', 'classic', 'slim'].forEach(function (k) { prefs[k] += entry[k] || 0; });
+      if (entry.color) prefs.colors.push(entry.color);
+      if (entry.tie) prefs.ties.push(entry.tie);
+      if (entry.pattern) prefs.patterns = prefs.patterns.concat(entry.pattern);
+      if (entry.season) prefs.season = entry.season;
+      if (entry.gold) prefs.gold = true;
+      if (entry.liningRed) prefs.liningRed = true;
+      if (entry.mood && prefs.moods.indexOf(entry.mood) === -1) prefs.moods.push(entry.mood);
+      if (entry.title) prefs.titles.push(entry.title);
+    });
+    return prefs;
+  }
+
+  function local(text, groups, threePieceEnabled) {
+    var input = String(text || '').trim();
+    var rand = seeded(input);
+    var p = analyse(input);
+    var pick = {};
+
+    pick.fabric = best(groups.fabric || [], function (f) {
+      var s = 0;
+      p.colors.forEach(function (c) { s += 3 - distance(f.color, c) / 60; });
+      if (p.patterns.indexOf(f.pattern) !== -1) s += 2;
+      if (p.season && f.season === p.season) s += 2.5;
+      if (p.season && f.season && f.season !== 'all' && f.season !== p.season) s -= 3;
+      if (p.light > 0) s += lightness(f.color) * p.light * 2;
+      if (p.light < 0) s += (1 - lightness(f.color)) * -p.light * 2;
+      if (p.bold > 0 && f.pattern && f.pattern !== 'solid') s += p.bold * 0.6;
+      if (p.formal > 0 && (f.pattern === 'solid' || f.pattern === 'pinstripe' || f.pattern === 'birdseye')) s += p.formal * 0.5;
+      return s;
+    }, rand);
+
+    var keyScore = function (table) {
+      return function (item) { return (table[item.key] || 0); };
+    };
+    var lvl = function (v) { return Math.max(-2, Math.min(2, v)); };
+    var formal = lvl(p.formal);
+    var bold = lvl(p.bold);
+    var relaxed = lvl(p.relaxed);
+
+    pick.style = best(groups.style || [], keyScore({
+      sb2: 1 + formal * 0.5,
+      sb1: p.slim * 1.2 + bold * 0.3,
+      sb3: relaxed * 0.8 + p.classic * 0.6,
+      db6: bold * 1.2 + p.classic * 0.6 + (formal > 1 ? 0.6 : 0) - relaxed,
+      db4: bold * 0.8 + p.slim * 0.4 - relaxed * 0.5
+    }), rand);
+    var isDouble = pick.style && /^db/.test(pick.style.key);
+
+    pick.lapel = best(groups.lapel || [], function (l) {
+      var s = { notch: 1 + relaxed * 0.4, peak: bold * 1 + (isDouble ? 2 : 0) + formal * 0.3, shawl: (formal > 1 && bold > 0 ? 1.5 : -1) }[l.key] || 0;
+      if (p.slim > 0 && l.width && l.width < 8) s += p.slim;
+      return s;
+    }, rand);
+    pick.pocket = best(groups.pocket || [], keyScore({
+      flap: 1, flap_ticket: p.classic * 1.2, slant: p.slim * 0.8 + bold * 0.3, jetted: formal * 0.8 - relaxed, patch: relaxed * 1.3 - formal
+    }), rand);
+    pick.vent = best(groups.vent || [], keyScore({ side: 1, center: relaxed * 0.8, none: formal > 1 ? 1.2 : -0.5 }), rand);
+
+    var fabricColor = pick.fabric ? pick.fabric.color : '#1f2a44';
+    pick.button = best(groups.button || [], function (b) {
+      var s = 2 - distance(b.color, fabricColor) / 80;
+      if (lightness(b.color) > 0.5 && lightness(b.color) < 0.75) s += (p.gold ? 3 : 0) + (bold > 1 && isDouble ? 1 : -1);
+      return s;
+    }, rand);
+    pick.lining = best(groups.lining || [], function (l) {
+      var s = 0;
+      if (p.liningRed) s += 3 - distance(l.color, '#6b1f2a') / 60;
+      if (bold > 0 && l.pattern && l.pattern !== 'solid') s += bold * 1.2;
+      if (bold <= 0) s += 2 - distance(l.color, fabricColor) / 80;
+      return s;
+    }, rand);
+    pick.pleat = best(groups.pleat || [], keyScore({ none: 1 + p.slim * 0.5, one: relaxed * 0.6 + p.classic * 0.4, two: p.classic * 0.6 + relaxed * 0.3 - p.slim }), rand);
+    pick.hem = best(groups.hem || [], keyScore({ single: 1 + formal * 0.4, double: relaxed * 0.6 + p.classic * 0.7 }), rand);
+    pick.tie = best(groups.tie || [], function (t) {
+      var s = 0;
+      p.ties.forEach(function (c) { s += 3 - distance(t.color, c) / 60; });
+      if (!p.ties.length) s += 1 - Math.abs(lightness(t.color) - 0.3);
+      return s;
+    }, rand);
+
+    var threePiece = !!threePieceEnabled && (p.classic + formal + (p.season === 'aw' ? 1 : 0) >= 3 || (p.classic > 0 && rand() > 0.6));
+
+    var moods = p.moods.slice(0, 2);
+    if (!moods.length) moods = ['あなたの言葉から感じた空気'];
+    var fabricName = pick.fabric ? pick.fabric.name : '';
+    var styleName = pick.style ? pick.style.name : '';
+    var titleWords = ['夜想', '晴天', '凛', '余白', '灯', '旅路', '静謐', '軽風', '深海', '黄昏', '雅', '颯爽'];
+    var title = '「' + (p.titles[0] || titleWords[Math.floor(rand() * titleWords.length)]) + '」の一着';
+
+    var comment = 'いただいたお言葉から、' + moods.join('と') +
+      'を表現しました。' + fabricName + 'を' + styleName + 'に仕立て、' +
+      (pick.lining && bold > 0 ? '裏地の' + pick.lining.name + 'でさりげなく遊び心を。' : 'ディテールは控えめに、品よくまとめています。');
+
+    var selection = {};
+    Object.keys(pick).forEach(function (g) { if (pick[g]) selection[g] = pick[g].id; });
+    return {
+      selection: selection,
+      threePiece: threePiece,
+      title: title,
+      comment: comment,
+      salonNote: 'サロンでは、実際の生地見本を手に取りながらこのイメージをさらに磨けます。',
+      source: 'local',
+      matched: p.moods.length > 0
+    };
+  }
+
+  window.RoTailorStylist = { local: local };
+})();
+</script>
 <script>/*
  * RO Tailor — Made-to-Measure Suit Simulator
  * ------------------------------------------------------------
@@ -1036,6 +1341,7 @@ button { font: inherit; }
     this.renderStepsNav();
     this.renderStep();
     this.update();
+    this.renderLook();
   }
 
   Simulator.prototype.hasGroup = function (g) {
@@ -1078,6 +1384,14 @@ button { font: inherit; }
         if (x) state.extras[id] = x.needsText ? String(raw.extras[id] === true ? '' : raw.extras[id]).slice(0, 40) : true;
       });
     }
+    if (raw.look && typeof raw.look === 'object') {
+      state.look = {
+        title: String(raw.look.title || '').slice(0, 40),
+        comment: String(raw.look.comment || '').slice(0, 300),
+        salonNote: String(raw.look.salonNote || '').slice(0, 120),
+        text: String(raw.look.text || '').slice(0, 200)
+      };
+    }
     return state;
   };
 
@@ -1109,7 +1423,9 @@ button { font: inherit; }
       summaryPreview: root.querySelector('[data-summary-preview]'),
       formSpec: root.querySelector('[data-form-spec]'),
       pairing: root.querySelector('[data-pairing]'),
-      pairingComment: root.querySelector('[data-pairing-comment]')
+      pairingComment: root.querySelector('[data-pairing-comment]'),
+      stylist: root.querySelector('[data-stylist]'),
+      look: root.querySelector('[data-look]')
     };
 
     root.querySelectorAll('[data-view]').forEach(function (btn) {
@@ -1133,12 +1449,15 @@ button { font: inherit; }
       b.addEventListener('click', function () { self.openSummary(); });
     });
 
+    this.bindStylist();
+
     var copyBtn = root.querySelector('[data-copy-link]');
     if (copyBtn) copyBtn.addEventListener('click', function () { self.copyLink(copyBtn); });
 
     var resetBtn = root.querySelector('[data-reset]');
     if (resetBtn) resetBtn.addEventListener('click', function () {
       self.state = self.defaults();
+      self.renderLook();
       self.stepIndex = 0;
       self.renderStepsNav();
       self.renderStep();
@@ -1436,6 +1755,10 @@ button { font: inherit; }
     var tie = this.find('tie', this.state.tie);
     var text = this.lines().map(function (r) { return r.label + '：' + r.value; });
     if (tie) text.push('Vゾーン：' + tie.name);
+    if (this.state.look) {
+      text.unshift('一着の名前：' + this.state.look.title);
+      if (this.state.look.text) text.unshift('お客様のイメージ：' + this.state.look.text);
+    }
     text.push('シミュレーション URL：' + this.shareUrl());
     return text.join('\n');
   };
@@ -1466,12 +1789,145 @@ button { font: inherit; }
       spec.appendChild(el('div', { class: 'sim-spec__row' }, [el('dt', { text: r.label }), el('dd', { text: r.value })]));
     });
     if (tie) spec.appendChild(el('div', { class: 'sim-spec__row' }, [el('dt', { text: 'Vゾーン' }), el('dd', { text: tie.name })]));
+    if (this.state.look) {
+      spec.insertBefore(el('div', { class: 'sim-spec__row sim-spec__row--look' }, [el('dt', { text: '一着の名前' }), el('dd', { text: this.state.look.title })]), spec.firstChild);
+    }
     if (this.$.formSpec) this.$.formSpec.value = this.specText();
     if (this.$.summaryPreview) {
       this.$.summaryPreview.innerHTML = '';
       var clone = this.$.preview.querySelector('svg');
       if (clone) this.$.summaryPreview.appendChild(clone.cloneNode(true));
     }
+  };
+
+
+  /* ------------------------------------------------- AI stylist */
+
+  var PATTERN_LABELS = { solid: '無地', pinstripe: 'ピンストライプ', chalkstripe: 'チョークストライプ', check: 'ウィンドウペン', glen: 'グレンチェック', herringbone: 'ヘリンボーン', birdseye: 'バーズアイ' };
+
+  Simulator.prototype.catalogPayload = function () {
+    var self = this;
+    var catalog = {};
+    SINGLE_GROUPS.forEach(function (g) {
+      var list = self.groups[g] || [];
+      if (!list.length) return;
+      catalog[g] = list.map(function (item) {
+        var hint = [
+          item.mill,
+          item.pattern ? PATTERN_LABELS[item.pattern] || item.pattern : null,
+          item.color ? '色 ' + item.color : null,
+          item.season ? SEASON_LABELS[item.season] : null,
+          item.width ? '幅 ' + item.width + 'cm' : null,
+          item.description || item.comment
+        ].filter(Boolean).join(' ／ ');
+        return { id: item.id, name: item.name, hint: hint.slice(0, 150) };
+      });
+    });
+    return catalog;
+  };
+
+  Simulator.prototype.bindStylist = function () {
+    var self = this;
+    var box = this.$.stylist;
+    if (!box) return;
+    var form = box.querySelector('form');
+    var input = box.querySelector('[data-stylist-input]');
+    box.querySelectorAll('[data-stylist-example]').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        input.value = chip.textContent.trim();
+        input.focus();
+      });
+    });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var text = input.value.trim();
+      if (!text) { input.focus(); return; }
+      self.runStylist(text);
+    });
+  };
+
+  Simulator.prototype.runStylist = function (text) {
+    var self = this;
+    var box = this.$.stylist;
+    var button = box.querySelector('[type="submit"]');
+    var progress = box.querySelector('[data-stylist-progress]');
+    var phases = ['生地棚を見渡しています', '型紙を引いています', '裁断しています', '仕上げのアイロンをかけています'];
+    var phase = 0;
+    button.disabled = true;
+    box.classList.add('is-working');
+    progress.hidden = false;
+    progress.textContent = phases[0];
+    var timer = setInterval(function () {
+      phase = (phase + 1) % phases.length;
+      progress.textContent = phases[phase];
+    }, 1100);
+    var started = Date.now();
+
+    var endpoint = this.config.stylistEndpoint;
+    var request = endpoint
+      ? fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text, catalog: this.catalogPayload(), threePiece: this.hasGroup('threePiece') })
+        }).then(function (res) {
+          if (!res.ok) throw new Error('stylist ' + res.status);
+          return res.json();
+        }).then(function (data) {
+          data.source = 'ai';
+          return data;
+        })
+      : Promise.reject(new Error('no endpoint'));
+
+    request
+      .catch(function () {
+        return window.RoTailorStylist
+          ? window.RoTailorStylist.local(text, self.groups, self.hasGroup('threePiece'))
+          : null;
+      })
+      .then(function (look) {
+        // 演出のため最低 2.4 秒は「仕立て中」を見せる
+        var wait = Math.max(0, 2400 - (Date.now() - started));
+        setTimeout(function () {
+          clearInterval(timer);
+          button.disabled = false;
+          box.classList.remove('is-working');
+          progress.hidden = true;
+          if (look) self.applyLook(look, text);
+        }, wait);
+      });
+  };
+
+  Simulator.prototype.applyLook = function (look, text) {
+    var self = this;
+    var sel = look.selection || {};
+    SINGLE_GROUPS.forEach(function (g) {
+      if (sel[g] && self.find(g, sel[g])) self.state[g] = sel[g];
+    });
+    if (this.hasGroup('threePiece')) this.state.threePiece = !!look.threePiece;
+    this.state.look = { title: look.title || '', comment: look.comment || '', salonNote: look.salonNote || '', text: text };
+    this.renderStep();
+    this.update();
+    this.renderLook();
+    var stage = this.root.querySelector('.simulator__stage');
+    if (stage) stage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var preview = this.$.preview;
+    preview.classList.remove('is-revealed');
+    void preview.offsetWidth;
+    preview.classList.add('is-revealed');
+  };
+
+  Simulator.prototype.renderLook = function () {
+    var box = this.$.look;
+    if (!box) return;
+    var look = this.state.look;
+    box.innerHTML = '';
+    box.hidden = !look;
+    if (!look) return;
+    box.appendChild(el('p', { class: 'sim-look__eyebrow', text: 'TAILOR\'S NOTE' }));
+    box.appendChild(el('p', { class: 'sim-look__title', text: look.title }));
+    if (look.text) box.appendChild(el('p', { class: 'sim-look__request', text: '「' + look.text + '」' }));
+    box.appendChild(el('p', { class: 'sim-look__comment', text: look.comment }));
+    if (look.salonNote) box.appendChild(el('p', { class: 'sim-look__salon', text: look.salonNote }));
   };
 
   /* おまかせ：ランダムに組み合わせる */
@@ -1482,6 +1938,8 @@ button { font: inherit; }
       if (list.length) self.state[g] = list[Math.floor(Math.random() * list.length)].id;
     });
     if (this.hasGroup('threePiece')) this.state.threePiece = Math.random() < 0.3;
+    delete this.state.look;
+    this.renderLook();
     this.renderStep();
     this.update();
   };

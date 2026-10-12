@@ -8,6 +8,7 @@
 {%- endcomment -%}
 
 {{ 'suit-simulator.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'suit-stylist.js' | asset_url }}" defer="defer"></script>
 <script src="{{ 'suit-simulator.js' | asset_url }}" defer="defer"></script>
 
 <section class="section simulator" id="Simulator-{{ section.id }}" data-suit-simulator data-section-id="{{ section.id }}">
@@ -17,6 +18,38 @@
       <h1 class="section-title">{{ section.settings.heading }}</h1>
       {%- if section.settings.intro != blank -%}<div class="section-intro rte">{{ section.settings.intro }}</div>{%- endif -%}
     </div>
+
+    {%- if section.settings.show_stylist -%}
+      {%- comment -%} ===== イメージから仕立てる（AI テイラー） ===== {%- endcomment -%}
+      <div class="sim-stylist" data-stylist>
+        <div class="sim-stylist__intro">
+          <p class="eyebrow">TELL THE TAILOR</p>
+          <h2 class="sim-stylist__title">{{ section.settings.stylist_heading }}</h2>
+          <p class="sim-stylist__text">{{ section.settings.stylist_text }}</p>
+        </div>
+        <form class="sim-stylist__form" novalidate>
+          <label class="visually-hidden" for="StylistInput-{{ section.id }}">{{ section.settings.stylist_heading }}</label>
+          <textarea
+            id="StylistInput-{{ section.id }}"
+            class="sim-stylist__input"
+            data-stylist-input
+            rows="2"
+            maxlength="200"
+            placeholder="{{ section.settings.stylist_placeholder }}"
+          ></textarea>
+          <div class="sim-stylist__examples">
+            {%- assign examples = section.settings.stylist_examples | split: ',' -%}
+            {%- for example in examples -%}
+              <button type="button" class="sim-chip" data-stylist-example>{{ example | strip }}</button>
+            {%- endfor -%}
+          </div>
+          <div class="sim-stylist__actions">
+            <button type="submit" class="button button--accent">{{ section.settings.stylist_button }}</button>
+            <p class="sim-stylist__progress" data-stylist-progress hidden aria-live="polite"></p>
+          </div>
+        </form>
+      </div>
+    {%- endif -%}
 
     <div class="simulator__layout">
       {%- comment -%} ===== プレビュー ===== {%- endcomment -%}
@@ -41,6 +74,7 @@
 
       {%- comment -%} ===== 選択パネル ===== {%- endcomment -%}
       <div class="simulator__panel">
+        <div class="sim-look" data-look hidden aria-live="polite"></div>
         <ol class="sim-steps" role="tablist" aria-label="シミュレーションの手順" data-steps-nav></ol>
         <div class="sim-step-body" data-step-body></div>
         <div class="sim-step-nav">
@@ -167,6 +201,7 @@
   <script type="application/json" data-simulator-config>
     {
       "threePieceEnabled": {{ section.settings.three_piece_enabled | json }},
+      "stylistEndpoint": {{ section.settings.stylist_endpoint | json }},
       "storageKey": "rotailor-sim-{{ section.id }}",
       "items": [
         {%- assign sep = '' -%}
@@ -262,6 +297,52 @@
       "id": "intro",
       "label": "導入文",
       "default": "<p>生地やラペル、ボタン、裏地まで。好きな組み合わせを選んで、あなただけの一着を思い描いてみてください。気に入ったイメージは、そのままサロンでのご相談にお持ちいただけます。</p>"
+    },
+    {
+      "type": "header",
+      "content": "イメージから仕立てる（AI テイラー）"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_stylist",
+      "label": "入力欄を表示",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "stylist_endpoint",
+      "label": "AI テイラーの API URL",
+      "info": "stylist-api をデプロイした URL（末尾 /style まで）。空欄の場合は、サイト内蔵の言葉の辞書で仕立てます"
+    },
+    {
+      "type": "text",
+      "id": "stylist_heading",
+      "label": "見出し",
+      "default": "どんな一着にしたいですか？"
+    },
+    {
+      "type": "textarea",
+      "id": "stylist_text",
+      "label": "説明",
+      "default": "着ていく場面、好きな景色、なりたい自分。思いつくままに書いてください。テイラーがあなたの言葉から一着を仕立てます。"
+    },
+    {
+      "type": "text",
+      "id": "stylist_placeholder",
+      "label": "入力欄の例文",
+      "default": "例）秋の夕暮れ、港町のレストランで大切な人と食事をする日に"
+    },
+    {
+      "type": "text",
+      "id": "stylist_examples",
+      "label": "例のボタン（カンマ区切り）",
+      "default": "夏の海辺の結婚式,勝負の商談に挑む日,ジャズバーで過ごす冬の夜,桜の季節の入社式"
+    },
+    {
+      "type": "text",
+      "id": "stylist_button",
+      "label": "ボタンの文言",
+      "default": "テイラーに仕立ててもらう"
     },
     {
       "type": "checkbox",

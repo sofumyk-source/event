@@ -150,6 +150,7 @@
     this.renderStepsNav();
     this.renderStep();
     this.update();
+    this.renderLook();
   }
 
   Simulator.prototype.hasGroup = function (g) {
@@ -192,6 +193,14 @@
         if (x) state.extras[id] = x.needsText ? String(raw.extras[id] === true ? '' : raw.extras[id]).slice(0, 40) : true;
       });
     }
+    if (raw.look && typeof raw.look === 'object') {
+      state.look = {
+        title: String(raw.look.title || '').slice(0, 40),
+        comment: String(raw.look.comment || '').slice(0, 300),
+        salonNote: String(raw.look.salonNote || '').slice(0, 120),
+        text: String(raw.look.text || '').slice(0, 200)
+      };
+    }
     return state;
   };
 
@@ -223,7 +232,9 @@
       summaryPreview: root.querySelector('[data-summary-preview]'),
       formSpec: root.querySelector('[data-form-spec]'),
       pairing: root.querySelector('[data-pairing]'),
-      pairingComment: root.querySelector('[data-pairing-comment]')
+      pairingComment: root.querySelector('[data-pairing-comment]'),
+      stylist: root.querySelector('[data-stylist]'),
+      look: root.querySelector('[data-look]')
     };
 
     root.querySelectorAll('[data-view]').forEach(function (btn) {
@@ -247,12 +258,15 @@
       b.addEventListener('click', function () { self.openSummary(); });
     });
 
+    this.bindStylist();
+
     var copyBtn = root.querySelector('[data-copy-link]');
     if (copyBtn) copyBtn.addEventListener('click', function () { self.copyLink(copyBtn); });
 
     var resetBtn = root.querySelector('[data-reset]');
     if (resetBtn) resetBtn.addEventListener('click', function () {
       self.state = self.defaults();
+      self.renderLook();
       self.stepIndex = 0;
       self.renderStepsNav();
       self.renderStep();
@@ -550,6 +564,10 @@
     var tie = this.find('tie', this.state.tie);
     var text = this.lines().map(function (r) { return r.label + '：' + r.value; });
     if (tie) text.push('Vゾーン：' + tie.name);
+    if (this.state.look) {
+      text.unshift('一着の名前：' + this.state.look.title);
+      if (this.state.look.text) text.unshift('お客様のイメージ：' + this.state.look.text);
+    }
     text.push('シミュレーション URL：' + this.shareUrl());
     return text.join('\n');
   };
@@ -580,12 +598,145 @@
       spec.appendChild(el('div', { class: 'sim-spec__row' }, [el('dt', { text: r.label }), el('dd', { text: r.value })]));
     });
     if (tie) spec.appendChild(el('div', { class: 'sim-spec__row' }, [el('dt', { text: 'Vゾーン' }), el('dd', { text: tie.name })]));
+    if (this.state.look) {
+      spec.insertBefore(el('div', { class: 'sim-spec__row sim-spec__row--look' }, [el('dt', { text: '一着の名前' }), el('dd', { text: this.state.look.title })]), spec.firstChild);
+    }
     if (this.$.formSpec) this.$.formSpec.value = this.specText();
     if (this.$.summaryPreview) {
       this.$.summaryPreview.innerHTML = '';
       var clone = this.$.preview.querySelector('svg');
       if (clone) this.$.summaryPreview.appendChild(clone.cloneNode(true));
     }
+  };
+
+
+  /* ------------------------------------------------- AI stylist */
+
+  var PATTERN_LABELS = { solid: '無地', pinstripe: 'ピンストライプ', chalkstripe: 'チョークストライプ', check: 'ウィンドウペン', glen: 'グレンチェック', herringbone: 'ヘリンボーン', birdseye: 'バーズアイ' };
+
+  Simulator.prototype.catalogPayload = function () {
+    var self = this;
+    var catalog = {};
+    SINGLE_GROUPS.forEach(function (g) {
+      var list = self.groups[g] || [];
+      if (!list.length) return;
+      catalog[g] = list.map(function (item) {
+        var hint = [
+          item.mill,
+          item.pattern ? PATTERN_LABELS[item.pattern] || item.pattern : null,
+          item.color ? '色 ' + item.color : null,
+          item.season ? SEASON_LABELS[item.season] : null,
+          item.width ? '幅 ' + item.width + 'cm' : null,
+          item.description || item.comment
+        ].filter(Boolean).join(' ／ ');
+        return { id: item.id, name: item.name, hint: hint.slice(0, 150) };
+      });
+    });
+    return catalog;
+  };
+
+  Simulator.prototype.bindStylist = function () {
+    var self = this;
+    var box = this.$.stylist;
+    if (!box) return;
+    var form = box.querySelector('form');
+    var input = box.querySelector('[data-stylist-input]');
+    box.querySelectorAll('[data-stylist-example]').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        input.value = chip.textContent.trim();
+        input.focus();
+      });
+    });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var text = input.value.trim();
+      if (!text) { input.focus(); return; }
+      self.runStylist(text);
+    });
+  };
+
+  Simulator.prototype.runStylist = function (text) {
+    var self = this;
+    var box = this.$.stylist;
+    var button = box.querySelector('[type="submit"]');
+    var progress = box.querySelector('[data-stylist-progress]');
+    var phases = ['生地棚を見渡しています', '型紙を引いています', '裁断しています', '仕上げのアイロンをかけています'];
+    var phase = 0;
+    button.disabled = true;
+    box.classList.add('is-working');
+    progress.hidden = false;
+    progress.textContent = phases[0];
+    var timer = setInterval(function () {
+      phase = (phase + 1) % phases.length;
+      progress.textContent = phases[phase];
+    }, 1100);
+    var started = Date.now();
+
+    var endpoint = this.config.stylistEndpoint;
+    var request = endpoint
+      ? fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text, catalog: this.catalogPayload(), threePiece: this.hasGroup('threePiece') })
+        }).then(function (res) {
+          if (!res.ok) throw new Error('stylist ' + res.status);
+          return res.json();
+        }).then(function (data) {
+          data.source = 'ai';
+          return data;
+        })
+      : Promise.reject(new Error('no endpoint'));
+
+    request
+      .catch(function () {
+        return window.RoTailorStylist
+          ? window.RoTailorStylist.local(text, self.groups, self.hasGroup('threePiece'))
+          : null;
+      })
+      .then(function (look) {
+        // 演出のため最低 2.4 秒は「仕立て中」を見せる
+        var wait = Math.max(0, 2400 - (Date.now() - started));
+        setTimeout(function () {
+          clearInterval(timer);
+          button.disabled = false;
+          box.classList.remove('is-working');
+          progress.hidden = true;
+          if (look) self.applyLook(look, text);
+        }, wait);
+      });
+  };
+
+  Simulator.prototype.applyLook = function (look, text) {
+    var self = this;
+    var sel = look.selection || {};
+    SINGLE_GROUPS.forEach(function (g) {
+      if (sel[g] && self.find(g, sel[g])) self.state[g] = sel[g];
+    });
+    if (this.hasGroup('threePiece')) this.state.threePiece = !!look.threePiece;
+    this.state.look = { title: look.title || '', comment: look.comment || '', salonNote: look.salonNote || '', text: text };
+    this.renderStep();
+    this.update();
+    this.renderLook();
+    var stage = this.root.querySelector('.simulator__layout');
+    if (stage) stage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var preview = this.$.preview;
+    preview.classList.remove('is-revealed');
+    void preview.offsetWidth;
+    preview.classList.add('is-revealed');
+  };
+
+  Simulator.prototype.renderLook = function () {
+    var box = this.$.look;
+    if (!box) return;
+    var look = this.state.look;
+    box.innerHTML = '';
+    box.hidden = !look;
+    if (!look) return;
+    box.appendChild(el('p', { class: 'sim-look__eyebrow', text: 'TAILOR\'S NOTE' }));
+    box.appendChild(el('p', { class: 'sim-look__title', text: look.title }));
+    if (look.text) box.appendChild(el('p', { class: 'sim-look__request', text: '「' + look.text + '」' }));
+    box.appendChild(el('p', { class: 'sim-look__comment', text: look.comment }));
+    if (look.salonNote) box.appendChild(el('p', { class: 'sim-look__salon', text: look.salonNote }));
   };
 
   /* おまかせ：ランダムに組み合わせる */
@@ -596,6 +747,8 @@
       if (list.length) self.state[g] = list[Math.floor(Math.random() * list.length)].id;
     });
     if (this.hasGroup('threePiece')) this.state.threePiece = Math.random() < 0.3;
+    delete this.state.look;
+    this.renderLook();
     this.renderStep();
     this.update();
   };

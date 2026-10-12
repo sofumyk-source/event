@@ -1,0 +1,18 @@
+name = "rotailor-stylist-api"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# ストアのドメインをカンマ区切りで（独自ドメインと myshopify.com の両方）
+ALLOWED_ORIGINS = "https://example.com,https://example.myshopify.com"
+# 使用モデル（README の「費用」を参照）
+STYLIST_MODEL = "claude-opus-5-5"
+
+# API キーは wrangler secret put ANTHROPIC_API_KEY で登録（このファイルには書かない）
+
+# 連打・悪用対策：1 IP あたり 1 分 10 回まで
+[[ratelimits]]
+name = "STYLE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }

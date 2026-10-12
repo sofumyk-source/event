@@ -40,6 +40,7 @@ for block_id in section['block_order']:
 
 config = {
     'threePieceEnabled': section['settings'].get('three_piece_enabled', True),
+    'stylistEndpoint': '',
     'storageKey': 'rotailor-sim-demo',
     'items': items,
 }
@@ -72,7 +73,7 @@ html = f"""<!doctype html>
 </style>
 </head>
 <body>
-<div class="demo-banner">デモ表示：Shopify 上ではテーマエディタで生地・選択肢・文言を編集できます。フォーム送信はデモでは動作しません。</div>
+<div class="demo-banner">デモ表示：イメージ入力はサイト内蔵の辞書で動いています（AI 版は API の設定後に有効）。フォーム送信はデモでは動作しません。</div>
 <header class="site-header site-header--sticky">
   <div class="site-header__inner container">
     <span></span>
@@ -88,6 +89,26 @@ html = f"""<!doctype html>
       <p class="eyebrow">MADE TO MEASURE SIMULATOR</p>
       <h1 class="section-title">オーダースーツを仕立てる</h1>
       <div class="section-intro rte"><p>生地やラペル、ボタン、裏地まで。好きな組み合わせを選んで、あなただけの一着を思い描いてみてください。気に入ったイメージは、そのままサロンでのご相談にお持ちいただけます。</p></div>
+    </div>
+    <div class="sim-stylist" data-stylist>
+      <div class="sim-stylist__intro">
+        <p class="eyebrow">TELL THE TAILOR</p>
+        <h2 class="sim-stylist__title">どんな一着にしたいですか？</h2>
+        <p class="sim-stylist__text">着ていく場面、好きな景色、なりたい自分。思いつくままに書いてください。テイラーがあなたの言葉から一着を仕立てます。</p>
+      </div>
+      <form class="sim-stylist__form" novalidate>
+        <textarea class="sim-stylist__input" data-stylist-input rows="2" maxlength="200" placeholder="例）秋の夕暮れ、港町のレストランで大切な人と食事をする日に" aria-label="どんな一着にしたいですか？"></textarea>
+        <div class="sim-stylist__examples">
+          <button type="button" class="sim-chip" data-stylist-example>夏の海辺の結婚式</button>
+          <button type="button" class="sim-chip" data-stylist-example>勝負の商談に挑む日</button>
+          <button type="button" class="sim-chip" data-stylist-example>ジャズバーで過ごす冬の夜</button>
+          <button type="button" class="sim-chip" data-stylist-example>桜の季節の入社式</button>
+        </div>
+        <div class="sim-stylist__actions">
+          <button type="submit" class="button button--accent">テイラーに仕立ててもらう</button>
+          <p class="sim-stylist__progress" data-stylist-progress hidden aria-live="polite"></p>
+        </div>
+      </form>
     </div>
     <div class="simulator__layout">
       <div class="simulator__stage">
@@ -106,6 +127,7 @@ html = f"""<!doctype html>
         </div>
       </div>
       <div class="simulator__panel">
+        <div class="sim-look" data-look hidden aria-live="polite"></div>
         <ol class="sim-steps" role="tablist" aria-label="シミュレーションの手順" data-steps-nav></ol>
         <div class="sim-step-body" data-step-body></div>
         <div class="sim-step-nav">
@@ -159,6 +181,7 @@ html = f"""<!doctype html>
   <script type="application/json" data-simulator-config>{json.dumps(config, ensure_ascii=False)}</script>
 </section>
 </main>
+<script>{(THEME / 'assets/suit-stylist.js').read_text(encoding='utf-8')}</script>
 <script>{(THEME / 'assets/suit-simulator.js').read_text(encoding='utf-8')}</script>
 </body>
 </html>

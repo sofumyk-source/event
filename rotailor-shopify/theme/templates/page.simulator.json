@@ -3,7 +3,9 @@
     "simulator": {
       "type": "suit-simulator",
       "settings": {
-        "three_piece_enabled": true
+        "three_piece_enabled": true,
+        "show_stylist": true,
+        "stylist_endpoint": ""
       },
       "blocks": {
         "fab-navy": {

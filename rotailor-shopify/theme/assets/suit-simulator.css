@@ -270,3 +270,72 @@
   .sim-summary__preview { max-width: 240px; margin-inline: auto; }
   .sim-total .button { padding-inline: 14px; font-size: 0.8rem; }
 }
+
+/* ===== イメージから仕立てる（AI テイラー） ===== */
+.sim-stylist {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 40px;
+  align-items: center;
+  margin-top: 40px;
+  padding: 36px 40px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(168, 135, 79, 0.22), transparent 55%),
+    var(--color-primary);
+  color: rgba(255, 255, 255, 0.86);
+}
+.sim-stylist .eyebrow { color: #d9c49b; }
+.sim-stylist__title { font-size: clamp(1.25rem, 2.2vw, 1.6rem); color: #fff; margin-bottom: 8px; }
+.sim-stylist__text { font-size: 0.85rem; line-height: 1.9; margin: 0; }
+.sim-stylist__form { display: grid; gap: 12px; }
+.sim-stylist__input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.7;
+  resize: vertical;
+}
+.sim-stylist__input::placeholder { color: rgba(255, 255, 255, 0.45); }
+.sim-stylist__input:focus { outline: none; border-color: #d9c49b; background: rgba(255, 255, 255, 0.1); }
+.sim-stylist__examples { display: flex; flex-wrap: wrap; gap: 6px; }
+.sim-stylist__examples .sim-chip { background: transparent; color: rgba(255, 255, 255, 0.8); border-color: rgba(255, 255, 255, 0.25); }
+.sim-stylist__examples .sim-chip:hover { border-color: #d9c49b; color: #fff; }
+.sim-stylist__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.sim-stylist__progress { margin: 0; font-size: 0.85rem; color: #d9c49b; letter-spacing: 0.06em; }
+.sim-stylist__progress::after { content: ''; display: inline-block; width: 1.2em; text-align: left; animation: sim-dots 1.2s steps(4) infinite; }
+@keyframes sim-dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+.sim-stylist.is-working .sim-stylist__input { opacity: 0.6; }
+
+.simulator__layout { scroll-margin-top: 90px; }
+
+.sim-look {
+  position: relative;
+  margin-bottom: 28px;
+  padding: 24px 24px 20px 28px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  animation: sim-fade-up 0.6s ease both;
+}
+.sim-look[hidden] { display: none; }
+.sim-look__eyebrow { margin: 0; font-family: var(--font-display); font-size: 0.78rem; letter-spacing: 0.22em; color: var(--color-accent); }
+.sim-look__title { margin: 4px 0 6px; font-family: var(--font-serif); font-size: 1.35rem; font-weight: 600; letter-spacing: 0.08em; }
+.sim-look__request { margin: 0 0 10px; font-size: 0.8rem; color: var(--color-muted); }
+.sim-look__comment { margin: 0 0 10px; font-family: var(--font-serif); font-size: 0.95rem; line-height: 2; }
+.sim-look__salon { margin: 0; padding-top: 10px; border-top: 1px dotted var(--color-border); font-size: 0.8rem; color: var(--color-primary); }
+.sim-spec__row--look dd { font-family: var(--font-serif); font-weight: 600; }
+
+.sim-preview__canvas.is-revealed .sim-svg { animation: sim-reveal 0.9s ease both; }
+@keyframes sim-reveal {
+  0% { opacity: 0; transform: translateY(12px) scale(0.97); filter: blur(4px); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+@keyframes sim-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 989px) {
+  .sim-stylist { grid-template-columns: 1fr; gap: 20px; margin-inline: -20px; padding: 28px 20px; }
+}
