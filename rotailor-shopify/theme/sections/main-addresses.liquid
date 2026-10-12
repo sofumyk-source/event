@@ -1,0 +1,39 @@
+<div class="container account-page account-page--wide">
+  <p><a href="{{ routes.account_url }}" class="link-arrow">マイページへ戻る</a></p>
+  <h1 class="section-title">お届け先</h1>
+
+  {%- paginate customer.addresses by 10 -%}
+    <div class="account-grid account-grid--2">
+      {%- for address in customer.addresses -%}
+        <div class="account-card">
+          {%- if address == customer.default_address -%}<p class="eyebrow">DEFAULT</p>{%- endif -%}
+          <address>{{ address | format_address }}</address>
+          <details class="account-recover">
+            <summary>編集する</summary>
+            {%- form 'customer_address', address, class: 'sim-form' -%}
+              {% render 'address-fields', form: form, address: address %}
+              <button type="submit" class="button button--primary">保存</button>
+            {%- endform -%}
+          </details>
+          <form method="post" action="{{ address.url }}" class="account-delete" onsubmit="return confirm('このお届け先を削除しますか？');">
+            <input type="hidden" name="_method" value="delete">
+            <button type="submit" class="cart-remove">削除</button>
+          </form>
+        </div>
+      {%- endfor -%}
+    </div>
+    {% render 'pagination', paginate: paginate %}
+  {%- endpaginate -%}
+
+  <details class="account-card account-new" {% if customer.addresses_count == 0 %}open{% endif %}>
+    <summary class="account-sub">新しいお届け先を追加</summary>
+    {%- form 'customer_address', customer.new_address, class: 'sim-form' -%}
+      {% render 'address-fields', form: form, address: customer.new_address %}
+      <button type="submit" class="button button--primary">追加する</button>
+    {%- endform -%}
+  </details>
+</div>
+
+{% schema %}
+{ "name": "お届け先", "class": "section-main-addresses" }
+{% endschema %}

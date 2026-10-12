@@ -1,0 +1,45 @@
+<div class="container account-page account-page--wide">
+  <p><a href="{{ routes.account_url }}" class="link-arrow">マイページへ戻る</a></p>
+  <h1 class="section-title">ご注文 {{ order.name }}</h1>
+  <p class="sim-card__text">{{ order.created_at | date: '%Y年%m月%d日 %H:%M' }}　{{ order.financial_status_label }} ／ {{ order.fulfillment_status_label }}</p>
+  {%- if order.cancelled -%}<p class="form-message form-message--error">このご注文はキャンセルされました（{{ order.cancel_reason_label }}）。</p>{%- endif -%}
+
+  <table class="account-table">
+    <thead><tr><th>商品</th><th>数量</th><th>金額</th></tr></thead>
+    <tbody>
+      {%- for line_item in order.line_items -%}
+        <tr>
+          <td>
+            <a href="{{ line_item.product.url }}">{{ line_item.title }}</a>
+            {%- for property in line_item.properties -%}
+              {%- assign first_char = property.first | slice: 0 -%}
+              {%- if property.last != blank and first_char != '_' -%}<br><small>{{ property.first }}：{{ property.last }}</small>{%- endif -%}
+            {%- endfor -%}
+            {%- if line_item.fulfillment -%}
+              <br><small>発送：{{ line_item.fulfillment.created_at | date: '%Y.%m.%d' }}
+              {%- if line_item.fulfillment.tracking_url -%} <a href="{{ line_item.fulfillment.tracking_url }}">配送状況</a>{%- endif -%}</small>
+            {%- endif -%}
+          </td>
+          <td>{{ line_item.quantity }}</td>
+          <td>{{ line_item.final_line_price | money }}</td>
+        </tr>
+      {%- endfor -%}
+    </tbody>
+    <tfoot>
+      <tr><th colspan="2">小計</th><td>{{ order.line_items_subtotal_price | money }}</td></tr>
+      {%- for shipping_method in order.shipping_methods -%}
+        <tr><th colspan="2">配送（{{ shipping_method.title }}）</th><td>{{ shipping_method.price | money }}</td></tr>
+      {%- endfor -%}
+      <tr><th colspan="2">合計</th><td><strong>{{ order.total_price | money_with_currency }}</strong></td></tr>
+    </tfoot>
+  </table>
+
+  <div class="account-grid account-grid--2">
+    <div class="account-card"><h2 class="account-sub">お届け先</h2><address>{{ order.shipping_address | format_address }}</address></div>
+    <div class="account-card"><h2 class="account-sub">ご請求先</h2><address>{{ order.billing_address | format_address }}</address></div>
+  </div>
+</div>
+
+{% schema %}
+{ "name": "ご注文詳細", "class": "section-main-order" }
+{% endschema %}

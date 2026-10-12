@@ -1,3 +1,4 @@
+{% render 'breadcrumbs' %}
 <div class="container">
   <header class="collection-hero">
     <p class="eyebrow">COLLECTION</p>
@@ -8,31 +9,109 @@
   </header>
 
   {%- paginate collection.products by section.settings.per_page -%}
-    <div class="collection-toolbar">
-      <div class="filter-chips">
-        {%- if section.settings.show_tags and collection.all_tags.size > 0 -%}
-          <a href="{{ collection.url }}" class="{% if current_tags == blank %}is-active{% endif %}">すべて</a>
-          {%- for tag in collection.all_tags limit: 12 -%}
-            {%- if current_tags contains tag -%}
-              <a href="{{ collection.url }}" class="is-active">{{ tag }}</a>
-            {%- else -%}
-              <a href="{{ collection.url }}/{{ tag | handleize }}">{{ tag }}</a>
-            {%- endif -%}
+    <form class="collection-toolbar" data-filter-form action="{{ collection.url }}" method="get">
+      <div class="filters">
+        {%- if collection.filters.size > 0 -%}
+          {%- for filter in collection.filters -%}
+            <details class="filter">
+              <summary class="filter__summary">
+                {{ filter.label }}
+                {%- if filter.active_values.size > 0 -%}<span class="filter__count">{{ filter.active_values.size }}</span>{%- endif -%}
+              </summary>
+              <div class="filter__panel">
+                {%- case filter.type -%}
+                  {%- when 'price_range' -%}
+                    <div class="filter__price">
+                      <label>
+                        <span class="visually-hidden">下限</span>
+                        <input type="number" name="{{ filter.min_value.param_name }}" value="{% if filter.min_value.value %}{{ filter.min_value.value | money_without_currency | remove: ',' }}{% endif %}" placeholder="0" min="0">
+                      </label>
+                      <span>〜</span>
+                      <label>
+                        <span class="visually-hidden">上限</span>
+                        <input type="number" name="{{ filter.max_value.param_name }}" value="{% if filter.max_value.value %}{{ filter.max_value.value | money_without_currency | remove: ',' }}{% endif %}" placeholder="{{ filter.range_max | money_without_currency | remove: ',' }}" min="0">
+                      </label>
+                      <button type="submit" class="button button--ghost">適用</button>
+                    </div>
+                  {%- else -%}
+                    <ul class="filter__list">
+                      {%- for value in filter.values -%}
+                        <li>
+                          <label class="filter__option{% if value.count == 0 and value.active == false %} is-disabled{% endif %}">
+                            <input
+                              type="checkbox"
+                              name="{{ value.param_name }}"
+                              value="{{ value.value }}"
+                              {% if value.active %}checked{% endif %}
+                              {% if value.count == 0 and value.active == false %}disabled{% endif %}
+                              data-filter-auto
+                            >
+                            <span>{{ value.label }}</span>
+                            <span class="filter__n">{{ value.count }}</span>
+                          </label>
+                        </li>
+                      {%- endfor -%}
+                    </ul>
+                {%- endcase -%}
+              </div>
+            </details>
           {%- endfor -%}
-        {%- else -%}
-          <span>{{ 'collections.count' | t: count: collection.products_count }}</span>
+        {%- elsif section.settings.show_tags and collection.all_tags.size > 0 -%}
+          <div class="filter-chips">
+            <a href="{{ collection.url }}" class="{% if current_tags == blank %}is-active{% endif %}">すべて</a>
+            {%- for tag in collection.all_tags limit: 12 -%}
+              {%- if current_tags contains tag -%}
+                <a href="{{ collection.url }}" class="is-active">{{ tag }}</a>
+              {%- else -%}
+                <a href="{{ collection.url }}/{{ tag | handleize }}">{{ tag }}</a>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
         {%- endif -%}
       </div>
-      <label>
-        <span class="visually-hidden">{{ 'collections.sort_by' | t }}</span>
-        <select data-sort aria-label="{{ 'collections.sort_by' | t }}">
+      <div class="collection-toolbar__right">
+        <span class="collection-toolbar__count">{{ 'collections.count' | t: count: collection.products_count }}</span>
+        <label>
+          <span class="visually-hidden">{{ 'collections.sort_by' | t }}</span>
           {%- assign sort_by = collection.sort_by | default: collection.default_sort_by -%}
-          {%- for option in collection.sort_options -%}
-            <option value="{{ option.value }}"{% if option.value == sort_by %} selected{% endif %}>{{ option.name }}</option>
+          <select name="sort_by" data-filter-auto aria-label="{{ 'collections.sort_by' | t }}">
+            {%- for option in collection.sort_options -%}
+              <option value="{{ option.value }}"{% if option.value == sort_by %} selected{% endif %}>{{ option.name }}</option>
+            {%- endfor -%}
+          </select>
+        </label>
+      </div>
+    </form>
+
+    {%- liquid
+      assign active_count = 0
+      for filter in collection.filters
+        assign active_count = active_count | plus: filter.active_values.size
+        if filter.type == 'price_range'
+          if filter.min_value.value or filter.max_value.value
+            assign active_count = active_count | plus: 1
+          endif
+        endif
+      endfor
+    -%}
+    {%- if active_count > 0 -%}
+      <div class="active-filters">
+        {%- for filter in collection.filters -%}
+          {%- for value in filter.active_values -%}
+            <a href="{{ value.url_to_remove }}" class="active-filters__chip">{{ value.label }} <span aria-hidden="true">×</span></a>
           {%- endfor -%}
-        </select>
-      </label>
-    </div>
+          {%- if filter.type == 'price_range' and filter.url_to_remove -%}
+            {%- if filter.min_value.value or filter.max_value.value -%}
+              <a href="{{ filter.url_to_remove }}" class="active-filters__chip">
+                {{ filter.min_value.value | default: 0 | money }}〜{% if filter.max_value.value %}{{ filter.max_value.value | money }}{% endif %}
+                <span aria-hidden="true">×</span>
+              </a>
+            {%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+        <a href="{{ collection.url }}?sort_by={{ collection.sort_by }}" class="active-filters__clear">すべて解除</a>
+      </div>
+    {%- endif -%}
 
     {%- if collection.products.size > 0 -%}
       <div class="product-grid">
@@ -41,7 +120,7 @@
         {%- endfor -%}
       </div>
     {%- else -%}
-      <p style="text-align:center; padding: 64px 0;">{{ 'collections.empty' | t }}</p>
+      <p class="empty-state">{{ 'collections.empty' | t }}</p>
     {%- endif -%}
 
     {% render 'pagination', paginate: paginate %}
@@ -55,7 +134,11 @@
   "class": "section-main-collection",
   "settings": [
     { "type": "range", "id": "per_page", "label": "1ページの表示数", "min": 8, "max": 48, "step": 4, "default": 24 },
-    { "type": "checkbox", "id": "show_tags", "label": "タグで絞り込むボタンを表示", "default": true }
+    {
+      "type": "paragraph",
+      "content": "絞り込み（色・素材・価格など）は、Shopify アプリ「Search & Discovery」で設定した項目が表示されます。"
+    },
+    { "type": "checkbox", "id": "show_tags", "label": "絞り込みが未設定のとき、タグで絞り込むボタンを表示", "default": true }
   ]
 }
 {% endschema %}

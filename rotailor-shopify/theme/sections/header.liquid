@@ -68,7 +68,7 @@
           <span>{{ section.settings.simulator_label }}</span>
         </a>
       {%- endif -%}
-      <a href="{{ routes.search_url }}" class="icon-button" aria-label="{{ 'general.search' | t }}">{% render 'icon', name: 'search' %}</a>
+      <a href="{{ routes.search_url }}" class="icon-button" aria-label="{{ 'general.search' | t }}" data-search-open>{% render 'icon', name: 'search' %}</a>
       {%- if shop.customer_accounts_enabled -%}
         <a href="{{ routes.account_url }}" class="icon-button icon-button--desktop" aria-label="{{ 'general.account' | t }}">{% render 'icon', name: 'account' %}</a>
       {%- endif -%}
@@ -80,6 +80,36 @@
   </div>
 </header>
 
+<dialog class="search-modal" data-search-dialog aria-label="{{ 'general.search' | t }}">
+  <div class="search-modal__inner container">
+    <form action="{{ routes.search_url }}" method="get" role="search" class="search-modal__form">
+      {% render 'icon', name: 'search' %}
+      <input
+        type="search"
+        name="q"
+        placeholder="{{ 'search.placeholder' | t }}"
+        aria-label="{{ 'search.placeholder' | t }}"
+        autocomplete="off"
+        data-search-input
+      >
+      <input type="hidden" name="options[prefix]" value="last">
+      <button type="button" class="icon-button" data-dialog-close aria-label="{{ 'general.close' | t }}">{% render 'icon', name: 'close' %}</button>
+    </form>
+    <div class="search-modal__results" data-search-results aria-live="polite"></div>
+    {%- if section.settings.search_suggestions != blank -%}
+      <div class="search-modal__popular">
+        <p class="eyebrow">POPULAR</p>
+        <div class="filter-chips">
+          {%- assign words = section.settings.search_suggestions | split: ',' -%}
+          {%- for word in words -%}
+            <a href="{{ routes.search_url }}?q={{ word | strip | url_encode }}">{{ word | strip }}</a>
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</dialog>
+
 {% schema %}
 {
   "name": "ヘッダー",
@@ -87,6 +117,7 @@
   "settings": [
     { "type": "link_list", "id": "menu", "label": "メニュー", "default": "main-menu" },
     { "type": "checkbox", "id": "sticky", "label": "スクロール時に固定", "default": true },
+    { "type": "text", "id": "search_suggestions", "label": "検索画面のおすすめキーワード（カンマ区切り）", "default": "ネクタイ,ストレートチップ,ブリーフケース,ポケットチーフ,ベルト" },
     { "type": "header", "content": "スーツシミュレーションへのリンク" },
     { "type": "checkbox", "id": "show_simulator_link", "label": "ヘッダーに表示", "default": true },
     { "type": "page", "id": "simulator_page", "label": "シミュレーションのページ", "info": "テンプレート「page.simulator」を割り当てたページを選択" },

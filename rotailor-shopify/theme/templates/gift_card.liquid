@@ -1,0 +1,49 @@
+{% layout none %}
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ギフトカード {{ gift_card.initial_value | money }} ｜ {{ shop.name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+JP:wght@400;500&family=Shippori+Mincho:wght@600&display=swap" rel="stylesheet">
+    {% render 'css-variables' %}
+    {{ 'base.css' | asset_url | stylesheet_tag }}
+    <script src="{{ 'vendor/qrcode.js' | shopify_asset_url }}" defer></script>
+    {{ content_for_header }}
+  </head>
+  <body class="template-gift-card">
+    <main class="giftcard container">
+      <p class="site-logo__name">{{ settings.brand_name | default: shop.name }}</p>
+      <div class="giftcard__card">
+        <p class="eyebrow">GIFT CARD</p>
+        <p class="giftcard__value">{{ gift_card.balance | money }}</p>
+        {%- if gift_card.balance != gift_card.initial_value -%}
+          <p class="giftcard__initial">（額面 {{ gift_card.initial_value | money }}）</p>
+        {%- endif -%}
+        {%- if gift_card.expired or gift_card.enabled == false -%}
+          <p class="form-message form-message--error">このギフトカードはご利用いただけません。</p>
+        {%- elsif gift_card.expires_on -%}
+          <p class="giftcard__initial">有効期限：{{ gift_card.expires_on | date: '%Y年%m月%d日' }}</p>
+        {%- endif -%}
+        <p class="giftcard__label">ギフトカードコード</p>
+        <p class="giftcard__code" id="GiftCardCode">{{ gift_card.code | format_code }}</p>
+        <div id="QrCode" class="giftcard__qr" data-identifier="{{ gift_card.qr_identifier }}"></div>
+      </div>
+      <div class="giftcard__actions">
+        <a href="{{ shop.url }}" class="button button--primary">お買い物をはじめる</a>
+        {%- if gift_card.pass_url -%}
+          <a href="{{ gift_card.pass_url }}" class="button button--ghost">Apple Wallet に追加</a>
+        {%- endif -%}
+        <button type="button" class="button button--ghost" onclick="window.print()">印刷する</button>
+      </div>
+    </main>
+    <script>
+      window.addEventListener('load', function () {
+        var el = document.getElementById('QrCode');
+        if (window.QRCode && el) new QRCode(el, { text: el.dataset.identifier, width: 120, height: 120 });
+      });
+    </script>
+  </body>
+</html>

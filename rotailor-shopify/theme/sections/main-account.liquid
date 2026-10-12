@@ -1,0 +1,48 @@
+<div class="container account-page account-page--wide">
+  <div class="account-head">
+    <div>
+      <p class="eyebrow">MY ACCOUNT</p>
+      <h1 class="section-title">{{ customer.last_name }} {{ customer.first_name }} 様</h1>
+    </div>
+    <a href="{{ routes.account_logout_url }}" class="button button--ghost">ログアウト</a>
+  </div>
+
+  <div class="account-grid">
+    <div>
+      <h2 class="account-sub">ご注文履歴</h2>
+      {%- paginate customer.orders by 20 -%}
+        {%- if customer.orders.size > 0 -%}
+          <table class="account-table">
+            <thead><tr><th>ご注文番号</th><th>日付</th><th>状況</th><th>合計</th></tr></thead>
+            <tbody>
+              {%- for order in customer.orders -%}
+                <tr>
+                  <td><a href="{{ order.customer_url }}">{{ order.name }}</a></td>
+                  <td>{{ order.created_at | date: '%Y.%m.%d' }}</td>
+                  <td>{{ order.fulfillment_status_label }}</td>
+                  <td>{{ order.total_price | money }}</td>
+                </tr>
+              {%- endfor -%}
+            </tbody>
+          </table>
+        {%- else -%}
+          <p>まだご注文はありません。</p>
+        {%- endif -%}
+        {% render 'pagination', paginate: paginate %}
+      {%- endpaginate -%}
+    </div>
+    <aside class="account-card">
+      <h2 class="account-sub">お届け先</h2>
+      {%- if customer.default_address -%}
+        <address>{{ customer.default_address | format_address }}</address>
+      {%- else -%}
+        <p>登録されていません。</p>
+      {%- endif -%}
+      <a href="{{ routes.account_addresses_url }}" class="link-arrow">お届け先を管理（{{ customer.addresses_count }}）</a>
+    </aside>
+  </div>
+</div>
+
+{% schema %}
+{ "name": "マイページ", "class": "section-main-account" }
+{% endschema %}

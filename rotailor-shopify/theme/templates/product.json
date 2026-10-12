@@ -45,6 +45,12 @@
           "settings": {
             "text": "サロンで実物をスーツに合わせてご覧いただけます。"
           }
+        },
+        "size": {
+          "type": "size_guide",
+          "settings": {
+            "label": "サイズガイドを見る"
+          }
         }
       },
       "block_order": [
@@ -52,6 +58,7 @@
         "title",
         "price",
         "hint",
+        "size",
         "buy",
         "note",
         "desc",

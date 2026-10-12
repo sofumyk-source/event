@@ -2,6 +2,7 @@
   <div class="container brand-story__grid{% if section.settings.image_right %} brand-story__grid--reverse{% endif %}">
     <div class="brand-story__media">
       {%- if section.settings.image -%}
+        {%- assign image_alt = section.settings.image.alt | escape -%}
         {{
           section.settings.image
           | image_url: width: 1400
@@ -9,9 +10,7 @@
             loading: 'lazy',
             widths: '600, 900, 1200, 1400',
             sizes: '(min-width: 990px) 50vw, 100vw',
-            alt: section.settings.image.alt
-            | escape
-        }}
+            alt: image_alt }}
       {%- else -%}
         {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder' }}
       {%- endif -%}

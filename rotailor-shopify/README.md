@@ -18,11 +18,18 @@ rotailor-shopify/
 │   ├── config/            … テーマ設定（色・店舗情報・SNS など）
 │   └── locales/           … 日本語の文言
 ├── stylist-api/             … AI テイラーの API（Cloudflare Workers）
+├── preview-site/             … サイト全体のプレビュー（index.html をブラウザで開く）
+├── setup/                    … 商品 CSV・ページ／ブログ原稿・ストア立ち上げ手順
 ├── demo/simulator-demo.html … Shopify なしで動くシミュレーターのデモ（ブラウザで開くだけ）
-└── tools/build-demo.py      … デモの再生成スクリプト
+└── tools/                    … デモ・プレビューの生成スクリプト
 ```
 
 ---
+
+## 0. まず見てみる
+- `preview-site/index.html` をブラウザで開くと、サンプル商品（16 点）・ブログ・カート・会員ページまで、サイト全体を確認できます。テーマの Liquid をそのまま描画しているので、Shopify 上の表示とほぼ同じです（商品写真は仮のイラスト）。
+- テーマを編集したら `cd tools/preview && npm install && npm run build` で作り直せます。
+- ストアの立ち上げは `setup/STORE_SETUP.md` の手順に沿って進めてください。
 
 ## 1. 導入手順
 

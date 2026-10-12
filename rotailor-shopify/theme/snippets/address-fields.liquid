@@ -1,0 +1,20 @@
+<div class="field-row">
+  <label class="field"><span>姓</span><input type="text" name="address[last_name]" value="{{ form.last_name }}" autocomplete="family-name"></label>
+  <label class="field"><span>名</span><input type="text" name="address[first_name]" value="{{ form.first_name }}" autocomplete="given-name"></label>
+</div>
+<label class="field"><span>会社名（任意）</span><input type="text" name="address[company]" value="{{ form.company }}" autocomplete="organization"></label>
+<div class="field-row">
+  <label class="field"><span>郵便番号</span><input type="text" name="address[zip]" value="{{ form.zip }}" autocomplete="postal-code"></label>
+  <label class="field">
+    <span>国</span>
+    <select name="address[country]" data-default="{{ form.country }}" autocomplete="country">{{ all_country_option_tags }}</select>
+  </label>
+</div>
+<div class="field-row">
+  <label class="field"><span>都道府県</span><input type="text" name="address[province]" value="{{ form.province }}" autocomplete="address-level1"></label>
+  <label class="field"><span>市区町村</span><input type="text" name="address[city]" value="{{ form.city }}" autocomplete="address-level2"></label>
+</div>
+<label class="field"><span>番地</span><input type="text" name="address[address1]" value="{{ form.address1 }}" autocomplete="address-line1"></label>
+<label class="field"><span>建物名・部屋番号</span><input type="text" name="address[address2]" value="{{ form.address2 }}" autocomplete="address-line2"></label>
+<label class="field"><span>電話番号</span><input type="tel" name="address[phone]" value="{{ form.phone }}" autocomplete="tel"></label>
+<label class="filter__option">{{ form.set_as_default_checkbox }} いつものお届け先にする</label>

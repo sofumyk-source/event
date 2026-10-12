@@ -57,6 +57,13 @@
   </div>
   <div class="container site-footer__bottom">
     <small>&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}</small>
+    {%- if shop.policies.size > 0 -%}
+      <ul class="site-footer__policies">
+        {%- for policy in shop.policies -%}
+          <li><a href="{{ policy.url }}">{{ policy.title }}</a></li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
     {{ powered_by_link }}
   </div>
 </footer>

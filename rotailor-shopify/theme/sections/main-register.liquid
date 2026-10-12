@@ -1,0 +1,23 @@
+<div class="container account-page">
+  <div class="account-card">
+    <p class="eyebrow">CREATE ACCOUNT</p>
+    <h1 class="section-title">会員登録</h1>
+    <p class="sim-card__text">ご注文履歴の確認や、お届け先の保存ができるようになります。</p>
+    {%- form 'create_customer', class: 'sim-form' -%}
+      {%- if form.errors -%}<div class="form-message form-message--error" role="alert">{{ form.errors | default_errors }}</div>{%- endif -%}
+      <div class="field-row">
+        <label class="field"><span>姓</span><input type="text" name="customer[last_name]" autocomplete="family-name"></label>
+        <label class="field"><span>名</span><input type="text" name="customer[first_name]" autocomplete="given-name"></label>
+      </div>
+      <label class="field"><span>{{ 'contact.email' | t }} <em>*</em></span><input type="email" name="customer[email]" autocomplete="email" required></label>
+      <label class="field"><span>パスワード <em>*</em></span><input type="password" name="customer[password]" autocomplete="new-password" required minlength="5"></label>
+      <label class="filter__option"><input type="checkbox" name="customer[accepts_marketing]" value="true"> 新入荷や受注会のお知らせを受け取る</label>
+      <button type="submit" class="button button--primary button--block">登録する</button>
+    {%- endform -%}
+    <p class="account-switch">すでに会員の方は <a href="{{ routes.account_login_url }}">ログイン</a></p>
+  </div>
+</div>
+
+{% schema %}
+{ "name": "会員登録", "class": "section-main-register" }
+{% endschema %}

@@ -4,6 +4,7 @@
 <article class="post-card">
   <a href="{{ article.url }}" class="post-card__media">
     {%- if article.image -%}
+      {%- assign image_alt = article.image.alt | default: article.title | escape -%}
       {{
         article.image
         | image_url: width: 1000
@@ -11,10 +12,7 @@
           loading: 'lazy',
           widths: '400, 600, 800, 1000',
           sizes: '(min-width: 990px) 33vw, 100vw',
-          alt: article.image.alt
-          | default: article.title
-          | escape
-      }}
+          alt: image_alt }}
     {%- else -%}
       {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder' }}
     {%- endif -%}

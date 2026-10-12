@@ -1,0 +1,17 @@
+<div class="container account-page">
+  <div class="account-card">
+    <h1 class="section-title">アカウントの有効化</h1>
+    <p class="sim-card__text">パスワードを設定して、アカウントを有効にしてください。</p>
+    {%- form 'activate_customer_password', class: 'sim-form' -%}
+      {%- if form.errors -%}<div class="form-message form-message--error" role="alert">{{ form.errors | default_errors }}</div>{%- endif -%}
+      <label class="field"><span>パスワード</span><input type="password" name="customer[password]" autocomplete="new-password" required></label>
+      <label class="field"><span>パスワード（確認）</span><input type="password" name="customer[password_confirmation]" autocomplete="new-password" required></label>
+      <button type="submit" class="button button--primary button--block">有効にする</button>
+      <button type="submit" name="decline" class="button button--ghost button--block">今回は有効にしない</button>
+    {%- endform -%}
+  </div>
+</div>
+
+{% schema %}
+{ "name": "アカウント有効化", "class": "section-main-activate-account" }
+{% endschema %}

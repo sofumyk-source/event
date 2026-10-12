@@ -1,0 +1,36 @@
+<div class="container account-page">
+  <div class="account-card">
+    <p class="eyebrow">ACCOUNT</p>
+    <h1 class="section-title">ログイン</h1>
+
+    {%- form 'customer_login', class: 'sim-form' -%}
+      {%- if form.errors -%}<div class="form-message form-message--error" role="alert">{{ form.errors | default_errors }}</div>{%- endif -%}
+      <label class="field"><span>{{ 'contact.email' | t }}</span><input type="email" name="customer[email]" autocomplete="email" required></label>
+      <label class="field"><span>パスワード</span><input type="password" name="customer[password]" autocomplete="current-password" required></label>
+      <button type="submit" class="button button--primary button--block">ログイン</button>
+    {%- endform -%}
+
+    <details class="account-recover">
+      <summary>パスワードをお忘れの方</summary>
+      {%- form 'recover_customer_password', class: 'sim-form' -%}
+        {%- if form.posted_successfully? -%}
+          <p class="form-message form-message--success">パスワード再設定のメールを送信しました。</p>
+        {%- endif -%}
+        <label class="field"><span>{{ 'contact.email' | t }}</span><input type="email" name="email" autocomplete="email" required></label>
+        <button type="submit" class="button button--ghost">再設定メールを送る</button>
+      {%- endform -%}
+    </details>
+
+    <p class="account-switch">はじめての方は <a href="{{ routes.account_register_url }}">会員登録</a></p>
+
+    {%- if shop.checkout.guest_login -%}
+      {%- form 'guest_login' -%}
+        <button type="submit" class="button button--ghost button--block">ゲストとして購入手続きへ</button>
+      {%- endform -%}
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{ "name": "ログイン", "class": "section-main-login" }
+{% endschema %}

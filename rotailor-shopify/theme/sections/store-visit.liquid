@@ -3,6 +3,7 @@
     <div class="store-visit__grid">
       <div class="store-visit__media">
         {%- if section.settings.image -%}
+          {%- assign image_alt = section.settings.image.alt | escape -%}
           {{
             section.settings.image
             | image_url: width: 1400
@@ -10,9 +11,7 @@
               loading: 'lazy',
               widths: '600, 900, 1200, 1400',
               sizes: '(min-width: 990px) 50vw, 100vw',
-              alt: section.settings.image.alt
-              | escape
-          }}
+              alt: image_alt }}
         {%- else -%}
           {{ 'lifestyle-2' | placeholder_svg_tag: 'placeholder' }}
         {%- endif -%}

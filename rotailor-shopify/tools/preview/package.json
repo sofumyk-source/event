@@ -1,0 +1,7 @@
+{
+  "name": "rotailor-theme-preview",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "node build.mjs" },
+  "dependencies": { "liquidjs": "^10.19.0" }
+}

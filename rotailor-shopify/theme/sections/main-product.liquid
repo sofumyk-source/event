@@ -2,6 +2,7 @@
   assign current_variant = product.selected_or_first_available_variant
   assign mf = product.metafields.custom
 -%}
+{% render 'breadcrumbs' %}
 <section class="container">
   <div class="product">
     <div class="product__gallery">
@@ -15,6 +16,7 @@
           -%}
           {%- case media.media_type -%}
             {%- when 'image' -%}
+              {%- assign image_alt = media.alt | escape -%}
               {{
                 media
                 | image_url: width: 1600
@@ -22,9 +24,7 @@
                   loading: loading,
                   widths: '600, 900, 1200, 1600',
                   sizes: '(min-width: 990px) 58vw, 100vw',
-                  alt: media.alt
-                  | escape
-              }}
+                  alt: image_alt }}
             {%- when 'video' -%}
               {{ media | video_tag: controls: true, muted: true, playsinline: true }}
             {%- when 'external_video' -%}
@@ -159,6 +159,20 @@
               {%- endif -%}
             </div>
 
+          {%- when 'size_guide' -%}
+            {%- if block.settings.page != blank -%}
+              <div class="size-guide" {{ block.shopify_attributes }}>
+                <button type="button" class="link-arrow size-guide__open" data-dialog-open="SizeGuide-{{ block.id }}">{{ block.settings.label }}</button>
+                <dialog class="modal" id="SizeGuide-{{ block.id }}" aria-label="{{ block.settings.page.title | escape }}">
+                  <div class="modal__inner">
+                    <button type="button" class="modal__close icon-button" data-dialog-close aria-label="{{ 'general.close' | t }}">{% render 'icon', name: 'close' %}</button>
+                    <h2 class="section-title">{{ block.settings.page.title }}</h2>
+                    <div class="rte">{{ block.settings.page.content }}</div>
+                  </div>
+                </dialog>
+              </div>
+            {%- endif -%}
+
           {%- when 'store_cta' -%}
             {%- if settings.reservation_url != blank -%}
               <p class="store-cta" {{ block.shopify_attributes }}>
@@ -184,17 +198,39 @@
   "name": "商品情報",
   "class": "section-main-product",
   "blocks": [
-    { "type": "@app" },
-    { "type": "vendor", "name": "ブランド名", "limit": 1 },
-    { "type": "title", "name": "商品名", "limit": 1 },
-    { "type": "price", "name": "価格", "limit": 1 },
+    {
+      "type": "@app"
+    },
+    {
+      "type": "vendor",
+      "name": "ブランド名",
+      "limit": 1
+    },
+    {
+      "type": "title",
+      "name": "商品名",
+      "limit": 1
+    },
+    {
+      "type": "price",
+      "name": "価格",
+      "limit": 1
+    },
     {
       "type": "suit_hint",
       "name": "合うスーツのヒント",
       "limit": 1,
       "settings": [
-        { "type": "paragraph", "content": "メタフィールド custom.suit_pairing_hint（例：ネイビー・グレーのスーツに）を表示します" },
-        { "type": "text", "id": "prefix", "label": "前置き", "default": "おすすめ：" }
+        {
+          "type": "paragraph",
+          "content": "メタフィールド custom.suit_pairing_hint（例：ネイビー・グレーのスーツに）を表示します"
+        },
+        {
+          "type": "text",
+          "id": "prefix",
+          "label": "前置き",
+          "default": "おすすめ："
+        }
       ]
     },
     {
@@ -202,7 +238,12 @@
       "name": "購入ボタン",
       "limit": 1,
       "settings": [
-        { "type": "checkbox", "id": "show_quantity", "label": "数量を表示", "default": true }
+        {
+          "type": "checkbox",
+          "id": "show_quantity",
+          "label": "数量を表示",
+          "default": true
+        }
       ]
     },
     {
@@ -210,17 +251,51 @@
       "name": "テイラーのひとこと",
       "limit": 1,
       "settings": [
-        { "type": "paragraph", "content": "メタフィールド custom.tailor_comment を表示します" },
-        { "type": "textarea", "id": "fallback", "label": "メタフィールドが空のときの文言" }
+        {
+          "type": "paragraph",
+          "content": "メタフィールド custom.tailor_comment を表示します"
+        },
+        {
+          "type": "textarea",
+          "id": "fallback",
+          "label": "メタフィールドが空のときの文言"
+        }
       ]
     },
-    { "type": "description", "name": "商品説明", "limit": 1 },
+    {
+      "type": "description",
+      "name": "商品説明",
+      "limit": 1
+    },
     {
       "type": "specs",
       "name": "仕様・お手入れ",
       "limit": 1,
       "settings": [
-        { "type": "page", "id": "shipping_page", "label": "配送・返品についてのページ" }
+        {
+          "type": "page",
+          "id": "shipping_page",
+          "label": "配送・返品についてのページ"
+        }
+      ]
+    },
+    {
+      "type": "size_guide",
+      "name": "サイズガイド",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "page",
+          "id": "page",
+          "label": "サイズガイドのページ",
+          "info": "靴のサイズ表などを書いたページを選ぶと、ポップアップで表示します"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "リンクの文言",
+          "default": "サイズガイドを見る"
+        }
       ]
     },
     {
@@ -228,7 +303,12 @@
       "name": "来店の案内",
       "limit": 1,
       "settings": [
-        { "type": "text", "id": "text", "label": "文言", "default": "サロンで実物をスーツに合わせてご覧いただけます。" }
+        {
+          "type": "text",
+          "id": "text",
+          "label": "文言",
+          "default": "サロンで実物をスーツに合わせてご覧いただけます。"
+        }
       ]
     }
   ]

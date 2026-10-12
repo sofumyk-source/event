@@ -1,6 +1,7 @@
 <section class="hero hero--{{ section.settings.height }}" style="--hero-overlay: {{ section.settings.overlay | divided_by: 100.0 }};">
   <div class="hero__media">
     {%- if section.settings.image -%}
+      {%- assign image_alt = section.settings.image.alt | escape -%}
       {{
         section.settings.image
         | image_url: width: 2400
@@ -9,9 +10,7 @@
           fetchpriority: 'high',
           widths: '750, 1100, 1500, 1800, 2400',
           sizes: '100vw',
-          alt: section.settings.image.alt
-          | escape
-      }}
+          alt: image_alt }}
     {%- else -%}
       {{ 'lifestyle-2' | placeholder_svg_tag: 'placeholder' }}
     {%- endif -%}

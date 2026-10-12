@@ -11,6 +11,7 @@
           <div class="category-tile__media">
             {%- assign tile_image = block.settings.image | default: collection.featured_image -%}
             {%- if tile_image -%}
+              {%- assign image_alt = collection.title | escape -%}
               {{
                 tile_image
                 | image_url: width: 900
@@ -18,9 +19,7 @@
                   loading: 'lazy',
                   widths: '400, 600, 900',
                   sizes: '(min-width: 990px) 25vw, 50vw',
-                  alt: collection.title
-                  | escape
-              }}
+                  alt: image_alt }}
             {%- else -%}
               {{ 'collection-' | append: forloop.index | placeholder_svg_tag: 'placeholder' }}
             {%- endif -%}

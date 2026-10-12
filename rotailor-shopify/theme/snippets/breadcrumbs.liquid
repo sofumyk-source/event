@@ -1,0 +1,43 @@
+{%- comment -%} パンくずリスト（構造化データ付き） {%- endcomment -%}
+{%- liquid
+  case request.page_type
+    when 'product'
+      if collection
+        assign mid_title = collection.title
+        assign mid_url = collection.url
+      endif
+      assign last = product.title
+    when 'collection'
+      assign last = collection.title
+    when 'article'
+      assign mid_title = blog.title
+      assign mid_url = blog.url
+      assign last = article.title
+    when 'blog'
+      assign last = blog.title
+    when 'page'
+      assign last = page.title
+  endcase
+-%}
+{%- if last != blank -%}
+  <nav class="breadcrumbs container" aria-label="パンくずリスト">
+    <ol>
+      <li><a href="{{ routes.root_url }}">{{ 'general.home' | t }}</a></li>
+      {%- if mid_title != blank -%}<li><a href="{{ mid_url }}">{{ mid_title }}</a></li>{%- endif -%}
+      <li aria-current="page">{{ last }}</li>
+    </ol>
+  </nav>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": {{ 'general.home' | t | json }}, "item": {{ shop.url | json }} }
+        {%- if mid_title != blank -%},
+        { "@type": "ListItem", "position": 2, "name": {{ mid_title | json }}, "item": {{ shop.url | append: mid_url | json }} }
+        {%- endif -%},
+        { "@type": "ListItem", "position": {% if mid_title != blank %}3{% else %}2{% endif %}, "name": {{ last | json }} }
+      ]
+    }
+  </script>
+{%- endif -%}

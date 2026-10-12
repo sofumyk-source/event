@@ -138,15 +138,98 @@
     });
   }
 
-  /* collection sort */
-  function initSort(scope) {
-    (scope || document).querySelectorAll('[data-sort]').forEach(function (select) {
-      select.addEventListener('change', function () {
-        var url = new URL(window.location.href);
-        url.searchParams.set('sort_by', select.value);
-        url.searchParams.delete('page');
-        window.location.href = url.toString();
+  /* collection filters / sort: change -> submit */
+  function initFilters(scope) {
+    (scope || document).querySelectorAll('[data-filter-form]').forEach(function (form) {
+      if (form.__ready) return;
+      form.__ready = true;
+      form.addEventListener('change', function (e) {
+        if (e.target.matches('[data-filter-auto]')) form.submit();
       });
+    });
+  }
+
+  /* dialogs: [data-dialog-open="id"] / [data-dialog-close] */
+  function initDialogs() {
+    document.addEventListener('click', function (e) {
+      var opener = e.target.closest('[data-dialog-open]');
+      if (opener) {
+        var dialog = document.getElementById(opener.getAttribute('data-dialog-open'));
+        if (dialog && dialog.showModal) { e.preventDefault(); dialog.showModal(); }
+        return;
+      }
+      var closer = e.target.closest('[data-dialog-close]');
+      if (closer) {
+        var d = closer.closest('dialog');
+        if (d) d.close();
+        return;
+      }
+      if (e.target.tagName === 'DIALOG') e.target.close(); // backdrop click
+    });
+  }
+
+  /* predictive search */
+  function initSearch() {
+    var dialog = document.querySelector('[data-search-dialog]');
+    if (!dialog || !dialog.showModal) return;
+    var input = dialog.querySelector('[data-search-input]');
+    var results = dialog.querySelector('[data-search-results]');
+    var timer = null;
+    var last = '';
+    document.querySelectorAll('[data-search-open]').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        dialog.showModal();
+        input.focus();
+      });
+    });
+    function yen(v) {
+      var n = Math.round(parseFloat(v) || 0);
+      return '¥' + n.toLocaleString('ja-JP');
+    }
+    function esc(t) {
+      return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    input.addEventListener('input', function () {
+      clearTimeout(timer);
+      var q = input.value.trim();
+      if (!q) { results.innerHTML = ''; last = ''; return; }
+      timer = setTimeout(function () {
+        if (q === last) return;
+        last = q;
+        var url = (window.routes.predictive_search_url || '/search/suggest') + '.json?q=' + encodeURIComponent(q) +
+          '&resources[type]=product,article,collection&resources[limit]=6&resources[options][unavailable_products]=last';
+        fetch(url, { headers: { Accept: 'application/json' } })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (q !== last) return;
+            var res = (data.resources && data.resources.results) || {};
+            var html = '';
+            var products = res.products || [];
+            if (products.length) {
+              html += '<p class="search-modal__label">アイテム</p><ul class="search-modal__products">';
+              products.forEach(function (p) {
+                var img = p.featured_image && p.featured_image.url ? p.featured_image.url + (p.featured_image.url.indexOf('?') > -1 ? '&' : '?') + 'width=160' : '';
+                html += '<li><a href="' + esc(p.url) + '">' +
+                  (img ? '<img src="' + esc(img) + '" alt="" width="64" height="80" loading="lazy">' : '<span class="search-modal__noimg"></span>') +
+                  '<span><span class="search-modal__vendor">' + esc(p.vendor) + '</span><span class="search-modal__title">' + esc(p.title) + '</span><span class="search-modal__price">' + yen(p.price) + '</span></span></a></li>';
+              });
+              html += '</ul>';
+            }
+            var others = (res.collections || []).concat(res.articles || []);
+            if (others.length) {
+              html += '<p class="search-modal__label">カテゴリ・記事</p><ul class="search-modal__links">';
+              others.forEach(function (o) { html += '<li><a href="' + esc(o.url) + '">' + esc(o.title) + '</a></li>'; });
+              html += '</ul>';
+            }
+            if (!html) html = '<p class="search-modal__empty">「' + esc(q) + '」に一致するものは見つかりませんでした。</p>';
+            html += '<a class="link-arrow search-modal__all" href="' + esc((window.routes.search_url || '/search') + '?q=' + encodeURIComponent(q)) + '">「' + esc(q) + '」ですべての結果を見る</a>';
+            results.innerHTML = html;
+          })
+          .catch(function () {});
+      }, 220);
     });
   }
 
@@ -166,12 +249,14 @@
     initRotators(scope);
     initTabs(scope);
     initProductForms(scope);
-    initSort(scope);
+    initFilters(scope);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
     init();
     initDrawer();
+    initDialogs();
+    initSearch();
   });
   document.addEventListener('shopify:section:load', function (e) { init(e.target); });
 })();
