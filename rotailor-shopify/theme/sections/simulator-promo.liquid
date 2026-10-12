@@ -6,8 +6,8 @@
       <div class="rte">{{ section.settings.text }}</div>
       <ul class="simulator-promo__steps">
         <li><span>01</span>生地を選ぶ</li>
-        <li><span>02</span>ディテールを選ぶ</li>
-        <li><span>03</span>見積もりを確認して来店予約</li>
+        <li><span>02</span>ラペル、ボタン、裏地を選ぶ</li>
+        <li><span>03</span>仕上がったイメージを持ってサロンへ</li>
       </ul>
       <a href="{{ section.settings.page.url | default: '#' }}" class="button button--light">{{ section.settings.button_label }}</a>
     </div>
@@ -32,10 +32,10 @@
       "type": "richtext",
       "id": "text",
       "label": "本文",
-      "default": "<p>生地、ラペル、ボタン、裏地まで。ROテイラーのオーダースーツを、その場で組み立てて概算価格を確認できます。仕上がったイメージはそのままご来店予約に。</p>"
+      "default": "<p>生地、ラペル、ボタン、裏地まで。好きな組み合わせを選ぶと、イラストの一着がその場で着替えます。思い描いたイメージは、そのままサロンでのご相談に。</p>"
     },
     { "type": "page", "id": "page", "label": "シミュレーションのページ" },
-    { "type": "text", "id": "button_label", "label": "ボタンの文言", "default": "シミュレーションを始める" },
+    { "type": "text", "id": "button_label", "label": "ボタンの文言", "default": "一着を仕立ててみる" },
     { "type": "image_picker", "id": "image", "label": "画像（未設定ならイラスト）" }
   ],
   "presets": [{ "name": "シミュレーション案内" }]

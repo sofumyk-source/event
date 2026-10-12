@@ -12,7 +12,8 @@
 }
 
 .simulator__stage,
-.simulator__panel { min-width: 0; }
+.simulator__panel,
+.simulator__stage > * { min-width: 0; }
 
 .simulator__stage {
   position: sticky;
@@ -57,8 +58,13 @@
   color: #fff;
   padding: 16px 20px;
 }
-.sim-total__label { margin: 0; font-size: 0.75rem; letter-spacing: 0.08em; opacity: 0.75; }
-.sim-total__price { margin: 2px 0 0; font-family: var(--font-display); font-size: 1.9rem; line-height: 1; letter-spacing: 0.02em; }
+.sim-total__body { flex: 1; min-width: 0; }
+.sim-total .button { flex-shrink: 0; white-space: nowrap; }
+.sim-total__label { margin: 0; font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.2em; color: #d9c49b; }
+.sim-total__chosen { margin: 2px 0 0; font-size: 0.85rem; line-height: 1.6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.sim-chip--shuffle { position: absolute; top: 20px; left: 20px; z-index: 1; }
+.sim-chip--shuffle::before { content: '✦ '; color: var(--color-accent); }
 .sim-total .button--primary { background: var(--color-accent); border-color: var(--color-accent); }
 
 /* steps */
@@ -200,7 +206,7 @@
 .sim-fabric__body { display: grid; gap: 2px; padding: 0 4px 4px; }
 .sim-fabric__name { font-size: 0.88rem; font-weight: 500; }
 .sim-fabric__meta { font-size: 0.7rem; color: var(--color-muted); }
-.sim-fabric__price { font-family: var(--font-display); font-size: 1.05rem; color: var(--color-primary); }
+.sim-fabric__origin { font-size: 0.7rem; color: var(--color-accent); letter-spacing: 0.06em; }
 
 /* summary */
 .sim-summary { margin-top: 80px; padding-top: 64px; border-top: 1px solid var(--color-border); outline: none; scroll-margin-top: 80px; }
@@ -210,6 +216,16 @@
 .sim-spec__row { display: grid; grid-template-columns: 9em 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px dotted var(--color-border); font-size: 0.9rem; }
 .sim-spec__row dt { color: var(--color-muted); }
 .sim-spec__row dd { margin: 0; }
+
+.sim-summary__look { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 32px; align-items: start; }
+.sim-summary__preview { background: var(--color-surface); border: 1px solid var(--color-border); padding: 16px; color: var(--color-muted); }
+.sim-summary__preview svg { width: 100%; height: auto; display: block; }
+.sim-summary__look .sim-spec { margin-top: 0; }
+
+.sim-estimate { padding: 28px; background: var(--color-primary); color: rgba(255, 255, 255, 0.86); }
+.sim-estimate .sim-card__title { color: #fff; }
+.sim-estimate .sim-card__text { color: rgba(255, 255, 255, 0.78); }
+.sim-estimate .eyebrow { color: #d9c49b; }
 
 .sim-breakdown { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 8px; }
 .sim-breakdown th { text-align: left; font-weight: 400; color: var(--color-muted); padding: 6px 0; }
@@ -237,12 +253,12 @@
 @media (max-width: 989px) {
   .simulator__layout { grid-template-columns: 1fr; gap: 24px; }
   .simulator__stage { top: 56px; z-index: 5; gap: 0; margin-inline: -20px; }
-  .sim-preview { padding: 8px 12px 4px; border-inline: 0; display: grid; grid-template-columns: 1fr auto; align-items: center; }
+  .sim-preview { padding: 8px 12px 4px; border-inline: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
   .sim-preview__toolbar { grid-column: 2; grid-row: 1; flex-direction: column; }
   .sim-preview__canvas { grid-column: 1; grid-row: 1; max-height: 28vh; height: 28vh; }
-  .sim-preview__fabric { grid-column: 1 / -1; font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sim-preview__fabric { grid-column: 1 / -1; contain: inline-size; min-width: 0; font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sim-total { padding: 10px 20px; }
-  .sim-total__price { font-size: 1.5rem; }
+  .sim-chip--shuffle { top: auto; bottom: 30px; left: 12px; padding: 4px 10px; }
   .sim-summary__grid { grid-template-columns: 1fr; gap: 32px; }
 }
 
@@ -250,5 +266,7 @@
   .sim-options { grid-template-columns: 1fr; }
   .sim-fabrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sim-spec__row { grid-template-columns: 7em 1fr; }
+  .sim-summary__look { grid-template-columns: 1fr; }
+  .sim-summary__preview { max-width: 240px; margin-inline: auto; }
   .sim-total .button { padding-inline: 14px; font-size: 0.8rem; }
 }

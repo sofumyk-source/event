@@ -1,18 +1,14 @@
 {%- comment -%}
   オーダースーツ・シミュレーション
   ------------------------------------------------------------
-  生地・スタイル・ディテール・価格はすべて「ブロック」として
+  生地・スタイル・ディテールはすべて「ブロック」として
   テーマエディタから追加／編集できます（コード編集は不要）。
   ブロックの内容は JSON に変換され、assets/suit-simulator.js が描画します。
+  価格は表示しません。お見積もりはサロンでご案内する導線にしています。
 {%- endcomment -%}
 
 {{ 'suit-simulator.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'suit-simulator.js' | asset_url }}" defer="defer"></script>
-
-{%- liquid
-  assign deposit = section.settings.deposit_product
-  assign deposit_variant = deposit.selected_or_first_available_variant
--%}
 
 <section class="section simulator" id="Simulator-{{ section.id }}" data-suit-simulator data-section-id="{{ section.id }}">
   <div class="container">
@@ -26,6 +22,7 @@
       {%- comment -%} ===== プレビュー ===== {%- endcomment -%}
       <div class="simulator__stage">
         <div class="sim-preview">
+          <button type="button" class="sim-chip sim-chip--shuffle" data-shuffle>おまかせ</button>
           <div class="sim-preview__toolbar" role="group" aria-label="表示の向き">
             <button type="button" class="sim-chip is-active" data-view="front" aria-pressed="true">FRONT</button>
             <button type="button" class="sim-chip" data-view="back" aria-pressed="false">BACK</button>
@@ -34,11 +31,11 @@
           <div class="sim-preview__fabric" data-fabric-caption></div>
         </div>
         <div class="sim-total">
-          <div>
-            <p class="sim-total__label">概算価格（{{ 'products.tax_included' | t }}）</p>
-            <p class="sim-total__price" data-total>—</p>
+          <div class="sim-total__body">
+            <p class="sim-total__label">YOUR STYLE</p>
+            <p class="sim-total__chosen" data-chosen></p>
           </div>
-          <button type="button" class="button button--primary sim-total__next" data-go-summary>見積もりを確認</button>
+          <button type="button" class="button button--primary sim-total__next" data-go-summary>仕上がりを見る</button>
         </div>
       </div>
 
@@ -57,11 +54,12 @@
     <div class="sim-summary" data-summary hidden tabindex="-1">
       <div class="sim-summary__grid">
         <div class="sim-summary__spec">
-          <p class="eyebrow">YOUR ORDER</p>
-          <h2 class="section-title">お仕立て内容の確認</h2>
-          <dl class="sim-spec" data-spec></dl>
-          <table class="sim-breakdown" data-breakdown></table>
-          <p class="sim-note">{{ section.settings.price_note }}</p>
+          <p class="eyebrow">YOUR STYLE</p>
+          <h2 class="section-title">{{ section.settings.summary_heading }}</h2>
+          <div class="sim-summary__look">
+            <div class="sim-summary__preview" data-summary-preview aria-hidden="true"></div>
+            <dl class="sim-spec" data-spec></dl>
+          </div>
           <div class="sim-summary__tools">
             <button type="button" class="button button--ghost" data-copy-link>この内容のリンクをコピー</button>
             <button type="button" class="button button--ghost" data-reset>最初からやり直す</button>
@@ -69,6 +67,14 @@
         </div>
 
         <div class="sim-summary__actions">
+          <div class="sim-estimate">
+            <p class="eyebrow">ESTIMATE</p>
+            <h3 class="sim-card__title">{{ section.settings.estimate_heading }}</h3>
+            <p class="sim-card__text">{{ section.settings.estimate_text }}</p>
+            {%- if settings.reservation_url != blank -%}
+              <a href="{{ settings.reservation_url }}" class="button button--accent">{{ settings.reservation_label }}</a>
+            {%- endif -%}
+          </div>
           <div class="sim-card">
             <h3 class="sim-card__title">{{ section.settings.form_heading }}</h3>
             <p class="sim-card__text">{{ section.settings.form_text }}</p>
@@ -81,7 +87,6 @@
               {%- endif -%}
               <input type="hidden" name="contact[種別]" value="オーダースーツ シミュレーション">
               <textarea name="contact[シミュレーション内容]" data-form-spec hidden readonly></textarea>
-              <input type="hidden" name="contact[概算価格]" data-form-total>
               <label class="field">
                 <span>{{ 'contact.name' | t }} <em>*</em></span>
                 <input type="text" name="contact[name]" required autocomplete="name">
@@ -112,21 +117,6 @@
             {%- endform -%}
           </div>
 
-          {%- if deposit != blank and deposit_variant.available -%}
-            <div class="sim-card sim-card--alt">
-              <h3 class="sim-card__title">{{ section.settings.deposit_heading }}</h3>
-              <p class="sim-card__text">{{ section.settings.deposit_text }}</p>
-              <p class="sim-card__price">{{ deposit_variant.price | money }}</p>
-              <button
-                type="button"
-                class="button button--accent button--block"
-                data-add-deposit
-                data-variant-id="{{ deposit_variant.id }}"
-              >
-                {{ section.settings.deposit_button }}
-              </button>
-            </div>
-          {%- endif -%}
         </div>
       </div>
 
@@ -176,8 +166,7 @@
   {%- comment -%} ===== シミュレーション用データ（ブロックから生成） ===== {%- endcomment -%}
   <script type="application/json" data-simulator-config>
     {
-      "moneyFormat": {{ shop.money_format | json }},
-      "threePiecePrice": {{ section.settings.three_piece_price | default: 0 }},
+      "threePieceEnabled": {{ section.settings.three_piece_enabled | json }},
       "storageKey": "rotailor-sim-{{ section.id }}",
       "items": [
         {%- assign sep = '' -%}
@@ -193,7 +182,6 @@
             "type": {{ block.type | json }},
             "name": {{ block.settings.name | json }},
             "description": {{ block.settings.description | json }},
-            "price": {{ block.settings.price | default: 0 }},
             "key": {{ block.settings.key | json }},
             "color": "{{ block.settings.color }}",
             "pattern": {{ block.settings.pattern | json }},
@@ -232,7 +220,6 @@
               "id": {{ 'mo-' | append: fabric.system.handle | json }},
               "type": "fabric",
               "name": {{ fabric.name.value | json }},
-              "price": {{ fabric.price.value | default: 0 }},
               "color": "{{ fabric.color.value }}",
               "pattern": {{ fabric.pattern.value | default: 'solid' | json }},
               "patternColor": "{{ fabric.pattern_color.value }}",
@@ -258,13 +245,23 @@
   "class": "section-suit-simulator",
   "max_blocks": 50,
   "settings": [
-    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "MADE TO MEASURE SIMULATOR" },
-    { "type": "text", "id": "heading", "label": "見出し", "default": "オーダースーツを仕立てる" },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "小見出し",
+      "default": "MADE TO MEASURE SIMULATOR"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "見出し",
+      "default": "オーダースーツを仕立てる"
+    },
     {
       "type": "richtext",
       "id": "intro",
       "label": "導入文",
-      "default": "<p>生地とディテールを選ぶと、仕上がりのイメージと概算価格がすぐにわかります。最終的なお見積もりは、サロンでの採寸時にご案内します。</p>"
+      "default": "<p>生地やラペル、ボタン、裏地まで。好きな組み合わせを選んで、あなただけの一着を思い描いてみてください。気に入ったイメージは、そのままサロンでのご相談にお持ちいただけます。</p>"
     },
     {
       "type": "checkbox",
@@ -274,37 +271,55 @@
       "default": true
     },
     {
-      "type": "header",
-      "content": "価格"
+      "type": "checkbox",
+      "id": "three_piece_enabled",
+      "label": "スリーピース（ベスト）を選べるようにする",
+      "default": true
     },
     {
-      "type": "number",
-      "id": "three_piece_price",
-      "label": "スリーピース（ベスト追加）の加算額（円）",
-      "default": 22000
+      "type": "header",
+      "content": "仕上がり画面"
     },
     {
       "type": "text",
-      "id": "price_note",
-      "label": "価格の注記",
-      "default": "※ 表示価格は税込の概算です。体型補正や生地の在庫状況により、採寸時に最終価格をご案内します。"
+      "id": "summary_heading",
+      "label": "見出し",
+      "default": "あなたの一着が仕上がりました"
+    },
+    {
+      "type": "text",
+      "id": "estimate_heading",
+      "label": "お見積もり案内の見出し",
+      "default": "お見積もりは、サロンで。"
+    },
+    {
+      "type": "textarea",
+      "id": "estimate_text",
+      "label": "お見積もり案内の文章",
+      "default": "お仕立ての価格は、生地・仕立て方・サイズによって一着ずつ異なります。このイメージをお持ちいただければ、テイラーが実際の生地を手に取りながら、ご予算に合わせてご提案します。"
     },
     {
       "type": "header",
       "content": "来店予約フォーム"
     },
-    { "type": "text", "id": "form_heading", "label": "見出し", "default": "この内容でご来店予約" },
-    { "type": "textarea", "id": "form_text", "label": "説明", "default": "選んだ内容はそのままテイラーに届きます。採寸・生地確認を含めて 60〜90 分ほどお時間をいただきます。" },
-    { "type": "text", "id": "form_button", "label": "送信ボタンの文言", "default": "予約をリクエストする" },
     {
-      "type": "header",
-      "content": "予約金（任意）",
-      "info": "「オーダースーツ予約金」などの商品を作成して選択すると、仕様をメモした状態でカートに追加できます"
+      "type": "text",
+      "id": "form_heading",
+      "label": "見出し",
+      "default": "この内容でご来店予約"
     },
-    { "type": "product", "id": "deposit_product", "label": "予約金の商品" },
-    { "type": "text", "id": "deposit_heading", "label": "見出し", "default": "予約金をお支払いのうえ枠を確保" },
-    { "type": "textarea", "id": "deposit_text", "label": "説明", "default": "受注会や繁忙期は採寸枠が埋まりやすくなります。予約金はお仕立て代金に充当されます。" },
-    { "type": "text", "id": "deposit_button", "label": "ボタンの文言", "default": "仕様を添えてカートに入れる" },
+    {
+      "type": "textarea",
+      "id": "form_text",
+      "label": "説明",
+      "default": "選んだイメージはそのままテイラーに届きます。採寸・生地選び・お見積もりを含めて 60〜90 分ほどお時間をいただきます。"
+    },
+    {
+      "type": "text",
+      "id": "form_button",
+      "label": "送信ボタンの文言",
+      "default": "予約をリクエストする"
+    },
     {
       "type": "header",
       "content": "小物の提案"
@@ -321,248 +336,598 @@
       "type": "fabric",
       "name": "生地",
       "settings": [
-        { "type": "text", "id": "name", "label": "生地名", "default": "ネイビー無地" },
-        { "type": "text", "id": "mill", "label": "ブランド・ミル", "default": "Vitale Barberis Canonico" },
-        { "type": "text", "id": "origin", "label": "産地", "default": "イタリア" },
-        { "type": "text", "id": "composition", "label": "組成・目付", "default": "ウール 100%／260g" },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "生地名",
+          "default": "ネイビー無地"
+        },
+        {
+          "type": "text",
+          "id": "mill",
+          "label": "ブランド・ミル",
+          "default": "Vitale Barberis Canonico"
+        },
+        {
+          "type": "text",
+          "id": "origin",
+          "label": "産地",
+          "default": "イタリア"
+        },
+        {
+          "type": "text",
+          "id": "composition",
+          "label": "組成・目付",
+          "default": "ウール 100%／260g"
+        },
         {
           "type": "select",
           "id": "season",
           "label": "シーズン",
           "options": [
-            { "value": "all", "label": "オールシーズン" },
-            { "value": "ss", "label": "春夏" },
-            { "value": "aw", "label": "秋冬" }
+            {
+              "value": "all",
+              "label": "オールシーズン"
+            },
+            {
+              "value": "ss",
+              "label": "春夏"
+            },
+            {
+              "value": "aw",
+              "label": "秋冬"
+            }
           ],
           "default": "all"
         },
-        { "type": "color", "id": "color", "label": "生地の色", "default": "#1F2A44" },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "生地の色",
+          "default": "#1F2A44"
+        },
         {
           "type": "select",
           "id": "pattern",
           "label": "柄",
           "options": [
-            { "value": "solid", "label": "無地" },
-            { "value": "pinstripe", "label": "ピンストライプ" },
-            { "value": "chalkstripe", "label": "チョークストライプ" },
-            { "value": "check", "label": "ウィンドウペン" },
-            { "value": "glen", "label": "グレンチェック" },
-            { "value": "herringbone", "label": "ヘリンボーン" },
-            { "value": "birdseye", "label": "バーズアイ" }
+            {
+              "value": "solid",
+              "label": "無地"
+            },
+            {
+              "value": "pinstripe",
+              "label": "ピンストライプ"
+            },
+            {
+              "value": "chalkstripe",
+              "label": "チョークストライプ"
+            },
+            {
+              "value": "check",
+              "label": "ウィンドウペン"
+            },
+            {
+              "value": "glen",
+              "label": "グレンチェック"
+            },
+            {
+              "value": "herringbone",
+              "label": "ヘリンボーン"
+            },
+            {
+              "value": "birdseye",
+              "label": "バーズアイ"
+            }
           ],
           "default": "solid"
         },
-        { "type": "color", "id": "pattern_color", "label": "柄の色（未設定なら自動）" },
-        { "type": "image_picker", "id": "image", "label": "生地の写真（任意）", "info": "設定するとプレビューに写真の質感が使われます。正方形・柄が繰り返す部分の切り抜き推奨" },
-        { "type": "number", "id": "price", "label": "スーツ（上下）価格（円・税込）", "default": 88000 },
-        { "type": "textarea", "id": "comment", "label": "テイラーのコメント", "default": "初めての一着に。どんな場面にも馴染む、最も頼れる色です。" },
-        { "type": "checkbox", "id": "is_default", "label": "最初に選択された状態にする", "default": false },
-        { "type": "product_list", "id": "products", "label": "この生地に合わせたい小物", "limit": 8 }
+        {
+          "type": "color",
+          "id": "pattern_color",
+          "label": "柄の色（未設定なら自動）"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "生地の写真（任意）",
+          "info": "設定するとプレビューに写真の質感が使われます。正方形・柄が繰り返す部分の切り抜き推奨"
+        },
+        {
+          "type": "textarea",
+          "id": "comment",
+          "label": "テイラーのコメント",
+          "default": "初めての一着に。どんな場面にも馴染む、最も頼れる色です。"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_default",
+          "label": "最初に選択された状態にする",
+          "default": false
+        },
+        {
+          "type": "product_list",
+          "id": "products",
+          "label": "この生地に合わせたい小物",
+          "limit": 8
+        }
       ]
     },
     {
       "type": "style",
       "name": "ジャケットの型",
       "settings": [
-        { "type": "text", "id": "name", "label": "名称", "default": "シングル 2つボタン" },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "名称",
+          "default": "シングル 2つボタン"
+        },
         {
           "type": "select",
           "id": "key",
           "label": "プレビューの形",
           "options": [
-            { "value": "sb1", "label": "シングル 1つボタン" },
-            { "value": "sb2", "label": "シングル 2つボタン" },
-            { "value": "sb3", "label": "シングル 3つボタン段返り" },
-            { "value": "db6", "label": "ダブル 6つボタン" },
-            { "value": "db4", "label": "ダブル 4つボタン" }
+            {
+              "value": "sb1",
+              "label": "シングル 1つボタン"
+            },
+            {
+              "value": "sb2",
+              "label": "シングル 2つボタン"
+            },
+            {
+              "value": "sb3",
+              "label": "シングル 3つボタン段返り"
+            },
+            {
+              "value": "db6",
+              "label": "ダブル 6つボタン"
+            },
+            {
+              "value": "db4",
+              "label": "ダブル 4つボタン"
+            }
           ],
           "default": "sb2"
         },
-        { "type": "number", "id": "price", "label": "加算額（円）", "default": 0 },
-        { "type": "textarea", "id": "description", "label": "説明" },
-        { "type": "checkbox", "id": "is_default", "label": "初期選択", "default": false }
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "説明"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_default",
+          "label": "初期選択",
+          "default": false
+        }
       ]
     },
     {
       "type": "lapel",
       "name": "ラペル",
       "settings": [
-        { "type": "text", "id": "name", "label": "名称", "default": "ノッチドラペル" },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "名称",
+          "default": "ノッチドラペル"
+        },
         {
           "type": "select",
           "id": "key",
           "label": "プレビューの形",
           "options": [
-            { "value": "notch", "label": "ノッチド" },
-            { "value": "peak", "label": "ピークド" },
-            { "value": "shawl", "label": "ショールカラー" }
+            {
+              "value": "notch",
+              "label": "ノッチド"
+            },
+            {
+              "value": "peak",
+              "label": "ピークド"
+            },
+            {
+              "value": "shawl",
+              "label": "ショールカラー"
+            }
           ],
           "default": "notch"
         },
-        { "type": "range", "id": "width", "label": "ラペル幅", "min": 6, "max": 11, "step": 0.5, "unit": "cm", "default": 8.5 },
-        { "type": "number", "id": "price", "label": "加算額（円）", "default": 0 },
-        { "type": "textarea", "id": "description", "label": "説明" },
-        { "type": "checkbox", "id": "is_default", "label": "初期選択", "default": false }
+        {
+          "type": "range",
+          "id": "width",
+          "label": "ラペル幅",
+          "min": 6,
+          "max": 11,
+          "step": 0.5,
+          "unit": "cm",
+          "default": 8.5
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "説明"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_default",
+          "label": "初期選択",
+          "default": false
+        }
       ]
     },
     {
       "type": "pocket",
       "name": "腰ポケット",
       "settings": [
-        { "type": "text", "id": "name", "label": "名称", "default": "フラップポケット" },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "名称",
+          "default": "フラップポケット"
+        },
         {
           "type": "select",
           "id": "key",
           "label": "プレビューの形",
           "options": [
-            { "value": "flap", "label": "フラップ" },
-            { "value": "flap_ticket", "label": "フラップ＋チェンジポケット" },
-            { "value": "slant", "label": "スラントポケット" },
-            { "value": "jetted", "label": "両玉縁" },
-            { "value": "patch", "label": "パッチポケット" }
+            {
+              "value": "flap",
+              "label": "フラップ"
+            },
+            {
+              "value": "flap_ticket",
+              "label": "フラップ＋チェンジポケット"
+            },
+            {
+              "value": "slant",
+              "label": "スラントポケット"
+            },
+            {
+              "value": "jetted",
+              "label": "両玉縁"
+            },
+            {
+              "value": "patch",
+              "label": "パッチポケット"
+            }
           ],
           "default": "flap"
         },
-        { "type": "number", "id": "price", "label": "加算額（円）", "default": 0 },
-        { "type": "textarea", "id": "description", "label": "説明" },
-        { "type": "checkbox", "id": "is_default", "label": "初期選択", "default": false }
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "説明"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_default",
+          "label": "初期選択",
+          "default": false
+        }
       ]
     },
     {
       "type": "vent",
       "name": "ベント",
       "settings": [
-        { "type": "text", "id": "name", "label": "名称", "default": "サイドベンツ" },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "名称",
+          "default": "サイドベンツ"
+        },
         {
           "type": "select",
           "id": "key",
           "label": "プレビューの形",
           "options": [
-            { "value": "side", "label": "サイドベンツ" },
-            { "value": "center", "label": "センターベント" },
-            { "value": "none", "label": "ノーベント" }
+            {
+              "value": "side",
+              "label": "サイドベンツ"
+            },
+            {
+              "value": "center",
+              "label": "センターベント"
+            },
+            {
+              "value": "none",
+              "label": "ノーベント"
+            }
           ],
           "default": "side"
         },
-        { "type": "number", "id": "price", "label": "加算額（円）", "default": 0 },
-        { "type": "textarea", "id": "description", "label": "説明" },
-        { "type": "checkbox", "id": "is_default", "label": "初期選択", "default": false }
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "説明"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_default",
+          "label": "初期選択",
+          "default": false
+        }
       ]
     },
     {
       "type": "button",
       "name": "ボタン",
       "settings": [
-        { "type": "text", "id": "name", "label": "名称", "default": "水牛ホーン（ダークブラウン）" },
-        { "type": "color", "id": "color", "label": "ボタンの色", "default": "#3A2A20" },
-        { "type": "number", "id": "price", "label": "加算額（円）", "default": 0 },
-        { "type": "textarea", "id": "description", "label": "説明" },
-        { "type": "checkbox", "id": "is_default", "label": "初期選択", "default": false }
+        {
+          "type": "text",
+          "id": "name",
+          "label": "名称",
+          "default": "水牛ホーン（ダークブラウン）"
+        },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "ボタンの色",
+          "default": "#3A2A20"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "説明"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_default",
+          "label": "初期選択",
+          "default": false
+        }
       ]
     },
     {
       "type": "lining",
       "name": "裏地",
       "settings": [
-        { "type": "text", "id": "name", "label": "名称", "default": "キュプラ ネイビー" },
-        { "type": "color", "id": "color", "label": "裏地の色", "default": "#24304F" },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "名称",
+          "default": "キュプラ ネイビー"
+        },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "裏地の色",
+          "default": "#24304F"
+        },
         {
           "type": "select",
           "id": "pattern",
           "label": "柄",
           "options": [
-            { "value": "solid", "label": "無地" },
-            { "value": "pinstripe", "label": "ストライプ" },
-            { "value": "birdseye", "label": "ドット" },
-            { "value": "check", "label": "チェック" }
+            {
+              "value": "solid",
+              "label": "無地"
+            },
+            {
+              "value": "pinstripe",
+              "label": "ストライプ"
+            },
+            {
+              "value": "birdseye",
+              "label": "ドット"
+            },
+            {
+              "value": "check",
+              "label": "チェック"
+            }
           ],
           "default": "solid"
         },
-        { "type": "color", "id": "pattern_color", "label": "柄の色" },
-        { "type": "image_picker", "id": "image", "label": "裏地の写真（任意）" },
-        { "type": "number", "id": "price", "label": "加算額（円）", "default": 0 },
-        { "type": "textarea", "id": "description", "label": "説明" },
-        { "type": "checkbox", "id": "is_default", "label": "初期選択", "default": false }
+        {
+          "type": "color",
+          "id": "pattern_color",
+          "label": "柄の色"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "裏地の写真（任意）"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "説明"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_default",
+          "label": "初期選択",
+          "default": false
+        }
       ]
     },
     {
       "type": "pleat",
       "name": "パンツのタック",
       "settings": [
-        { "type": "text", "id": "name", "label": "名称", "default": "ノータック" },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "名称",
+          "default": "ノータック"
+        },
         {
           "type": "select",
           "id": "key",
           "label": "プレビューの形",
           "options": [
-            { "value": "none", "label": "ノータック" },
-            { "value": "one", "label": "1タック" },
-            { "value": "two", "label": "2タック" }
+            {
+              "value": "none",
+              "label": "ノータック"
+            },
+            {
+              "value": "one",
+              "label": "1タック"
+            },
+            {
+              "value": "two",
+              "label": "2タック"
+            }
           ],
           "default": "none"
         },
-        { "type": "number", "id": "price", "label": "加算額（円）", "default": 0 },
-        { "type": "textarea", "id": "description", "label": "説明" },
-        { "type": "checkbox", "id": "is_default", "label": "初期選択", "default": false }
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "説明"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_default",
+          "label": "初期選択",
+          "default": false
+        }
       ]
     },
     {
       "type": "hem",
       "name": "パンツの裾",
       "settings": [
-        { "type": "text", "id": "name", "label": "名称", "default": "シングル" },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "名称",
+          "default": "シングル"
+        },
         {
           "type": "select",
           "id": "key",
           "label": "プレビューの形",
           "options": [
-            { "value": "single", "label": "シングル" },
-            { "value": "double", "label": "ダブル" }
+            {
+              "value": "single",
+              "label": "シングル"
+            },
+            {
+              "value": "double",
+              "label": "ダブル"
+            }
           ],
           "default": "single"
         },
-        { "type": "number", "id": "price", "label": "加算額（円）", "default": 0 },
-        { "type": "textarea", "id": "description", "label": "説明" },
-        { "type": "checkbox", "id": "is_default", "label": "初期選択", "default": false }
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "説明"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_default",
+          "label": "初期選択",
+          "default": false
+        }
       ]
     },
     {
       "type": "extra",
       "name": "オプション",
       "settings": [
-        { "type": "text", "id": "name", "label": "名称", "default": "本切羽（袖ボタンが開く仕様）" },
-        { "type": "number", "id": "price", "label": "加算額（円）", "default": 5500 },
-        { "type": "textarea", "id": "description", "label": "説明" },
-        { "type": "checkbox", "id": "needs_text", "label": "文字入力欄を表示（ネーム刺繍など）", "default": false },
-        { "type": "checkbox", "id": "is_default", "label": "最初からオンにする", "default": false }
+        {
+          "type": "text",
+          "id": "name",
+          "label": "名称",
+          "default": "本切羽（袖ボタンが開く仕様）"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "説明"
+        },
+        {
+          "type": "checkbox",
+          "id": "needs_text",
+          "label": "文字入力欄を表示（ネーム刺繍など）",
+          "default": false
+        },
+        {
+          "type": "checkbox",
+          "id": "is_default",
+          "label": "最初からオンにする",
+          "default": false
+        }
       ]
     },
     {
       "type": "tie",
       "name": "Vゾーン（ネクタイ）",
       "settings": [
-        { "type": "text", "id": "name", "label": "名称", "default": "ボルドー 小紋" },
-        { "type": "color", "id": "color", "label": "ネクタイの色", "default": "#6B1F2A" },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "名称",
+          "default": "ボルドー 小紋"
+        },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "ネクタイの色",
+          "default": "#6B1F2A"
+        },
         {
           "type": "select",
           "id": "pattern",
           "label": "柄",
           "options": [
-            { "value": "solid", "label": "無地" },
-            { "value": "pinstripe", "label": "レジメンタル" },
-            { "value": "birdseye", "label": "小紋・ドット" },
-            { "value": "check", "label": "チェック" }
+            {
+              "value": "solid",
+              "label": "無地"
+            },
+            {
+              "value": "pinstripe",
+              "label": "レジメンタル"
+            },
+            {
+              "value": "birdseye",
+              "label": "小紋・ドット"
+            },
+            {
+              "value": "check",
+              "label": "チェック"
+            }
           ],
           "default": "solid"
         },
-        { "type": "color", "id": "pattern_color", "label": "柄の色" },
-        { "type": "color", "id": "shirt_color", "label": "シャツの色", "default": "#FFFFFF" },
-        { "type": "product", "id": "product", "label": "対応する商品（任意）" },
-        { "type": "textarea", "id": "description", "label": "テイラーのコメント" },
-        { "type": "checkbox", "id": "is_default", "label": "初期選択", "default": false }
+        {
+          "type": "color",
+          "id": "pattern_color",
+          "label": "柄の色"
+        },
+        {
+          "type": "color",
+          "id": "shirt_color",
+          "label": "シャツの色",
+          "default": "#FFFFFF"
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "対応する商品（任意）"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "テイラーのコメント"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_default",
+          "label": "初期選択",
+          "default": false
+        }
       ]
     }
   ],
-  "presets": [{ "name": "オーダースーツ シミュレーション" }]
+  "presets": [
+    {
+      "name": "オーダースーツ シミュレーション"
+    }
+  ]
 }
 {% endschema %}

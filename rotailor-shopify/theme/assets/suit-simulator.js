@@ -2,8 +2,9 @@
  * RO Tailor — Made-to-Measure Suit Simulator
  * ------------------------------------------------------------
  * sections/suit-simulator.liquid が出力する JSON（ブロック設定）を読み込み、
- * 生地・ディテールの選択 UI、SVG プレビュー、概算価格、来店予約フォーム、
- * 予約金のカート追加までを担当します。外部ライブラリには依存しません。
+ * 生地・ディテールの選択 UI、SVG プレビュー、仕上がりの確認、来店予約フォームまでを
+ * 担当します。価格は表示しません（お見積もりはサロンでご案内する方針）。
+ * 外部ライブラリには依存しません。
  */
 (function () {
   'use strict';
@@ -104,21 +105,6 @@
     return luminance(base) < 0.45 ? mix(base, '#ffffff', 0.42) : mix(base, '#000000', 0.32);
   }
 
-  function formatMoney(yen, format) {
-    var n = Math.round(Number(yen) || 0);
-    var withCommas = n.toLocaleString('en-US');
-    var fmt = format || '¥{{amount_no_decimals}}';
-    return fmt.replace(/\{\{\s*(\w+)\s*\}\}/, function (_, key) {
-      switch (key) {
-        case 'amount': return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        case 'amount_with_comma_separator': return n.toLocaleString('de-DE', { minimumFractionDigits: 2 });
-        case 'amount_no_decimals_with_comma_separator': return n.toLocaleString('de-DE');
-        case 'amount_with_apostrophe_separator': return withCommas.replace(/,/g, "'");
-        default: return withCommas;
-      }
-    }).replace(/<[^>]*>/g, '');
-  }
-
   function encodeState(obj) {
     try {
       return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -167,7 +153,7 @@
   }
 
   Simulator.prototype.hasGroup = function (g) {
-    if (g === 'threePiece') return this.config.threePiecePrice > 0;
+    if (g === 'threePiece') return !!this.config.threePieceEnabled;
     return (this.groups[g] || []).length > 0;
   };
 
@@ -227,16 +213,15 @@
     this.$ = {
       preview: root.querySelector('[data-preview]'),
       caption: root.querySelector('[data-fabric-caption]'),
-      total: root.querySelector('[data-total]'),
+      chosen: root.querySelector('[data-chosen]'),
       nav: root.querySelector('[data-steps-nav]'),
       body: root.querySelector('[data-step-body]'),
       prev: root.querySelector('[data-prev]'),
       next: root.querySelector('[data-next]'),
       summary: root.querySelector('[data-summary]'),
       spec: root.querySelector('[data-spec]'),
-      breakdown: root.querySelector('[data-breakdown]'),
+      summaryPreview: root.querySelector('[data-summary-preview]'),
       formSpec: root.querySelector('[data-form-spec]'),
-      formTotal: root.querySelector('[data-form-total]'),
       pairing: root.querySelector('[data-pairing]'),
       pairingComment: root.querySelector('[data-pairing-comment]')
     };
@@ -275,8 +260,9 @@
       root.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    var depositBtn = root.querySelector('[data-add-deposit]');
-    if (depositBtn) depositBtn.addEventListener('click', function () { self.addDeposit(depositBtn); });
+    root.querySelectorAll('[data-shuffle]').forEach(function (b) {
+      b.addEventListener('click', function () { self.shuffle(); });
+    });
 
     var today = new Date();
     var iso = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -304,7 +290,7 @@
       nav.appendChild(el('li', { class: 'sim-steps__item' + (i === self.stepIndex ? ' is-active' : '') + (i < self.stepIndex ? ' is-done' : '') }, [btn]));
     });
     this.$.prev.disabled = this.stepIndex === 0;
-    this.$.next.textContent = this.stepIndex >= this.steps.length - 1 ? '見積もりを確認' : '次へ';
+    this.$.next.textContent = this.stepIndex >= this.steps.length - 1 ? '仕上がりを見る' : '次へ';
   };
 
   Simulator.prototype.goStep = function (i) {
@@ -331,11 +317,6 @@
       else if (g === 'threePiece') body.appendChild(self.renderThreePiece());
       else body.appendChild(self.renderOptionGroup(g));
     });
-  };
-
-  Simulator.prototype.priceLabel = function (price, standardText) {
-    if (!price) return standardText || '標準';
-    return (price > 0 ? '+' : '−') + formatMoney(Math.abs(price), this.config.moneyFormat);
   };
 
   Simulator.prototype.select = function (group, id) {
@@ -382,7 +363,7 @@
         el('span', { class: 'sim-fabric__body' }, [
           el('span', { class: 'sim-fabric__name', text: f.name }),
           meta ? el('span', { class: 'sim-fabric__meta', text: meta }) : null,
-          el('span', { class: 'sim-fabric__price', text: formatMoney(f.price, self.config.moneyFormat) + '〜' })
+          f.origin ? el('span', { class: 'sim-fabric__origin', text: f.origin }) : null
         ])
       ]));
     });
@@ -417,7 +398,6 @@
         visual,
         el('span', { class: 'sim-option__body' }, [
           el('span', { class: 'sim-option__name', text: title }),
-          group === 'tie' ? el('span', { class: 'sim-option__price', text: 'プレビュー用' }) : el('span', { class: 'sim-option__price', text: self.priceLabel(item.price) }),
           item.description ? el('span', { class: 'sim-option__desc', text: item.description }) : null
         ])
       ]));
@@ -430,7 +410,7 @@
     var self = this;
     var fieldset = el('fieldset', { class: 'sim-group' }, [el('legend', { class: 'sim-group__title', text: 'スリーピース' })]);
     var grid = el('div', { class: 'sim-options' });
-    [[false, 'ツーピース（上下）', '標準'], [true, 'スリーピース（ベスト付き）', this.priceLabel(this.config.threePiecePrice)]].forEach(function (opt) {
+    [[false, 'ツーピース（上下）', 'ジャケットとパンツ'], [true, 'スリーピース（ベスト付き）', 'Vゾーンにベストをのぞかせて']].forEach(function (opt) {
       var checked = self.state.threePiece === opt[0];
       var input = el('input', { type: 'radio', name: self.uid + '-three', class: 'visually-hidden', checked: checked });
       input.addEventListener('change', function () {
@@ -444,7 +424,7 @@
         input,
         el('span', { class: 'sim-option__body' }, [
           el('span', { class: 'sim-option__name', text: opt[1] }),
-          el('span', { class: 'sim-option__price', text: opt[2] })
+          el('span', { class: 'sim-option__desc', text: opt[2] })
         ])
       ]));
     });
@@ -482,7 +462,6 @@
         input,
         el('span', { class: 'sim-option__body' }, [
           el('span', { class: 'sim-option__name', text: x.name }),
-          el('span', { class: 'sim-option__price', text: self.priceLabel(x.price, '無料') }),
           x.description ? el('span', { class: 'sim-option__desc', text: x.description }) : null
         ])
       ]);
@@ -548,37 +527,29 @@
     var st = this.state;
     var rows = [];
     var fabric = this.find('fabric', st.fabric);
-    if (fabric) rows.push({ label: '生地', priceLabel: 'スーツ本体（上下）', value: fabric.name, price: fabric.price });
+    if (fabric) rows.push({ label: '生地', value: [fabric.name, fabric.mill].filter(Boolean).join(' ／ ') });
     ['style', 'lapel', 'pocket', 'vent', 'button', 'lining', 'pleat', 'hem'].forEach(function (g) {
       var item = self.find(g, st[g]);
       if (!item) return;
       var value = item.name + (g === 'lapel' && item.width ? '（' + item.width + 'cm）' : '');
-      rows.push({ label: GROUP_LABELS[g], value: value, price: item.price || 0 });
+      rows.push({ label: GROUP_LABELS[g], value: value });
     });
     if (this.hasGroup('threePiece')) {
-      rows.push({ label: 'ベスト', value: st.threePiece ? 'スリーピース（ベスト付き）' : 'なし', price: st.threePiece ? this.config.threePiecePrice : 0 });
+      rows.push({ label: 'ベスト', value: st.threePiece ? 'スリーピース（ベスト付き）' : 'なし' });
     }
     Object.keys(st.extras).forEach(function (id) {
       var x = self.find('extra', id);
       if (!x) return;
       var v = x.needsText ? (st.extras[id] ? '「' + st.extras[id] + '」' : '（内容は来店時に）') : 'あり';
-      rows.push({ label: x.name, value: v, price: x.price || 0, extra: true });
+      rows.push({ label: x.name, value: v });
     });
     return rows;
   };
 
-  Simulator.prototype.total = function () {
-    return this.lines().reduce(function (sum, r) { return sum + (r.price || 0); }, 0);
-  };
-
   Simulator.prototype.specText = function () {
-    var self = this;
     var tie = this.find('tie', this.state.tie);
-    var text = this.lines().map(function (r) {
-      return r.label + '：' + r.value + (r.price ? '（' + self.priceLabel(r.price) + '）' : '');
-    });
-    if (tie) text.push('Vゾーン（プレビュー）：' + tie.name);
-    text.push('概算合計：' + formatMoney(this.total(), this.config.moneyFormat));
+    var text = this.lines().map(function (r) { return r.label + '：' + r.value; });
+    if (tie) text.push('Vゾーン：' + tie.name);
     text.push('シミュレーション URL：' + this.shareUrl());
     return text.join('\n');
   };
@@ -592,35 +563,41 @@
   Simulator.prototype.update = function () {
     storageSet(this.config.storageKey, this.state);
     this.renderPreview();
-    var total = formatMoney(this.total(), this.config.moneyFormat);
-    this.$.total.textContent = total;
-    this.renderSummary(total);
+    if (this.$.chosen) {
+      var fabric = this.find('fabric', this.state.fabric);
+      var style = this.find('style', this.state.style);
+      this.$.chosen.textContent = [fabric && fabric.name, style && style.name, this.state.threePiece ? 'スリーピース' : null].filter(Boolean).join(' ・ ');
+    }
+    this.renderSummary();
     this.renderPairing();
   };
 
-  Simulator.prototype.renderSummary = function (totalText) {
-    var self = this;
+  Simulator.prototype.renderSummary = function () {
     var spec = this.$.spec;
     spec.innerHTML = '';
     var tie = this.find('tie', this.state.tie);
     this.lines().forEach(function (r) {
       spec.appendChild(el('div', { class: 'sim-spec__row' }, [el('dt', { text: r.label }), el('dd', { text: r.value })]));
     });
-    if (tie) spec.appendChild(el('div', { class: 'sim-spec__row' }, [el('dt', { text: 'Vゾーン' }), el('dd', { text: tie.name + '（別売）' })]));
-
-    var table = this.$.breakdown;
-    table.innerHTML = '';
-    var tbody = el('tbody');
-    this.lines().forEach(function (r, i) {
-      if (!r.price) return;
-      var text = i === 0 ? formatMoney(r.price, self.config.moneyFormat) : self.priceLabel(r.price);
-      tbody.appendChild(el('tr', null, [el('th', { scope: 'row', text: r.priceLabel || r.label }), el('td', { text: text })]));
-    });
-    table.appendChild(tbody);
-    table.appendChild(el('tfoot', null, [el('tr', null, [el('th', { scope: 'row', text: '概算合計（税込）' }), el('td', { text: totalText })])]));
-
+    if (tie) spec.appendChild(el('div', { class: 'sim-spec__row' }, [el('dt', { text: 'Vゾーン' }), el('dd', { text: tie.name })]));
     if (this.$.formSpec) this.$.formSpec.value = this.specText();
-    if (this.$.formTotal) this.$.formTotal.value = totalText;
+    if (this.$.summaryPreview) {
+      this.$.summaryPreview.innerHTML = '';
+      var clone = this.$.preview.querySelector('svg');
+      if (clone) this.$.summaryPreview.appendChild(clone.cloneNode(true));
+    }
+  };
+
+  /* おまかせ：ランダムに組み合わせる */
+  Simulator.prototype.shuffle = function () {
+    var self = this;
+    SINGLE_GROUPS.forEach(function (g) {
+      var list = self.groups[g] || [];
+      if (list.length) self.state[g] = list[Math.floor(Math.random() * list.length)].id;
+    });
+    if (this.hasGroup('threePiece')) this.state.threePiece = Math.random() < 0.3;
+    this.renderStep();
+    this.update();
   };
 
   Simulator.prototype.renderPairing = function () {
@@ -646,7 +623,7 @@
   Simulator.prototype.openSummary = function (instant) {
     var s = this.$.summary;
     s.hidden = false;
-    this.renderSummary(formatMoney(this.total(), this.config.moneyFormat));
+    this.renderSummary();
     s.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' });
     s.focus({ preventScroll: true });
   };
@@ -663,31 +640,6 @@
     } else {
       window.prompt('このリンクをコピーしてください', url);
     }
-  };
-
-  Simulator.prototype.addDeposit = function (btn) {
-    var self = this;
-    var properties = {};
-    this.lines().forEach(function (r) { properties[r.label] = r.value; });
-    properties['概算合計'] = formatMoney(this.total(), this.config.moneyFormat);
-    properties['_シミュレーション URL'] = this.shareUrl();
-    btn.disabled = true;
-    var addUrl = (window.routes && window.routes.cart_add_url ? window.routes.cart_add_url : '/cart/add') + '.js';
-    fetch(addUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ items: [{ id: Number(btn.getAttribute('data-variant-id')), quantity: 1, properties: properties }] })
-    })
-      .then(function (res) { if (!res.ok) throw new Error('add failed'); return res.json(); })
-      .then(function () {
-        document.dispatchEvent(new CustomEvent('theme:cart:changed'));
-        window.location.href = (window.routes && window.routes.cart_url) || '/cart';
-      })
-      .catch(function () {
-        btn.disabled = false;
-        window.alert((window.themeStrings && window.themeStrings.addError) || 'カートに追加できませんでした。');
-      })
-      .finally(function () { self.lastAdd = Date.now(); });
   };
 
   /* ------------------------------------------------------ drawing */
@@ -1072,7 +1024,7 @@
     });
   }
 
-  window.RoTailorSimulator = { init: init, formatMoney: formatMoney };
+  window.RoTailorSimulator = { init: init };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { init(); });
   else init();

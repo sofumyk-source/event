@@ -22,7 +22,6 @@ for block_id in section['block_order']:
         'type': block['type'],
         'name': s.get('name'),
         'description': s.get('description'),
-        'price': s.get('price', 0),
         'key': s.get('key'),
         'color': s.get('color', ''),
         'pattern': s.get('pattern'),
@@ -40,8 +39,7 @@ for block_id in section['block_order']:
     })
 
 config = {
-    'moneyFormat': '¥{{amount_no_decimals}}',
-    'threePiecePrice': section['settings'].get('three_piece_price', 22000),
+    'threePieceEnabled': section['settings'].get('three_piece_enabled', True),
     'storageKey': 'rotailor-sim-demo',
     'items': items,
 }
@@ -74,7 +72,7 @@ html = f"""<!doctype html>
 </style>
 </head>
 <body>
-<div class="demo-banner">デモ表示：Shopify 上ではテーマエディタで生地・価格・文言を編集できます。フォーム送信とカート追加はデモでは動作しません。</div>
+<div class="demo-banner">デモ表示：Shopify 上ではテーマエディタで生地・選択肢・文言を編集できます。フォーム送信はデモでは動作しません。</div>
 <header class="site-header site-header--sticky">
   <div class="site-header__inner container">
     <span></span>
@@ -89,11 +87,12 @@ html = f"""<!doctype html>
     <div class="section-head simulator__head">
       <p class="eyebrow">MADE TO MEASURE SIMULATOR</p>
       <h1 class="section-title">オーダースーツを仕立てる</h1>
-      <div class="section-intro rte"><p>生地とディテールを選ぶと、仕上がりのイメージと概算価格がすぐにわかります。最終的なお見積もりは、サロンでの採寸時にご案内します。</p></div>
+      <div class="section-intro rte"><p>生地やラペル、ボタン、裏地まで。好きな組み合わせを選んで、あなただけの一着を思い描いてみてください。気に入ったイメージは、そのままサロンでのご相談にお持ちいただけます。</p></div>
     </div>
     <div class="simulator__layout">
       <div class="simulator__stage">
         <div class="sim-preview">
+          <button type="button" class="sim-chip sim-chip--shuffle" data-shuffle>おまかせ</button>
           <div class="sim-preview__toolbar" role="group" aria-label="表示の向き">
             <button type="button" class="sim-chip is-active" data-view="front" aria-pressed="true">FRONT</button>
             <button type="button" class="sim-chip" data-view="back" aria-pressed="false">BACK</button>
@@ -102,8 +101,8 @@ html = f"""<!doctype html>
           <div class="sim-preview__fabric" data-fabric-caption></div>
         </div>
         <div class="sim-total">
-          <div><p class="sim-total__label">概算価格（税込）</p><p class="sim-total__price" data-total>—</p></div>
-          <button type="button" class="button button--primary sim-total__next" data-go-summary>見積もりを確認</button>
+          <div class="sim-total__body"><p class="sim-total__label">YOUR STYLE</p><p class="sim-total__chosen" data-chosen></p></div>
+          <button type="button" class="button button--primary sim-total__next" data-go-summary>仕上がりを見る</button>
         </div>
       </div>
       <div class="simulator__panel">
@@ -118,23 +117,29 @@ html = f"""<!doctype html>
     <div class="sim-summary" data-summary hidden tabindex="-1">
       <div class="sim-summary__grid">
         <div class="sim-summary__spec">
-          <p class="eyebrow">YOUR ORDER</p>
-          <h2 class="section-title">お仕立て内容の確認</h2>
-          <dl class="sim-spec" data-spec></dl>
-          <table class="sim-breakdown" data-breakdown></table>
-          <p class="sim-note">※ 表示価格は税込の概算です。体型補正や生地の在庫状況により、採寸時に最終価格をご案内します。</p>
+          <p class="eyebrow">YOUR STYLE</p>
+          <h2 class="section-title">あなたの一着が仕上がりました</h2>
+          <div class="sim-summary__look">
+            <div class="sim-summary__preview" data-summary-preview aria-hidden="true"></div>
+            <dl class="sim-spec" data-spec></dl>
+          </div>
           <div class="sim-summary__tools">
             <button type="button" class="button button--ghost" data-copy-link>この内容のリンクをコピー</button>
             <button type="button" class="button button--ghost" data-reset>最初からやり直す</button>
           </div>
         </div>
         <div class="sim-summary__actions">
+          <div class="sim-estimate">
+            <p class="eyebrow">ESTIMATE</p>
+            <h3 class="sim-card__title">お見積もりは、サロンで。</h3>
+            <p class="sim-card__text">お仕立ての価格は、生地・仕立て方・サイズによって一着ずつ異なります。このイメージをお持ちいただければ、テイラーが実際の生地を手に取りながら、ご予算に合わせてご提案します。</p>
+            <a href="#" class="button button--accent" onclick="event.preventDefault()">ご来店予約</a>
+          </div>
           <div class="sim-card">
             <h3 class="sim-card__title">この内容でご来店予約</h3>
-            <p class="sim-card__text">選んだ内容はそのままテイラーに届きます。採寸・生地確認を含めて 60〜90 分ほどお時間をいただきます。</p>
+            <p class="sim-card__text">選んだイメージはそのままテイラーに届きます。採寸・生地選び・お見積もりを含めて 60〜90 分ほどお時間をいただきます。</p>
             <form class="sim-form" onsubmit="event.preventDefault(); alert('デモのため送信されません。Shopify 上ではストアのメールアドレスに届きます。');">
               <textarea name="contact[シミュレーション内容]" data-form-spec hidden readonly></textarea>
-              <input type="hidden" data-form-total>
               <label class="field"><span>お名前 <em>*</em></span><input type="text" required></label>
               <label class="field"><span>メールアドレス <em>*</em></span><input type="email" required></label>
               <label class="field"><span>電話番号</span><input type="tel"></label>
