@@ -7,7 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 # ストアのドメインをカンマ区切りで（独自ドメインと myshopify.com の両方）
 ALLOWED_ORIGINS = "https://example.com,https://example.myshopify.com"
 # 使用モデル（README の「費用」を参照）
-STYLIST_MODEL = "claude-opus-5-5"
+STYLIST_MODEL = "claude-haiku-5-5"
 
 # API キーは wrangler secret put ANTHROPIC_API_KEY で登録（このファイルには書かない）
 

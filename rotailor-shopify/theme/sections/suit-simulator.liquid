@@ -28,21 +28,31 @@
           <p class="sim-stylist__text">{{ section.settings.stylist_text }}</p>
         </div>
         <form class="sim-stylist__form" novalidate>
-          <label class="visually-hidden" for="StylistInput-{{ section.id }}">{{ section.settings.stylist_heading }}</label>
-          <textarea
-            id="StylistInput-{{ section.id }}"
-            class="sim-stylist__input"
-            data-stylist-input
-            rows="2"
-            maxlength="200"
-            placeholder="{{ section.settings.stylist_placeholder }}"
-          ></textarea>
-          <div class="sim-stylist__examples">
-            {%- assign examples = section.settings.stylist_examples | split: ',' -%}
-            {%- for example in examples -%}
-              <button type="button" class="sim-chip" data-stylist-example>{{ example | strip }}</button>
-            {%- endfor -%}
+          <fieldset class="sim-stylist__field">
+            <legend>好きな色<small>（3色まで）</small></legend>
+            <div class="sim-stylist__colors" data-stylist-colors></div>
+          </fieldset>
+          <fieldset class="sim-stylist__field">
+            <legend>着ていく場面<small>（いくつでも）</small></legend>
+            <div class="sim-stylist__scenes" data-stylist-scenes></div>
+          </fieldset>
+          <div class="sim-stylist__field sim-stylist__photo-row">
+            <span class="sim-stylist__label">参考写真<small>（任意）</small></span>
+            <div class="sim-stylist__photo">
+              <label class="sim-chip sim-stylist__photo-btn">
+                写真を選ぶ
+                <input type="file" accept="image/*" data-stylist-photo hidden>
+              </label>
+              <img class="sim-stylist__thumb" data-stylist-thumb alt="選んだ参考写真" width="56" height="56" hidden>
+              <span class="sim-stylist__photo-colors" data-stylist-photo-colors aria-hidden="true"></span>
+              <button type="button" class="sim-stylist__photo-remove" data-stylist-photo-remove hidden aria-label="参考写真を外す">×</button>
+            </div>
+            <p class="sim-stylist__hint">憧れのコーディネートや好きな景色の写真から、色や雰囲気を読み取ります。</p>
           </div>
+          <label class="sim-stylist__field">
+            <span class="sim-stylist__label">ひとこと<small>（任意）</small></span>
+            <input type="text" class="sim-stylist__input" data-stylist-input maxlength="100" placeholder="{{ section.settings.stylist_placeholder }}">
+          </label>
           <div class="sim-stylist__actions">
             <button type="submit" class="button button--accent">{{ section.settings.stylist_button }}</button>
             <p class="sim-stylist__progress" data-stylist-progress hidden aria-live="polite"></p>
@@ -62,6 +72,18 @@
           </div>
           <div class="sim-preview__canvas" data-preview aria-live="polite"></div>
           <div class="sim-preview__fabric" data-fabric-caption></div>
+          <div class="sim-tryon" data-tryon>
+            <label class="sim-chip sim-tryon__upload">
+              自分の写真で試着する
+              <input type="file" accept="image/*" data-tryon-file hidden>
+            </label>
+            <div class="sim-tryon__controls" data-tryon-controls hidden>
+              <label class="sim-tryon__zoom">大きさ <input type="range" min="0.6" max="3.5" step="0.05" value="1.6" data-tryon-zoom></label>
+              <button type="button" class="sim-tryon__remove" data-tryon-remove>写真を外す</button>
+              <p class="sim-tryon__hint">顔をドラッグして位置を合わせてください</p>
+            </div>
+            <p class="sim-tryon__note">写真はこの画面の中だけで使われ、送信・保存はされません。</p>
+          </div>
         </div>
         <div class="sim-total">
           <div class="sim-total__body">
@@ -318,25 +340,19 @@
       "type": "text",
       "id": "stylist_heading",
       "label": "見出し",
-      "default": "どんな一着にしたいですか？"
+      "default": "あなたの好みを、テイラーに。"
     },
     {
       "type": "textarea",
       "id": "stylist_text",
       "label": "説明",
-      "default": "着ていく場面、好きな景色、なりたい自分。思いつくままに書いてください。テイラーがあなたの言葉から一着を仕立てます。"
+      "default": "好きな色と、着ていく場面を選んでください。憧れのコーディネートや好きな景色の写真を添えると、その色や雰囲気も読み取って一着に仕立てます。"
     },
     {
       "type": "text",
       "id": "stylist_placeholder",
-      "label": "入力欄の例文",
-      "default": "例）秋の夕暮れ、港町のレストランで大切な人と食事をする日に"
-    },
-    {
-      "type": "text",
-      "id": "stylist_examples",
-      "label": "例のボタン（カンマ区切り）",
-      "default": "夏の海辺の結婚式,勝負の商談に挑む日,ジャズバーで過ごす冬の夜,桜の季節の入社式"
+      "label": "ひとこと欄の例文",
+      "default": "例）軽やかに見せたい、少し遊び心がほしい"
     },
     {
       "type": "text",

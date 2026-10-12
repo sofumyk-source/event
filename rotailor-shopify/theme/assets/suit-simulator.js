@@ -39,12 +39,13 @@
 
   var SEASON_LABELS = { all: 'オールシーズン', ss: '春夏', aw: '秋冬' };
 
+  // 人物の基準寸法（viewBox 300×640、約 8 頭身のファッション画プロポーション）
   var STYLE_GEOMETRY = {
-    sb1: { vY: 192, cx: 150, buttons: [[150, 206]], double: false },
-    sb2: { vY: 168, cx: 150, buttons: [[150, 182], [150, 226]], double: false },
-    sb3: { vY: 160, cx: 150, buttons: [[150, 176], [150, 220]], double: false, rollHole: true },
-    db6: { vY: 168, cx: 128, buttons: [[130, 176], [170, 176], [136, 208], [164, 208], [136, 240], [164, 240]], double: true },
-    db4: { vY: 186, cx: 128, buttons: [[136, 198], [164, 198], [136, 234], [164, 234]], double: true }
+    sb1: { vY: 262, cx: 150, buttons: [[150, 274]], double: false },
+    sb2: { vY: 236, cx: 150, buttons: [[150, 250], [150, 296]], double: false },
+    sb3: { vY: 226, cx: 150, buttons: [[150, 248], [150, 294]], double: false, rollHole: true },
+    db6: { vY: 238, cx: 132, buttons: [[128, 246], [172, 246], [136, 280], [164, 280], [136, 314], [164, 314]], double: true },
+    db4: { vY: 262, cx: 132, buttons: [[136, 274], [164, 274], [136, 310], [164, 310]], double: true }
   };
 
   /* ---------------------------------------------------------- utilities */
@@ -259,6 +260,7 @@
     });
 
     this.bindStylist();
+    this.bindTryOn();
 
     var copyBtn = root.querySelector('[data-copy-link]');
     if (copyBtn) copyBtn.addEventListener('click', function () { self.copyLink(copyBtn); });
@@ -635,27 +637,192 @@
     return catalog;
   };
 
+  var STYLIST_COLORS = [
+    { key: 'navy', label: 'ネイビー', hex: '#1f2a44' },
+    { key: 'charcoal', label: 'チャコール', hex: '#3a3c40' },
+    { key: 'lightgrey', label: 'ライトグレー', hex: '#9a9c9e' },
+    { key: 'black', label: 'ブラック', hex: '#1e1f22' },
+    { key: 'brown', label: 'ブラウン', hex: '#5a4232' },
+    { key: 'beige', label: 'ベージュ', hex: '#b9a586' },
+    { key: 'blue', label: 'ブルー', hex: '#2e5f8a' },
+    { key: 'green', label: 'グリーン', hex: '#2f4a3a' },
+    { key: 'bordeaux', label: 'ボルドー', hex: '#5c1e2a' }
+  ];
+  var STYLIST_SCENES = [
+    { key: 'business', label: '毎日のビジネス' },
+    { key: 'pitch', label: '商談・プレゼン' },
+    { key: 'interview', label: '面接・入社式' },
+    { key: 'ceremony', label: '結婚式・式典' },
+    { key: 'party', label: 'パーティー' },
+    { key: 'dinner', label: '会食・デート' },
+    { key: 'casual', label: '休日・おでかけ' }
+  ];
+  var MAX_COLORS = 3;
+
+  // 画像を縮小して JPEG の dataURL にする（送信量と端末メモリを抑える）
+  function loadImage(file, maxSize) {
+    return new Promise(function (resolve, reject) {
+      if (!file || !/^image\//.test(file.type)) { reject(new Error('not image')); return; }
+      var reader = new FileReader();
+      reader.onload = function () {
+        var img = new Image();
+        img.onload = function () {
+          var scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve({ url: canvas.toDataURL('image/jpeg', 0.82), canvas: canvas });
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // 写真の主な色を最大 3 色取り出す（白飛び・真っ黒は除外）
+  function dominantColors(canvas) {
+    var small = document.createElement('canvas');
+    small.width = 48;
+    small.height = 48;
+    var ctx = small.getContext('2d');
+    ctx.drawImage(canvas, 0, 0, 48, 48);
+    var data = ctx.getImageData(0, 0, 48, 48).data;
+    var buckets = {};
+    for (var i = 0; i < data.length; i += 4) {
+      var r = data[i], g = data[i + 1], b = data[i + 2];
+      var l = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      if (l > 0.9 || l < 0.04) continue;
+      // 写真の中央（主役が写っていることが多い）ほど重く数える
+      var px = (i / 4) % 48 - 23.5;
+      var py = Math.floor(i / 4 / 48) - 23.5;
+      var w = Math.max(0.05, 1 - Math.sqrt(px * px + py * py) / 30);
+      var key = (r >> 4) + ',' + (g >> 4) + ',' + (b >> 4);
+      var bucket = buckets[key] || (buckets[key] = { n: 0, c: 0, r: 0, g: 0, b: 0 });
+      bucket.n += w; bucket.c++; bucket.r += r; bucket.g += g; bucket.b += b;
+    }
+    var list = Object.keys(buckets).map(function (k) {
+      var x = buckets[k];
+      return { n: x.n, hex: rgbToHex({ r: x.r / x.c, g: x.g / x.c, b: x.b / x.c }) };
+    }).sort(function (a, b) { return b.n - a.n; });
+    var picked = [];
+    list.forEach(function (c) {
+      if (picked.length >= 3) return;
+      var far = picked.every(function (p) {
+        var a = hexToRgb(p), b = hexToRgb(c.hex);
+        return Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) > 90;
+      });
+      if (far) picked.push(c.hex);
+    });
+    return picked;
+  }
+
   Simulator.prototype.bindStylist = function () {
     var self = this;
     var box = this.$.stylist;
     if (!box) return;
+    this.prefs = { colors: [], scenes: [], note: '', photo: null, photoColors: [] };
     var form = box.querySelector('form');
-    var input = box.querySelector('[data-stylist-input]');
-    box.querySelectorAll('[data-stylist-example]').forEach(function (chip) {
-      chip.addEventListener('click', function () {
-        input.value = chip.textContent.trim();
-        input.focus();
+    var colorWrap = box.querySelector('[data-stylist-colors]');
+    var sceneWrap = box.querySelector('[data-stylist-scenes]');
+    var note = box.querySelector('[data-stylist-input]');
+    var photoInput = box.querySelector('[data-stylist-photo]');
+    var thumb = box.querySelector('[data-stylist-thumb]');
+    var removePhoto = box.querySelector('[data-stylist-photo-remove]');
+    var photoColorsEl = box.querySelector('[data-stylist-photo-colors]');
+
+    STYLIST_COLORS.forEach(function (c) {
+      var btn = el('button', { type: 'button', class: 'sim-color', 'aria-pressed': 'false', style: '--swatch:' + c.hex }, [
+        el('span', { class: 'sim-color__dot' }), el('span', { text: c.label })
+      ]);
+      btn.addEventListener('click', function () {
+        var i = self.prefs.colors.indexOf(c.key);
+        if (i !== -1) self.prefs.colors.splice(i, 1);
+        else {
+          if (self.prefs.colors.length >= MAX_COLORS) self.prefs.colors.shift();
+          self.prefs.colors.push(c.key);
+        }
+        colorWrap.querySelectorAll('.sim-color').forEach(function (b, idx) {
+          var on = self.prefs.colors.indexOf(STYLIST_COLORS[idx].key) !== -1;
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+          b.classList.toggle('is-active', on);
+        });
       });
+      colorWrap.appendChild(btn);
     });
+
+    STYLIST_SCENES.forEach(function (sc) {
+      var btn = el('button', { type: 'button', class: 'sim-chip', 'aria-pressed': 'false', text: sc.label });
+      btn.addEventListener('click', function () {
+        var i = self.prefs.scenes.indexOf(sc.key);
+        if (i !== -1) self.prefs.scenes.splice(i, 1);
+        else self.prefs.scenes.push(sc.key);
+        var on = i === -1;
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.classList.toggle('is-active', on);
+      });
+      sceneWrap.appendChild(btn);
+    });
+
+    if (photoInput) {
+      photoInput.addEventListener('change', function () {
+        var file = photoInput.files && photoInput.files[0];
+        if (!file) return;
+        loadImage(file, 768).then(function (res) {
+          self.prefs.photo = res.url;
+          self.prefs.photoColors = dominantColors(res.canvas);
+          thumb.src = res.url;
+          thumb.hidden = false;
+          removePhoto.hidden = false;
+          photoColorsEl.innerHTML = '';
+          self.prefs.photoColors.forEach(function (hex) {
+            photoColorsEl.appendChild(el('span', { class: 'sim-stylist__photo-color', style: 'background:' + hex, title: hex }));
+          });
+        }).catch(function () {
+          window.alert('画像を読み込めませんでした。JPEG または PNG の写真をお試しください。');
+        });
+        photoInput.value = '';
+      });
+      removePhoto.addEventListener('click', function () {
+        self.prefs.photo = null;
+        self.prefs.photoColors = [];
+        thumb.hidden = true;
+        thumb.removeAttribute('src');
+        removePhoto.hidden = true;
+        photoColorsEl.innerHTML = '';
+      });
+    }
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var text = input.value.trim();
-      if (!text) { input.focus(); return; }
-      self.runStylist(text);
+      self.prefs.note = note ? note.value.trim().slice(0, 100) : '';
+      var p = self.prefs;
+      if (!p.colors.length && !p.scenes.length && !p.photo && !p.note) {
+        var hint = box.querySelector('[data-stylist-progress]');
+        hint.hidden = false;
+        hint.textContent = '色か場面を一つ以上選んでください';
+        return;
+      }
+      self.runStylist();
     });
   };
 
-  Simulator.prototype.runStylist = function (text) {
+  Simulator.prototype.prefsSummary = function () {
+    var p = this.prefs;
+    var label = function (list, keys) {
+      return keys.map(function (k) { return (list.filter(function (x) { return x.key === k; })[0] || {}).label; }).filter(Boolean).join('・');
+    };
+    var parts = [];
+    if (p.colors.length) parts.push('好きな色：' + label(STYLIST_COLORS, p.colors));
+    if (p.scenes.length) parts.push('着る場面：' + label(STYLIST_SCENES, p.scenes));
+    if (p.note) parts.push('ひとこと：' + p.note);
+    if (p.photo) parts.push('参考写真あり');
+    return parts;
+  };
+
+  Simulator.prototype.runStylist = function () {
     var self = this;
     var box = this.$.stylist;
     var button = box.querySelector('[type="submit"]');
@@ -671,13 +838,17 @@
       progress.textContent = phases[phase];
     }, 1100);
     var started = Date.now();
+    var summary = this.prefsSummary();
+    var p = this.prefs;
 
     var endpoint = this.config.stylistEndpoint;
+    var payload = { text: summary.join('\n'), catalog: this.catalogPayload(), threePiece: this.hasGroup('threePiece') };
+    if (p.photo) payload.image = { mediaType: 'image/jpeg', data: p.photo.split(',')[1] };
     var request = endpoint
       ? fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: text, catalog: this.catalogPayload(), threePiece: this.hasGroup('threePiece') })
+          body: JSON.stringify(payload)
         }).then(function (res) {
           if (!res.ok) throw new Error('stylist ' + res.status);
           return res.json();
@@ -689,21 +860,95 @@
 
     request
       .catch(function () {
-        return window.RoTailorStylist
-          ? window.RoTailorStylist.local(text, self.groups, self.hasGroup('threePiece'))
-          : null;
+        if (!window.RoTailorStylist) return null;
+        var colors = p.colors.map(function (k) { return STYLIST_COLORS.filter(function (c) { return c.key === k; })[0]; }).filter(Boolean);
+        return window.RoTailorStylist.local({
+          colors: colors,
+          scenes: p.scenes,
+          note: p.note,
+          photoColors: p.photoColors
+        }, self.groups, self.hasGroup('threePiece'));
       })
       .then(function (look) {
-        // 演出のため最低 2.4 秒は「仕立て中」を見せる
         var wait = Math.max(0, 2400 - (Date.now() - started));
         setTimeout(function () {
           clearInterval(timer);
           button.disabled = false;
           box.classList.remove('is-working');
           progress.hidden = true;
-          if (look) self.applyLook(look, text);
+          if (look) self.applyLook(look, summary.join(' ／ '));
         }, wait);
       });
+  };
+
+  /* ------------------------------------------------- photo try-on */
+
+  Simulator.prototype.bindTryOn = function () {
+    var self = this;
+    var box = this.root.querySelector('[data-tryon]');
+    if (!box) return;
+    var file = box.querySelector('[data-tryon-file]');
+    var controls = box.querySelector('[data-tryon-controls]');
+    var zoom = box.querySelector('[data-tryon-zoom]');
+    var remove = box.querySelector('[data-tryon-remove]');
+
+    file.addEventListener('change', function () {
+      var f = file.files && file.files[0];
+      if (!f) return;
+      loadImage(f, 640).then(function (res) {
+        self.photo = { url: res.url, zoom: 1.6, x: 0, y: 8 };
+        zoom.value = '1.6';
+        controls.hidden = false;
+        box.classList.add('has-photo');
+        self.renderPreview();
+        self.renderSummary();
+      }).catch(function () {
+        window.alert('画像を読み込めませんでした。JPEG または PNG の写真をお試しください。');
+      });
+      file.value = '';
+    });
+    zoom.addEventListener('input', function () {
+      if (!self.photo) return;
+      self.photo.zoom = parseFloat(zoom.value) || 1;
+      self.renderPreview();
+    });
+    remove.addEventListener('click', function () {
+      self.photo = null;
+      controls.hidden = true;
+      box.classList.remove('has-photo');
+      self.renderPreview();
+      self.renderSummary();
+    });
+
+    // 顔の位置合わせ：プレビューの顔をドラッグ
+    var drag = null;
+    var preview = this.$.preview;
+    preview.addEventListener('pointerdown', function (e) {
+      if (!self.photo || !e.target.closest('[data-photo-head]')) return;
+      var svgEl = preview.querySelector('svg');
+      var scale = 300 / svgEl.getBoundingClientRect().width;
+      drag = { x: e.clientX, y: e.clientY, ox: self.photo.x, oy: self.photo.y, scale: scale };
+      preview.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    preview.addEventListener('pointermove', function (e) {
+      if (!drag) return;
+      self.photo.x = drag.ox + (e.clientX - drag.x) * drag.scale;
+      self.photo.y = drag.oy + (e.clientY - drag.y) * drag.scale;
+      var img = preview.querySelector('[data-photo-head] image');
+      if (img) {
+        var size = 120 * self.photo.zoom;
+        img.setAttribute('x', 150 - size / 2 + self.photo.x);
+        img.setAttribute('y', 50 - size / 2 + self.photo.y);
+      }
+    });
+    var end = function () {
+      if (!drag) return;
+      drag = null;
+      self.renderSummary();
+    };
+    preview.addEventListener('pointerup', end);
+    preview.addEventListener('pointercancel', end);
   };
 
   Simulator.prototype.applyLook = function (look, text) {
@@ -723,6 +968,8 @@
     preview.classList.remove('is-revealed');
     void preview.offsetWidth;
     preview.classList.add('is-revealed');
+    clearTimeout(this.revealTimer);
+    this.revealTimer = setTimeout(function () { preview.classList.remove('is-revealed'); }, 1000);
   };
 
   Simulator.prototype.renderLook = function () {
@@ -940,36 +1187,49 @@
     var hem = this.find('hem', st.hem) || { key: 'single' };
     var tie = this.find('tie', st.tie);
     var geo = STYLE_GEOMETRY[style.key] || STYLE_GEOMETRY.sb2;
+    var photo = this.photo;
 
     var u = this.uid;
     var fab = 'url(#' + u + '-fab)';
     var seam = { fill: 'none', stroke: 'rgba(0,0,0,0.38)', 'stroke-width': 0.9, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
-    var hi = { fill: 'none', stroke: 'rgba(255,255,255,0.12)', 'stroke-width': 0.8 };
+    var soft = { fill: 'none', stroke: 'rgba(0,0,0,0.16)', 'stroke-width': 0.9, 'stroke-linecap': 'round' };
+    var hi = { fill: 'none', stroke: 'rgba(255,255,255,0.13)', 'stroke-width': 0.9 };
     var fabricDark = mix(fabric.color || '#2b3245', '#000000', 0.25);
+    var btnColor = button.color || '#3a2a20';
+    var shirt = (tie && tie.shirtColor) || '#fbfbf8';
+    var skin = '#e3d3c0';
 
-    var root = svg('svg', { viewBox: '0 0 300 452', class: 'sim-svg', role: 'img', 'aria-label': 'スーツのプレビュー：' + (fabric.name || '') });
+    var root = svg('svg', { viewBox: '0 0 300 640', class: 'sim-svg', role: 'img', 'aria-label': 'スーツのプレビュー：' + (fabric.name || '') });
     var defs = svg('defs');
     defs.appendChild(this.patternFor(u + '-fab', fabric, 1));
     if (tie) defs.appendChild(this.patternFor(u + '-tie', tie, 0.7));
     if (lining) defs.appendChild(this.patternFor(u + '-lin', lining, 1));
-    var shade = svg('linearGradient', { id: u + '-shade', x1: '0', y1: '0', x2: '1', y2: '0' }, [
-      svg('stop', { offset: '0', 'stop-color': '#000', 'stop-opacity': '0.34' }),
-      svg('stop', { offset: '0.22', 'stop-color': '#000', 'stop-opacity': '0' }),
+    defs.appendChild(svg('linearGradient', { id: u + '-shade', x1: '0', y1: '0', x2: '1', y2: '0' }, [
+      svg('stop', { offset: '0', 'stop-color': '#000', 'stop-opacity': '0.32' }),
+      svg('stop', { offset: '0.2', 'stop-color': '#000', 'stop-opacity': '0' }),
       svg('stop', { offset: '0.5', 'stop-color': '#fff', 'stop-opacity': '0.07' }),
-      svg('stop', { offset: '0.78', 'stop-color': '#000', 'stop-opacity': '0' }),
-      svg('stop', { offset: '1', 'stop-color': '#000', 'stop-opacity': '0.34' })
-    ]);
-    var vshade = svg('linearGradient', { id: u + '-vshade', x1: '0', y1: '0', x2: '0', y2: '1' }, [
-      svg('stop', { offset: '0', 'stop-color': '#fff', 'stop-opacity': '0.06' }),
+      svg('stop', { offset: '0.8', 'stop-color': '#000', 'stop-opacity': '0' }),
+      svg('stop', { offset: '1', 'stop-color': '#000', 'stop-opacity': '0.32' })
+    ]));
+    defs.appendChild(svg('linearGradient', { id: u + '-vshade', x1: '0', y1: '0', x2: '0', y2: '1' }, [
+      svg('stop', { offset: '0', 'stop-color': '#000', 'stop-opacity': '0.12' }),
+      svg('stop', { offset: '0.15', 'stop-color': '#fff', 'stop-opacity': '0.04' }),
       svg('stop', { offset: '1', 'stop-color': '#000', 'stop-opacity': '0.22' })
-    ]);
-    var floor = svg('radialGradient', { id: u + '-floor', cx: '0.5', cy: '0.5', r: '0.5' }, [
-      svg('stop', { offset: '0', 'stop-color': '#000', 'stop-opacity': '0.18' }),
+    ]));
+    defs.appendChild(svg('radialGradient', { id: u + '-floor', cx: '0.5', cy: '0.5', r: '0.5' }, [
+      svg('stop', { offset: '0', 'stop-color': '#000', 'stop-opacity': '0.2' }),
       svg('stop', { offset: '1', 'stop-color': '#000', 'stop-opacity': '0' })
+    ]));
+    defs.appendChild(svg('radialGradient', { id: u + '-head', cx: '0.42', cy: '0.38', r: '0.7' }, [
+      svg('stop', { offset: '0', 'stop-color': '#efe4d6' }),
+      svg('stop', { offset: '1', 'stop-color': '#cdbba6' })
+    ]));
+    var HEAD = { cx: 150, cy: 50, rx: 23, ry: 30 };
+    var clip = svg('clipPath', { id: u + '-face' }, [
+      svg('ellipse', { cx: HEAD.cx, cy: HEAD.cy, rx: HEAD.rx, ry: HEAD.ry }),
+      svg('path', { d: 'M139 66 L161 66 L162 104 L138 104 Z' })
     ]);
-    defs.appendChild(shade);
-    defs.appendChild(vshade);
-    defs.appendChild(floor);
+    defs.appendChild(clip);
     root.appendChild(defs);
 
     function add(tag, attrs) { var n = svg(tag, attrs); root.appendChild(n); return n; }
@@ -981,104 +1241,121 @@
 
     var front = this.view === 'front';
 
-    // floor shadow + dress form neck
-    add('ellipse', { cx: 150, cy: 444, rx: 90, ry: 7, fill: 'url(#' + u + '-floor)' });
-    add('path', { d: 'M134 34 V14 Q134 6 150 6 Q166 6 166 14 V34 Z', fill: '#d6c7b0' });
-    add('path', { d: 'M134 14 Q150 20 166 14', fill: 'none', stroke: 'rgba(0,0,0,0.12)', 'stroke-width': 1 });
+    add('ellipse', { cx: 150, cy: 626, rx: 84, ry: 7, fill: 'url(#' + u + '-floor)' });
+
+    // head + neck（写真があれば顔写真をはめ込む）
+    if (photo && photo.url) {
+      var size = 120 * photo.zoom;
+      var g = svg('g', { 'clip-path': 'url(#' + u + '-face)', 'data-photo-head': '' });
+      g.appendChild(svg('rect', { x: 120, y: 14, width: 60, height: 92, fill: skin }));
+      g.appendChild(svg('image', {
+        href: photo.url,
+        x: HEAD.cx - size / 2 + photo.x,
+        y: HEAD.cy - size / 2 + photo.y,
+        width: size,
+        height: size,
+        preserveAspectRatio: 'xMidYMid slice'
+      }));
+      root.appendChild(g);
+      add('ellipse', { cx: HEAD.cx, cy: HEAD.cy, rx: HEAD.rx, ry: HEAD.ry, fill: 'none', stroke: 'rgba(0,0,0,0.12)', 'stroke-width': 0.8 });
+    } else {
+      add('path', { d: 'M140 66 L160 66 L161 104 L139 104 Z', fill: '#d7c6b1' });
+      add('ellipse', { cx: HEAD.cx, cy: HEAD.cy, rx: HEAD.rx, ry: HEAD.ry, fill: 'url(#' + u + '-head)' });
+      add('path', { d: 'M127 46 Q128 18 150 19 Q172 18 173 46 Q168 30 150 30 Q132 30 127 46 Z', fill: 'rgba(60,45,35,0.55)' });
+    }
 
     // trousers
-    var legL = 'M80 296 L148 296 L144 432 L98 432 Z';
+    var legL = 'M94 340 L150 340 L150 382 L146 606 L106 606 Z';
     var legR = mirrorPath(legL);
-    var hemDouble = hem.key === 'double';
     shaded(legL, 'vshade');
     shaded(legR, 'vshade');
-    add('path', Object.assign({ d: 'M114 306 L121 430' }, hi));
-    add('path', Object.assign({ d: mirrorPath('M114 306 L121 430') }, hi));
+    add('path', Object.assign({ d: 'M122 372 L126 602' }, hi));
+    add('path', Object.assign({ d: mirrorPath('M122 372 L126 602') }, hi));
     if (front) {
-      add('path', Object.assign({ d: 'M150 300 Q151 328 145 338' }, seam));
+      add('path', Object.assign({ d: 'M150 360 Q151 384 145 394' }, seam));
       if (pleat.key === 'one' || pleat.key === 'two') {
-        add('path', Object.assign({ d: 'M127 302 L128 326' }, seam));
-        add('path', Object.assign({ d: mirrorPath('M127 302 L128 326') }, seam));
+        add('path', Object.assign({ d: 'M132 362 L133 392' }, seam));
+        add('path', Object.assign({ d: mirrorPath('M132 362 L133 392') }, seam));
       }
       if (pleat.key === 'two') {
-        add('path', Object.assign({ d: 'M137 302 L137.5 318' }, seam));
-        add('path', Object.assign({ d: mirrorPath('M137 302 L137.5 318') }, seam));
+        add('path', Object.assign({ d: 'M141 362 L141.5 382' }, seam));
+        add('path', Object.assign({ d: mirrorPath('M141 362 L141.5 382') }, seam));
       }
     } else {
-      add('path', Object.assign({ d: 'M150 300 V340' }, seam));
-      add('path', Object.assign({ d: 'M102 318 H126' }, seam));
-      add('path', Object.assign({ d: mirrorPath('M102 318 H126') }, seam));
+      add('path', Object.assign({ d: 'M150 360 V392' }, seam));
     }
-    if (hemDouble) {
-      add('path', Object.assign({ d: 'M98.6 420 L144.6 420' }, seam));
-      add('path', Object.assign({ d: mirrorPath('M98.6 420 L144.6 420') }, seam));
+    if (hem.key === 'double') {
+      add('path', Object.assign({ d: 'M106.4 594 L146.4 594' }, seam));
+      add('path', Object.assign({ d: mirrorPath('M106.4 594 L146.4 594') }, seam));
     }
     // shoes
-    var shoe = 'M97 432 Q96 444 104 446 L142 446 Q147 445 145 432 Z';
-    add('path', { d: front ? 'M92 432 Q88 446 104 447 L140 447 Q148 446 145 432 Z' : shoe, fill: '#2e211a' });
-    add('path', { d: mirrorPath(front ? 'M92 432 Q88 446 104 447 L140 447 Q148 446 145 432 Z' : shoe), fill: '#2e211a' });
+    var shoe = front ? 'M106 604 Q97 621 112 623 L142 623 Q150 622 147 604 Z' : 'M105 604 Q104 618 112 620 L142 620 Q148 619 147 604 Z';
+    add('path', { d: shoe, fill: '#2e211a' });
+    add('path', { d: mirrorPath(shoe), fill: '#2e211a' });
+    add('path', { d: front ? 'M110 616 Q120 612 132 614' : 'M110 615 Q125 612 140 614', fill: 'none', stroke: 'rgba(255,255,255,0.18)', 'stroke-width': 1.2, 'stroke-linecap': 'round' });
 
     if (front) {
       // shirt + collar
-      add('path', { d: 'M126 30 Q150 36 174 30 L180 46 L180 220 L120 220 L120 46 Z', fill: (tie && tie.shirtColor) || '#fbfbf8' });
-      add('path', { d: 'M126 30 L150 50 L136 64 Z M174 30 L150 50 L164 64 Z', fill: (tie && tie.shirtColor) || '#fbfbf8', stroke: 'rgba(0,0,0,0.18)', 'stroke-width': 0.8 });
+      add('path', { d: 'M134 92 Q150 98 166 92 L172 110 L172 330 L128 330 L128 110 Z', fill: shirt });
+      add('path', { d: 'M134 92 L150 112 L139 125 Z M166 92 L150 112 L161 125 Z', fill: shirt, stroke: 'rgba(0,0,0,0.18)', 'stroke-width': 0.8 });
       if (tie) {
-        add('path', { d: 'M144 50 L156 50 L154.5 62 L145.5 62 Z', fill: 'url(#' + u + '-tie)', stroke: 'rgba(0,0,0,0.25)', 'stroke-width': 0.6 });
-        add('path', { d: 'M145.5 62 L154.5 62 L163 160 L150 176 L137 160 Z', fill: 'url(#' + u + '-tie)', stroke: 'rgba(0,0,0,0.25)', 'stroke-width': 0.6 });
-        add('path', { d: 'M145.5 62 L154.5 62 L150 70 Z', fill: 'rgba(0,0,0,0.18)' });
+        add('path', { d: 'M145 111 L155 111 L153.6 122 L146.4 122 Z', fill: 'url(#' + u + '-tie)', stroke: 'rgba(0,0,0,0.25)', 'stroke-width': 0.6 });
+        add('path', { d: 'M146.4 122 L153.6 122 L160 236 L150 250 L140 236 Z', fill: 'url(#' + u + '-tie)', stroke: 'rgba(0,0,0,0.25)', 'stroke-width': 0.6 });
+        add('path', { d: 'M146.4 122 L153.6 122 L150 129 Z', fill: 'rgba(0,0,0,0.18)' });
       }
-      // waistcoat
       if (st.threePiece) {
-        var vd = 'M124 32 Q150 38 176 32 L182 44 L182 250 L118 250 L118 44 Z M127 33 L150 122 L173 33 Z';
+        var vd = 'M134 94 Q150 100 166 94 L174 108 L174 330 L126 330 L126 108 Z M137 95 L150 196 L163 95 Z';
         add('path', { d: vd, fill: fab, 'fill-rule': 'evenodd' });
         add('path', { d: vd, fill: 'url(#' + u + '-shade)', 'fill-rule': 'evenodd' });
-        add('path', Object.assign({ d: 'M127 34 L150 122 L173 34' }, seam));
-        [134, 150, 166].forEach(function (y) {
-          add('circle', { cx: 150, cy: y, r: 2.4, fill: button.color || '#3a2a20' });
-        });
+        add('path', Object.assign({ d: 'M137 96 L150 196 L163 96' }, seam));
+        [206, 220, 234].forEach(function (y) { add('circle', { cx: 150, cy: y, r: 2.3, fill: btnColor }); });
       }
     }
 
     // sleeves
-    var sleeveL = 'M66 62 C50 68 44 96 42 140 L36 296 L60 300 L69 170 Z';
+    var sleeveL = 'M86 110 C70 114 63 136 62 172 L58 344 L86 348 L97 182 Z';
     shaded(sleeveL, 'vshade');
     shaded(mirrorPath(sleeveL), 'vshade');
-    var cuff = [[41, 284], [45.5, 286], [50, 288], [54.5, 290]];
-    cuff.forEach(function (c) {
-      add('circle', { cx: c[0], cy: c[1], r: 1.7, fill: button.color || '#3a2a20' });
-      add('circle', { cx: 300 - c[0], cy: c[1], r: 1.7, fill: button.color || '#3a2a20' });
+    add('path', Object.assign({ d: 'M59 334 L86 337' }, soft));
+    add('path', Object.assign({ d: mirrorPath('M59 334 L86 337') }, soft));
+    [[63, 327], [67.5, 328], [72, 329], [76.5, 330]].forEach(function (c) {
+      add('circle', { cx: c[0], cy: c[1], r: 1.6, fill: btnColor });
+      add('circle', { cx: 300 - c[0], cy: c[1], r: 1.6, fill: btnColor });
     });
+    // hands
+    add('path', { d: 'M61 348 Q58 366 66 372 Q76 374 82 364 L84 349 Z', fill: skin });
+    add('path', { d: mirrorPath('M61 348 Q58 366 66 372 Q76 374 82 364 L84 349 Z'), fill: skin });
+
+    var sideL = 'M86 112 C86 150 93 205 104 252 C97 292 92 330 90 357';
+    var sideR = 'M210 357 C208 330 203 292 196 252 C207 205 214 150 214 112';
 
     if (front) {
       var vY = geo.vY;
       var cx = geo.cx;
-      var hemY = 304;
       var body;
       if (geo.double) {
-        body = 'M122 36 L94 46 L66 62 C60 120 61 210 66 300 Q150 314 234 300 C239 210 240 120 234 62 L206 46 L178 36 L' + cx + ' ' + vY + ' Z';
+        body = 'M132 97 L112 103 ' + sideL.replace('M86 112', 'L86 112') + ' Q150 372 210 357 ' + sideR.replace('M210 357', 'L210 357') + ' L188 103 L168 97 L' + cx + ' ' + vY + ' Z';
       } else {
-        body = 'M122 36 L94 46 L66 62 C60 120 61 210 66 300 Q100 306 132 310 Q147 302 150 286 Q153 302 168 310 Q200 306 234 300 C239 210 240 120 234 62 L206 46 L178 36 L150 ' + vY + ' Z';
+        body = 'M132 97 L112 103 ' + sideL.replace('M86 112', 'L86 112') + ' Q112 363 134 367 Q147 360 150 340 Q153 360 166 367 Q188 363 210 357 ' + sideR.replace('M210 357', 'L210 357') + ' L188 103 L168 97 L150 ' + vY + ' Z';
       }
       shaded(body);
-      // front edge
-      if (geo.double) add('path', Object.assign({ d: 'M' + cx + ' ' + vY + ' L' + cx + ' 311' }, seam));
-      else add('path', Object.assign({ d: 'M150 ' + vY + ' L150 286' }, seam));
-      // darts
-      add('path', Object.assign({ d: 'M108 150 Q106 196 107 232' }, seam, { stroke: 'rgba(0,0,0,0.18)' }));
-      add('path', Object.assign({ d: mirrorPath('M108 150 Q106 196 107 232') }, seam, { stroke: 'rgba(0,0,0,0.18)' }));
+      if (geo.double) add('path', Object.assign({ d: 'M' + cx + ' ' + vY + ' L' + cx + ' 366' }, seam));
+      else add('path', Object.assign({ d: 'M150 ' + vY + ' L150 340' }, seam));
+      // darts / waist suppression
+      add('path', Object.assign({ d: 'M118 190 Q115 245 117 290' }, soft));
+      add('path', Object.assign({ d: mirrorPath('M118 190 Q115 245 117 290') }, soft));
 
       // lapels
       var width = lapel.width || 8.5;
       var kind = lapel.key || 'notch';
-      var left = lapelPoints([130, 31], [cx, vY], 'left', width, kind);
-      var right = lapelPoints([170, 31], [cx, vY], 'right', width, kind);
+      var left = lapelPoints([134, 96], [cx, vY], 'left', width, kind);
+      var right = lapelPoints([166, 96], [cx, vY], 'right', width, kind);
       [left, right].forEach(function (lp) {
         var d = kind === 'shawl' ? smoothPath(lp.points) : polyPath(lp.points, true);
         add('path', { d: d, fill: fab });
         add('path', { d: d, fill: 'rgba(255,255,255,0.05)' });
         add('path', Object.assign({ d: d }, seam));
       });
-      // boutonniere on wearer's left lapel
       var bh = right.P(0.3, 0.55);
       add('path', Object.assign({ d: 'M' + (bh[0] - 3) + ' ' + (bh[1] - 1) + ' L' + (bh[0] + 3) + ' ' + (bh[1] + 1) }, seam, { 'stroke-width': 1.2 }));
       if (geo.rollHole) {
@@ -1088,71 +1365,65 @@
 
       // pockets
       var pk = pocket.key || 'flap';
-      var chest = 'M180 124 L208 120 L208.6 125 L180.6 129 Z';
       if (pk === 'patch') {
-        var patch = 'M74 228 H124 V276 Q124 282 118 282 H80 Q74 282 74 276 Z';
+        var patch = 'M96 290 H140 V334 Q140 340 134 340 H102 Q96 340 96 334 Z';
         add('path', Object.assign({ d: patch }, seam));
         add('path', Object.assign({ d: mirrorPath(patch) }, seam));
-        add('path', Object.assign({ d: 'M180 118 L206 115 L208 142 Q208 145 205 145 L184 147 Q181 147 181 144 Z' }, seam));
+        add('path', Object.assign({ d: 'M178 158 L202 155 L204 182 Q204 185 201 185 L182 187 Q179 187 179 184 Z' }, seam));
       } else {
-        add('path', Object.assign({ d: chest }, seam));
+        add('path', Object.assign({ d: 'M178 168 L203 164 L203.6 169 L178.6 173 Z' }, seam));
         if (pk === 'jetted') {
-          add('path', Object.assign({ d: 'M78 240 H122 M78 243 H122' }, seam));
-          add('path', Object.assign({ d: mirrorPath('M78 240 H122 M78 243 H122') }, seam));
+          add('path', Object.assign({ d: 'M100 302 H140 M100 305 H140' }, seam));
+          add('path', Object.assign({ d: mirrorPath('M100 302 H140 M100 305 H140') }, seam));
         } else if (pk === 'slant') {
-          var slant = 'M76 244 L120 236 L122 248 L78 256 Z';
+          var slant = 'M98 308 L138 300 L140 312 L100 320 Z';
           add('path', { d: slant, fill: 'rgba(0,0,0,0.05)' });
           add('path', Object.assign({ d: slant }, seam));
           add('path', Object.assign({ d: mirrorPath(slant) }, seam));
         } else {
-          var flap = 'M76 238 H122 V251 Q122 253 120 253 H78 Q76 253 76 251 Z';
+          var flap = 'M98 300 H140 V313 Q140 315 138 315 H100 Q98 315 98 313 Z';
           add('path', { d: flap, fill: 'rgba(0,0,0,0.05)' });
           add('path', Object.assign({ d: flap }, seam));
           add('path', Object.assign({ d: mirrorPath(flap) }, seam));
-          if (pk === 'flap_ticket') {
-            var ticket = 'M80 218 H114 V227 Q114 229 112 229 H82 Q80 229 80 227 Z';
-            add('path', Object.assign({ d: ticket }, seam));
-          }
+          if (pk === 'flap_ticket') add('path', Object.assign({ d: 'M102 280 H134 V289 Q134 291 132 291 H104 Q102 291 102 289 Z' }, seam));
         }
       }
 
-      // buttons
       geo.buttons.forEach(function (b) {
-        add('circle', { cx: b[0], cy: b[1], r: 4.2, fill: button.color || '#3a2a20' });
-        add('circle', { cx: b[0], cy: b[1], r: 4.2, fill: 'none', stroke: 'rgba(0,0,0,0.35)', 'stroke-width': 0.6 });
-        add('circle', { cx: b[0] - 1.2, cy: b[1] - 1.2, r: 1.2, fill: 'rgba(255,255,255,0.25)' });
+        add('circle', { cx: b[0], cy: b[1], r: 4, fill: btnColor });
+        add('circle', { cx: b[0], cy: b[1], r: 4, fill: 'none', stroke: 'rgba(0,0,0,0.35)', 'stroke-width': 0.6 });
+        add('circle', { cx: b[0] - 1.1, cy: b[1] - 1.1, r: 1.1, fill: 'rgba(255,255,255,0.25)' });
       });
     } else {
-      // back view
-      var back = 'M110 34 Q150 42 190 34 L206 44 L234 62 C239 120 240 210 234 300 Q150 312 66 300 C61 210 60 120 66 62 L94 44 Z';
+      var back = 'M124 96 Q150 103 176 96 L188 103 L214 112 C214 150 207 205 196 252 C203 292 208 330 210 357 Q150 372 90 357 C92 330 97 292 104 252 C93 205 86 150 86 112 L112 103 Z';
       shaded(back);
-      var collar = 'M110 34 Q150 42 190 34 L188 46 Q150 54 112 46 Z';
+      var collar = 'M124 96 Q150 103 176 96 L174 108 Q150 116 126 108 Z';
       add('path', { d: collar, fill: fab });
       add('path', { d: collar, fill: 'rgba(0,0,0,0.12)' });
       add('path', Object.assign({ d: collar }, seam));
-      var ventTop = 248;
-      add('path', Object.assign({ d: 'M150 50 L150 ' + (vent.key === 'center' ? ventTop : 306) }, seam));
-      add('path', Object.assign({ d: 'M96 88 Q88 200 88 ' + (vent.key === 'side' ? ventTop : 303) }, seam));
-      add('path', Object.assign({ d: mirrorPath('M96 88 Q88 200 88 ' + (vent.key === 'side' ? ventTop : 303)) }, seam));
+      var ventTop = 308;
+      add('path', Object.assign({ d: 'M150 114 L150 ' + (vent.key === 'center' ? ventTop : 366) }, seam));
+      add('path', Object.assign({ d: 'M110 160 Q102 250 100 ' + (vent.key === 'side' ? ventTop : 359) }, seam));
+      add('path', Object.assign({ d: mirrorPath('M110 160 Q102 250 100 ' + (vent.key === 'side' ? ventTop : 359)) }, seam));
       if (vent.key === 'center') {
-        add('path', { d: 'M150 248 L155 254 L155 306 L150 306 Z', fill: fabricDark, 'fill-opacity': 0.7 });
-        add('path', Object.assign({ d: 'M150 248 L155 254 L155 306' }, seam));
+        add('path', { d: 'M150 308 L155 314 L155 366 L150 366 Z', fill: fabricDark, 'fill-opacity': 0.7 });
+        add('path', Object.assign({ d: 'M150 308 L155 314 L155 366' }, seam));
       } else if (vent.key === 'side') {
-        add('path', { d: 'M88 248 L93 254 L93 303 L88 303 Z', fill: fabricDark, 'fill-opacity': 0.7 });
-        add('path', { d: mirrorPath('M88 248 L93 254 L93 303 L88 303 Z'), fill: fabricDark, 'fill-opacity': 0.7 });
-        add('path', Object.assign({ d: 'M88 248 L93 254 L93 303' }, seam));
-        add('path', Object.assign({ d: mirrorPath('M88 248 L93 254 L93 303') }, seam));
+        var sv = 'M100 308 L105 314 L105 360 L100 359 Z';
+        add('path', { d: sv, fill: fabricDark, 'fill-opacity': 0.7 });
+        add('path', { d: mirrorPath(sv), fill: fabricDark, 'fill-opacity': 0.7 });
+        add('path', Object.assign({ d: 'M100 308 L105 314 L105 360' }, seam));
+        add('path', Object.assign({ d: mirrorPath('M100 308 L105 314 L105 360') }, seam));
       }
     }
 
-    // lining inset
     if (lining) {
-      var g = svg('g', { transform: 'translate(30 34)' });
-      g.appendChild(svg('circle', { r: 20, fill: 'url(#' + u + '-lin)', stroke: 'rgba(0,0,0,0.2)', 'stroke-width': 1 }));
+      var lg = svg('g', { transform: 'translate(34 44)' });
+      lg.appendChild(svg('circle', { r: 20, fill: 'url(#' + u + '-lin)', stroke: 'rgba(0,0,0,0.2)', 'stroke-width': 1 }));
       var label = svg('text', { y: 34, 'text-anchor': 'middle', 'font-size': 9, fill: 'currentColor', 'letter-spacing': '0.08em' });
       label.textContent = 'LINING';
-      g.appendChild(label);
-      root.appendChild(g);
+      lg.appendChild(label);
+      root.appendChild(lg);
     }
 
     this.$.preview.innerHTML = '';

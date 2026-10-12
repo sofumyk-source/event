@@ -66,7 +66,11 @@
     var x = hexToRgb(a);
     var y = hexToRgb(b);
     if (!x || !y) return 200;
-    return Math.sqrt(Math.pow(x[0] - y[0], 2) + Math.pow(x[1] - y[1], 2) + Math.pow(x[2] - y[2], 2));
+    var rgb = Math.sqrt(Math.pow(x[0] - y[0], 2) + Math.pow(x[1] - y[1], 2) + Math.pow(x[2] - y[2], 2));
+    // 色みの強さ（彩度）の差も加味して、グレーと茶色を取り違えにくくする
+    var satX = (Math.max.apply(null, x) - Math.min.apply(null, x)) / 255;
+    var satY = (Math.max.apply(null, y) - Math.min.apply(null, y)) / 255;
+    return rgb + Math.abs(satX - satY) * 160;
   }
 
   function lightness(hex) {
@@ -118,11 +122,55 @@
     return prefs;
   }
 
-  function local(text, groups, threePieceEnabled) {
-    var input = String(text || '').trim();
-    var rand = seeded(input);
-    var p = analyse(input);
+  // 着る場面ごとの傾向
+  var SCENES = {
+    business: { formal: 1, colors: ['#1f2a44', '#3a3c40'], patterns: ['solid', 'pinstripe', 'birdseye'], title: '日々の品格', mood: '毎日のビジネスで頼れる品格' },
+    pitch: { formal: 1, bold: 1, colors: ['#1c2540'], patterns: ['pinstripe', 'solid'], ties: ['#6b1f2a'], title: '勝負服', mood: '信頼を勝ち取る誠実さ' },
+    interview: { formal: 1, bold: -2, colors: ['#1f2a44', '#3a3c40'], patterns: ['solid'], ties: ['#1e2a4a'], title: '第一歩', mood: '清潔感と誠実さ' },
+    ceremony: { formal: 2, ties: ['#9ea3a8'], title: '祝宴', mood: '祝いの席にふさわしい華やかさ' },
+    party: { formal: 1, bold: 2, title: '主役', mood: '晴れの場で映える存在感' },
+    dinner: { relaxed: 1, bold: 1, ties: ['#6b1f2a'], title: '逢瀬', mood: 'さりげない色気' },
+    casual: { relaxed: 2, formal: -1, patterns: ['herringbone', 'glen', 'check'], title: '休日', mood: '肩の力が抜けた心地よさ' }
+  };
+  var ACCENT_COLORS = ['green', 'bordeaux'];
+
+  /*
+   * input: { colors: [{key,label,hex}], scenes: [key], note: string, photoColors: [hex] }
+   * （文字列を渡した場合は、ひとことだけが入力されたものとして扱う）
+   */
+  function local(raw, groups, threePieceEnabled) {
+    var input = typeof raw === 'string' ? { note: raw } : (raw || {});
+    var colorsIn = input.colors || [];
+    var scenes = input.scenes || [];
+    var photoColors = input.photoColors || [];
+    var note = String(input.note || '').trim();
+    var rand = seeded(JSON.stringify([colorsIn.map(function (c) { return c.key; }), scenes, note, photoColors]));
+    var p = analyse(note);
     var pick = {};
+
+    scenes.forEach(function (key) {
+      var sc = SCENES[key];
+      if (!sc) return;
+      ['formal', 'bold', 'relaxed'].forEach(function (k) { p[k] += sc[k] || 0; });
+      (sc.colors || []).forEach(function (c) { p.colors.push(c); });
+      (sc.ties || []).forEach(function (c) { p.ties.push(c); });
+      p.patterns = p.patterns.concat(sc.patterns || []);
+      if (p.titles.indexOf(sc.title) === -1) p.titles.unshift(sc.title);
+      if (p.moods.indexOf(sc.mood) === -1) p.moods.unshift(sc.mood);
+    });
+    // 選んだ色は場面より優先（先頭に入れて重みを上げる）
+    var suitColors = [];
+    colorsIn.forEach(function (c) {
+      if (ACCENT_COLORS.indexOf(c.key) !== -1) {
+        p.ties.unshift(c.hex);
+        p.liningAccent = c.hex;
+      } else {
+        suitColors.push(c.hex);
+      }
+    });
+    if (!suitColors.length && photoColors[0]) suitColors.push(photoColors[0]);
+    if (photoColors[1]) p.ties.push(photoColors[1]);
+    if (suitColors.length) p.colors = suitColors.concat(suitColors).concat(p.colors.slice(0, 1));
 
     pick.fabric = best(groups.fabric || [], function (f) {
       var s = 0;
@@ -173,6 +221,7 @@
     pick.lining = best(groups.lining || [], function (l) {
       var s = 0;
       if (p.liningRed) s += 3 - distance(l.color, '#6b1f2a') / 60;
+      if (p.liningAccent) s += 3 - distance(l.color, p.liningAccent) / 60;
       if (bold > 0 && l.pattern && l.pattern !== 'solid') s += bold * 1.2;
       if (bold <= 0) s += 2 - distance(l.color, fabricColor) / 80;
       return s;
@@ -189,14 +238,18 @@
     var threePiece = !!threePieceEnabled && (p.classic + formal + (p.season === 'aw' ? 1 : 0) >= 3 || (p.classic > 0 && rand() > 0.6));
 
     var moods = p.moods.slice(0, 2);
-    if (!moods.length) moods = ['あなたの言葉から感じた空気'];
+    if (!moods.length) moods = ['あなたらしさ'];
     var fabricName = pick.fabric ? pick.fabric.name : '';
     var styleName = pick.style ? pick.style.name : '';
     var titleWords = ['夜想', '晴天', '凛', '余白', '灯', '旅路', '静謐', '軽風', '深海', '黄昏', '雅', '颯爽'];
     var title = '「' + (p.titles[0] || titleWords[Math.floor(rand() * titleWords.length)]) + '」の一着';
 
-    var comment = 'いただいたお言葉から、' + moods.join('と') +
-      'を表現しました。' + fabricName + 'を' + styleName + 'に仕立て、' +
+    var colorText = colorsIn.map(function (c) { return c.label; }).join('と');
+    var opening = colorText
+      ? 'お選びいただいた' + colorText + 'を軸に、' + moods.join('と') + 'を表現しました。'
+      : moods.join('と') + 'を表現しました。';
+    if (photoColors.length) opening += '添えていただいた写真の色合いも取り入れています。';
+    var comment = opening + fabricName + 'を' + styleName + 'に仕立て、' +
       (pick.lining && bold > 0 ? '裏地の' + pick.lining.name + 'でさりげなく遊び心を。' : 'ディテールは控えめに、品よくまとめています。');
 
     var selection = {};

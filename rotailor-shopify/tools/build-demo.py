@@ -93,17 +93,35 @@ html = f"""<!doctype html>
     <div class="sim-stylist" data-stylist>
       <div class="sim-stylist__intro">
         <p class="eyebrow">TELL THE TAILOR</p>
-        <h2 class="sim-stylist__title">どんな一着にしたいですか？</h2>
-        <p class="sim-stylist__text">着ていく場面、好きな景色、なりたい自分。思いつくままに書いてください。テイラーがあなたの言葉から一着を仕立てます。</p>
+        <h2 class="sim-stylist__title">あなたの好みを、テイラーに。</h2>
+        <p class="sim-stylist__text">好きな色と、着ていく場面を選んでください。憧れのコーディネートや好きな景色の写真を添えると、その色や雰囲気も読み取って一着に仕立てます。</p>
       </div>
       <form class="sim-stylist__form" novalidate>
-        <textarea class="sim-stylist__input" data-stylist-input rows="2" maxlength="200" placeholder="例）秋の夕暮れ、港町のレストランで大切な人と食事をする日に" aria-label="どんな一着にしたいですか？"></textarea>
-        <div class="sim-stylist__examples">
-          <button type="button" class="sim-chip" data-stylist-example>夏の海辺の結婚式</button>
-          <button type="button" class="sim-chip" data-stylist-example>勝負の商談に挑む日</button>
-          <button type="button" class="sim-chip" data-stylist-example>ジャズバーで過ごす冬の夜</button>
-          <button type="button" class="sim-chip" data-stylist-example>桜の季節の入社式</button>
+        <fieldset class="sim-stylist__field">
+          <legend>好きな色<small>（3色まで）</small></legend>
+          <div class="sim-stylist__colors" data-stylist-colors></div>
+        </fieldset>
+        <fieldset class="sim-stylist__field">
+          <legend>着ていく場面<small>（いくつでも）</small></legend>
+          <div class="sim-stylist__scenes" data-stylist-scenes></div>
+        </fieldset>
+        <div class="sim-stylist__field sim-stylist__photo-row">
+          <span class="sim-stylist__label">参考写真<small>（任意）</small></span>
+          <div class="sim-stylist__photo">
+            <label class="sim-chip sim-stylist__photo-btn">
+              写真を選ぶ
+              <input type="file" accept="image/*" data-stylist-photo hidden>
+            </label>
+            <img class="sim-stylist__thumb" data-stylist-thumb alt="選んだ参考写真" width="56" height="56" hidden>
+            <span class="sim-stylist__photo-colors" data-stylist-photo-colors aria-hidden="true"></span>
+            <button type="button" class="sim-stylist__photo-remove" data-stylist-photo-remove hidden aria-label="参考写真を外す">×</button>
+          </div>
+          <p class="sim-stylist__hint">憧れのコーディネートや好きな景色の写真から、色や雰囲気を読み取ります。</p>
         </div>
+        <label class="sim-stylist__field">
+          <span class="sim-stylist__label">ひとこと<small>（任意）</small></span>
+          <input type="text" class="sim-stylist__input" data-stylist-input maxlength="100" placeholder="例）軽やかに見せたい、少し遊び心がほしい">
+        </label>
         <div class="sim-stylist__actions">
           <button type="submit" class="button button--accent">テイラーに仕立ててもらう</button>
           <p class="sim-stylist__progress" data-stylist-progress hidden aria-live="polite"></p>
@@ -120,6 +138,18 @@ html = f"""<!doctype html>
           </div>
           <div class="sim-preview__canvas" data-preview aria-live="polite"></div>
           <div class="sim-preview__fabric" data-fabric-caption></div>
+          <div class="sim-tryon" data-tryon>
+            <label class="sim-chip sim-tryon__upload">
+              自分の写真で試着する
+              <input type="file" accept="image/*" data-tryon-file hidden>
+            </label>
+            <div class="sim-tryon__controls" data-tryon-controls hidden>
+              <label class="sim-tryon__zoom">大きさ <input type="range" min="0.6" max="3.5" step="0.05" value="1.6" data-tryon-zoom></label>
+              <button type="button" class="sim-tryon__remove" data-tryon-remove>写真を外す</button>
+              <p class="sim-tryon__hint">顔をドラッグして位置を合わせてください</p>
+            </div>
+            <p class="sim-tryon__note">写真はこの画面の中だけで使われ、送信・保存はされません。</p>
+          </div>
         </div>
         <div class="sim-total">
           <div class="sim-total__body"><p class="sim-total__label">YOUR STYLE</p><p class="sim-total__chosen" data-chosen></p></div>
