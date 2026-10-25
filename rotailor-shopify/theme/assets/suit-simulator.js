@@ -708,7 +708,9 @@
       ]));
     }
     if (this.$.formSpec) this.$.formSpec.value = this.specText();
-    if (this.$.summaryPreview) {
+    if (this.config.photos && this.$.summaryPreview) {
+      if (!this.$.summary.hidden) this.renderCover();
+    } else if (this.$.summaryPreview) {
       this.$.summaryPreview.innerHTML = '';
       var canvas = this.$.preview.querySelector('canvas');
       var clone = this.$.preview.querySelector('svg');
@@ -1134,6 +1136,12 @@
     var s = this.$.summary;
     s.hidden = false;
     this.renderSummary();
+    if (this.$.cover) {
+      var c = this.$.cover;
+      c.classList.remove('is-revealed');
+      void c.offsetWidth;
+      c.classList.add('is-revealed');
+    }
     s.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' });
     s.focus({ preventScroll: true });
   };
@@ -1387,6 +1395,183 @@
     if (this.$.caption) {
       this.$.caption.textContent = [fabric.name, fabric.mill, fabric.composition].filter(Boolean).join(' ／ ');
     }
+  };
+
+  /* ------------------------------------------------ cover（仕上がりの表紙） */
+
+  var COVER_THEME_LABELS = [['gold', 'ゴールド'], ['ivory', 'アイボリー'], ['night', 'ナイト']];
+
+  function hsl(hex) {
+    var m = /^#?([0-9a-f]{6})$/i.exec(String(hex || ''));
+    if (!m) return [0, 0, 0.3];
+    var v = parseInt(m[1], 16);
+    var r = ((v >> 16) & 255) / 255, g = ((v >> 8) & 255) / 255, b = (v & 255) / 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2, h = 0, s = 0;
+    if (max !== min) {
+      var d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      h *= 60;
+    }
+    return [h, s, l];
+  }
+
+  // 生地の色から、表紙の英字タイトルと日本語のキャッチを決める（AI テイラーの名前があればそちらを優先）
+  Simulator.prototype.coverStory = function () {
+    var st = this.state;
+    var fabric = this.find('fabric', st.fabric) || { name: '', color: '#2b3245' };
+    var style = this.find('style', st.style) || { key: 'sb2' };
+    var tie = this.find('tie', st.tie);
+    var cut = st.threePiece ? 'スリーピース' : (/^db/.test(style.key) ? 'ダブル' : 'スーツ');
+    var name = fabric.name.split(' ')[0];
+    var c = hsl(fabric.color), h = c[0], s = c[1], l = c[2];
+    var story;
+    if (l < 0.1) story = ['Black Tie Noir', '漆黒の' + cut + 'で、\n夜の主役に。'];
+    else if (h >= 195 && h <= 260 && s > 0.15) story = ['Midnight Executive', '夜を纏う、\n' + name + 'の' + cut + '。'];
+    else if (s <= 0.15 && l < 0.35) story = ['City Night', name + 'に、\n' + (tie ? tie.name.split(' ')[0].split('（')[0] : 'ネクタイ') + 'を合わせて。'];
+    else if (s <= 0.15) story = ['Silver Gentleman', '光をまとう、\n' + name + 'の' + cut + '。'];
+    else if (h >= 10 && h <= 50 && l < 0.45) story = ['Classic Heritage', name + 'の' + cut + 'で、\n一生に一度の主役に。'];
+    else if (h >= 25 && h <= 60) story = ['Riviera Summer', '風を仕立てる、\n' + name + 'の' + cut + '。'];
+    else story = ['Signature Order', 'あなただけの、\n' + name + 'の' + cut + '。'];
+    if (st.look && st.look.title) story[1] = st.look.title;
+    return { en: story[0], title: story[1] };
+  };
+
+  Simulator.prototype.coverSpecs = function () {
+    var st = this.state;
+    var fabric = this.find('fabric', st.fabric);
+    var style = this.find('style', st.style);
+    var lapel = this.find('lapel', st.lapel);
+    var shirt = this.find('shirt', st.shirt);
+    var tie = this.find('tie', st.tie);
+    var up = this.uploads;
+    var shirtName = up.shirt && up.shirt.active ? 'お持ちのシャツ' : (shirt ? shirt.name : '');
+    var tieName = '';
+    if (up.tie && up.tie.active) tieName = 'お持ちのネクタイ';
+    else if (tie && tie.isProduct) tieName = tie.name.split(' ')[0] + ((tie.name.match(/（[^）]+）/) || [''])[0]); // 例：CERRUTI（ブルー）
+    else if (tie) tieName = tie.name;
+    var cut = { sb1: 'シングル1B', sb2: 'シングル2B', sb3: 'シングル3B', db6: 'ダブル6B', db4: 'ダブル4B' }[style && style.key] || (style && style.name);
+    var lap = { notch: 'ノッチ', peak: 'ピーク', shawl: 'ショール' }[lapel && lapel.key] || '';
+    return [
+      ['FABRIC', fabric ? fabric.name : ''],
+      ['STYLE', [cut, lap, st.threePiece ? 'ベスト付き' : null].filter(Boolean).join('・')],
+      ['V-ZONE', [shirtName, tieName].filter(Boolean).join(' × ')]
+    ];
+  };
+
+  Simulator.prototype.buildCoverUi = function () {
+    var self = this;
+    var box = this.$.summaryPreview;
+    box.innerHTML = '';
+    box.removeAttribute('aria-hidden');
+    box.classList.add('sim-cover');
+    if (box.parentNode) box.parentNode.classList.add('has-cover');
+    this.coverTheme = this.coverTheme || 'gold';
+    var canvas = el('canvas', { class: 'sim-cover__canvas', role: 'img', 'aria-label': '仕上がりのイメージ' });
+    var themes = el('div', { class: 'sim-cover__themes', role: 'group', 'aria-label': '背景' });
+    COVER_THEME_LABELS.forEach(function (pair) {
+      var b = el('button', { type: 'button', class: 'sim-chip' + (self.coverTheme === pair[0] ? ' is-active' : ''), 'aria-pressed': self.coverTheme === pair[0] ? 'true' : 'false', text: pair[1] });
+      b.addEventListener('click', function () {
+        self.coverTheme = pair[0];
+        themes.querySelectorAll('.sim-chip').forEach(function (x) {
+          var on = x === b;
+          x.classList.toggle('is-active', on);
+          x.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        self.renderCover();
+      });
+      themes.appendChild(b);
+    });
+    var save = el('button', { type: 'button', class: 'button button--accent', text: '画像を保存' });
+    var share = el('button', { type: 'button', class: 'button button--ghost', text: 'シェアする' });
+    save.addEventListener('click', function () { self.saveCover(); });
+    share.addEventListener('click', function () { self.shareCover(); });
+    box.appendChild(canvas);
+    box.appendChild(themes);
+    box.appendChild(el('div', { class: 'sim-cover__actions' }, [save, share]));
+    this.$.cover = canvas;
+  };
+
+  Simulator.prototype.renderCover = function () {
+    var self = this;
+    var P = window.RoTailorPhoto;
+    if (!this.$.cover) this.buildCoverUi();
+    var key = this.photoKey();
+    var fabric = this.find('fabric', this.state.fabric) || { color: '#2b3245', pattern: 'solid' };
+    var textures = {
+      suit: this.textureFor('suit', fabric),
+      shirt: this.textureFor('shirt', this.find('shirt', this.state.shirt)),
+      tie: this.textureFor('tie', this.find('tie', this.state.tie))
+    };
+    var token = this.coverToken = (this.coverToken || 0) + 1;
+    if (!this.logoImg && this.config.logo) {
+      this.logoImg = new Image();
+      this.logoImg.src = this.config.logo;
+    }
+    var logoReady = this.logoImg && !this.logoImg.complete ? new Promise(function (r) { self.logoImg.onload = r; self.logoImg.onerror = r; }) : Promise.resolve();
+    var fonts = document.fonts && document.fonts.load ? Promise.all([
+      document.fonts.load('700 66px "Shippori Mincho"', '仕立'),
+      document.fonts.load('500 26px "Shippori Mincho"', '仕立'),
+      document.fonts.load('italic 400 82px "EB Garamond"'),
+      document.fonts.load('500 44px "EB Garamond"')
+    ]).catch(function () {}) : Promise.resolve();
+    Promise.all([P.loadBase(key, this.config.photos[key]), fonts, logoReady]).then(function (res) {
+      if (token !== self.coverToken) return;
+      var base = res[0];
+      var composed = document.createElement('canvas');
+      P.compose(base, textures, composed);
+      var story = self.coverStory();
+      self.coverNo = self.coverNo || ('00' + (Math.floor(Math.random() * 900) + 100)).slice(-3);
+      P.drawCover(self.$.cover, {
+        base: base,
+        composed: composed,
+        theme: self.coverTheme,
+        eyebrow: 'Your Order Suit — No.' + self.coverNo,
+        title: story.title,
+        en: story.en,
+        specs: self.coverSpecs(),
+        logo: self.logoImg
+      });
+    });
+  };
+
+  Simulator.prototype.coverBlob = function () {
+    var canvas = this.$.cover;
+    return new Promise(function (resolve, reject) {
+      try {
+        canvas.toBlob(function (b) { if (b) resolve(b); else reject(new Error('blob')); }, 'image/jpeg', 0.92);
+      } catch (e) { reject(e); }
+    });
+  };
+
+  Simulator.prototype.saveCover = function () {
+    this.coverBlob().then(function (blob) {
+      var url = URL.createObjectURL(blob);
+      var a = el('a', { href: url, download: 'ROtailor-my-suit.jpg' });
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    }).catch(function () {
+      window.alert('画像を書き出せませんでした。画面を長押しして保存してください。');
+    });
+  };
+
+  Simulator.prototype.shareCover = function () {
+    var self = this;
+    var text = 'ROtailor でオーダースーツを仕立ててみました。';
+    var url = this.shareUrl();
+    this.coverBlob().then(function (blob) {
+      var file = new File([blob], 'ROtailor-my-suit.jpg', { type: 'image/jpeg' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        return navigator.share({ files: [file], text: text + ' ' + url });
+      }
+      if (navigator.share) return navigator.share({ title: 'ROtailor', text: text, url: url });
+      window.open('https://line.me/R/msg/text/?' + encodeURIComponent(text + '\n' + url), '_blank', 'noopener');
+    }).catch(function (e) {
+      if (e && e.name === 'AbortError') return;
+      self.saveCover();
+    });
   };
 
   // 写真に出ない仕様は、店頭でのお楽しみとして案内する

@@ -304,7 +304,160 @@
     ctx.putImageData(out, 0, 0);
   }
 
+  /* ---------------------------------------------------------- cover */
+
+  // 着せ替えた写真から、マスクの A チャンネルでマネキン（首から下）だけを切り抜く
+  function cutout(base, composed) {
+    var w = base.w, h = base.h;
+    var src = composed.getContext('2d').getImageData(0, 0, w, h);
+    var d = src.data, m = base.mask;
+    var top = h, bottom = 0, left = w, right = 0;
+    for (var i = 0; i < w * h; i++) {
+      var a = m[i * 4 + 3];
+      d[i * 4 + 3] = a;
+      if (a > 0 && a < 230) { // 縁の白っぽさ（背景の名残り）を抑える
+        d[i * 4] *= 0.8; d[i * 4 + 1] *= 0.8; d[i * 4 + 2] *= 0.8;
+      }
+      if (a > 40) {
+        var x = i % w, y = (i - x) / w;
+        if (y < top) top = y;
+        if (y > bottom) bottom = y;
+        if (x < left) left = x;
+        if (x > right) right = x;
+      }
+    }
+    var c = makeCanvas(w, h);
+    c.getContext('2d').putImageData(src, 0, 0);
+    return { canvas: c, box: [left, top, right - left + 1, bottom - top + 1] };
+  }
+
+  var COVER_THEMES = {
+    gold: { text: '#ffffff', sub: 'rgba(228,196,122,0.9)', accent: '#c9a55a', shadow: 'rgba(0,0,0,0.6)' },
+    ivory: { text: '#1a1a1a', sub: 'rgba(150,112,52,0.7)', accent: '#a07c3a', shadow: 'rgba(60,40,10,0.28)' },
+    night: { text: '#ffffff', sub: 'rgba(228,196,122,0.85)', accent: '#c9a55a', shadow: 'rgba(0,0,0,0.7)' }
+  };
+
+  function paintBackground(ctx, W, H, theme) {
+    var g;
+    if (theme === 'ivory') {
+      g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#f4f0e9'); g.addColorStop(0.6, '#e5ded3'); g.addColorStop(1, '#cfc6b8');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      return;
+    }
+    if (theme === 'night') {
+      g = ctx.createRadialGradient(W * 0.72, H * 0.18, 0, W * 0.72, H * 0.18, H * 0.95);
+      g.addColorStop(0, '#22324f'); g.addColorStop(0.55, '#0b1020'); g.addColorStop(1, '#04060c');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = 'rgba(255,255,255,0.035)';
+      for (var x = 0; x < W; x += 120) ctx.fillRect(x, 0, 5, H);
+      return;
+    }
+    g = ctx.createRadialGradient(W * 0.45, H * 0.38, 0, W * 0.45, H * 0.38, H * 0.8);
+    g.addColorStop(0, '#46331a'); g.addColorStop(0.5, '#17110a'); g.addColorStop(1, '#060504');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    var s = ctx.createLinearGradient(0, H * 0.1, W, H * 0.7);
+    s.addColorStop(0.3, 'rgba(228,196,122,0)'); s.addColorStop(0.45, 'rgba(228,196,122,0.16)'); s.addColorStop(0.6, 'rgba(228,196,122,0)');
+    ctx.fillStyle = s; ctx.fillRect(0, 0, W, H);
+  }
+
+  // 指定幅で折り返す（日本語は 1 文字単位、\n は強制改行）
+  function wrapText(ctx, text, maxWidth) {
+    var lines = [];
+    String(text || '').split('\n').forEach(function (para) {
+      var line = '';
+      // 英単語はひとかたまりで、日本語は 1 文字ずつ折り返す
+      (para.match(/[A-Za-z0-9&'.]+|\s+|[^A-Za-z0-9&'.\s]/g) || []).forEach(function (tok) {
+        if (ctx.measureText(line + tok).width > maxWidth && line.trim()) { lines.push(line.replace(/\s+$/, '')); line = tok.replace(/^\s+/, ''); }
+        else line += tok;
+      });
+      lines.push(line);
+    });
+    return lines;
+  }
+
+  function spaced(ctx, text, x, y, spacing) {
+    Array.from(text).forEach(function (ch) {
+      ctx.fillText(ch, x, y);
+      x += ctx.measureText(ch).width + spacing;
+    });
+  }
+
+  /*
+   * 仕上がりの「表紙」を描く。opts:
+   *   base, composed（compose 済みの canvas）, theme, eyebrow, title, en, specs: [[label, value]], logo（Image）
+   */
+  function drawCover(canvas, opts) {
+    var W = 1080, H = 1440;
+    canvas.width = W;
+    canvas.height = H;
+    var ctx = canvas.getContext('2d');
+    var t = COVER_THEMES[opts.theme] || COVER_THEMES.gold;
+    paintBackground(ctx, W, H, opts.theme);
+
+    // 英字のタイトル（背景側）
+    ctx.fillStyle = t.sub;
+    ctx.font = 'italic 400 82px "EB Garamond", serif';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(opts.en || '', 64, 380);
+
+    // マネキン
+    var cut = cutout(opts.base, opts.composed);
+    var box = cut.box;
+    var fh = 1040, fw = box[2] * fh / box[3];
+    var fx = W * 0.4 - fw / 2, fy = H - fh - 30;
+    var floor = ctx.createRadialGradient(W * 0.4, H - 34, 0, W * 0.4, H - 34, fw * 0.55);
+    floor.addColorStop(0, t.shadow); floor.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.save(); ctx.translate(0, H - 34); ctx.scale(1, 0.14); ctx.translate(0, -(H - 34));
+    ctx.fillStyle = floor; ctx.fillRect(0, H - 34 - fw, W, fw * 2); ctx.restore();
+    ctx.save();
+    ctx.shadowColor = t.shadow; ctx.shadowBlur = 40; ctx.shadowOffsetY = 18;
+    ctx.drawImage(cut.canvas, box[0], box[1], box[2], box[3], fx, fy, fw, fh);
+    ctx.restore();
+
+    // 小見出し・タイトル
+    ctx.fillStyle = t.accent;
+    ctx.font = 'italic 400 30px "EB Garamond", serif';
+    spaced(ctx, opts.eyebrow || '', 64, 92, 5);
+    ctx.fillStyle = t.text;
+    var size = 66;
+    ctx.font = '700 ' + size + 'px "Shippori Mincho", serif';
+    var lines = wrapText(ctx, opts.title, W - 128);
+    while (lines.length > 3 && size > 44) {
+      size -= 4;
+      ctx.font = '700 ' + size + 'px "Shippori Mincho", serif';
+      lines = wrapText(ctx, opts.title, W - 128);
+    }
+    lines.slice(0, 3).forEach(function (line, i) { ctx.fillText(line, 64, 176 + i * size * 1.3); });
+
+    // 仕様
+    var sx = 760, sw = 270, sy = 900;
+    ctx.fillStyle = t.accent;
+    ctx.fillRect(sx, sy, sw, 2);
+    sy += 50;
+    (opts.specs || []).forEach(function (row) {
+      ctx.fillStyle = t.accent;
+      ctx.font = '500 22px "EB Garamond", serif';
+      spaced(ctx, row[0], sx, sy, 5);
+      sy += 38;
+      ctx.fillStyle = t.text;
+      ctx.font = '500 26px "Shippori Mincho", serif';
+      wrapText(ctx, row[1], sw).slice(0, 2).forEach(function (line) { ctx.fillText(line, sx, sy); sy += 38; });
+      sy += 16;
+    });
+
+    // ロゴ
+    if (opts.logo && opts.logo.naturalWidth) ctx.drawImage(opts.logo, 770, H - 130, 84, 84 * opts.logo.naturalHeight / opts.logo.naturalWidth);
+    ctx.fillStyle = t.text;
+    ctx.font = '500 44px "EB Garamond", serif';
+    spaced(ctx, 'ROtailor', 872, H - 82, 4);
+    ctx.fillStyle = t.accent;
+    ctx.font = '400 17px "EB Garamond", serif';
+    spaced(ctx, 'ORDER SUIT', 874, H - 52, 9);
+  }
+
   window.RoTailorPhoto = {
+    drawCover: drawCover,
     loadBase: loadBase,
     patternTexture: patternTexture,
     imageTexture: imageTexture,

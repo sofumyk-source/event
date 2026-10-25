@@ -5,7 +5,8 @@ ChatGPT などで作った色分け済みのマネキン写真（スーツ＝コ
 シャツ＝薄い黄色、ネクタイ＝緑）から、次の 2 つを書き出します。
 
   theme/assets/suit-photo-<key>.jpg       … 写真（陰影の元になる）
-  theme/assets/suit-photo-<key>-mask.png  … 部位マスク（R=スーツ, G=ネクタイ, B=シャツ）
+  theme/assets/suit-photo-<key>-mask.png  … 部位マスク（R=スーツ, G=ネクタイ, B=シャツ,
+                                            A=切り抜き。正面の全身写真のみ、首から上と背景が透明）
 
 使い方:
   python3 tools/build-suit-photos.py <元画像のフォルダ>
@@ -16,6 +17,8 @@ ChatGPT などで作った色分け済みのマネキン写真（スーツ＝コ
 import os
 import re
 import sys
+
+from collections import deque
 
 import numpy as np
 from PIL import Image, ImageFilter
@@ -40,6 +43,40 @@ def hue_band(h, center, half, soft=12):
     return 1 - smooth(d, half, half + soft)
 
 
+def cutout(a, garments):
+    """背景（なめらかに続く明るい無彩色）を縁から塗りつぶして取り除き、首から上も消す"""
+    h, w, _ = a.shape
+    a = a.astype(np.int16)
+    sat = a.max(-1) - a.min(-1)
+    bright = a.mean(-1) > 120
+    bg = np.zeros((h, w), bool)
+    q = deque()
+    for x in range(w):
+        for y in (0, h - 1):
+            bg[y, x] = True
+            q.append((y, x))
+    for y in range(h):
+        for x in (0, w - 1):
+            bg[y, x] = True
+            q.append((y, x))
+    while q:
+        y, x = q.popleft()
+        c = a[y, x]
+        for yy, xx in ((y - 1, x), (y + 1, x), (y, x - 1), (y, x + 1)):
+            if 0 <= yy < h and 0 <= xx < w and not bg[yy, xx] and sat[yy, xx] < 20 and bright[yy, xx]:
+                if np.abs(a[yy, xx] - c).max() <= 4:
+                    bg[yy, xx] = True
+                    q.append((yy, xx))
+    # 腕と胴の間など、縁から届かない背景も消す（服でも手でもない、明るい無彩色）
+    bg |= (sat < 25) & (a.mean(-1) > 140) & (garments < 30)
+    alpha = (~bg).astype(np.uint8) * 255
+    rows = np.where((garments > 128).any(1))[0]
+    if len(rows):
+        alpha[: rows.min() + 2] = 0
+    img = Image.fromarray(alpha).filter(ImageFilter.MedianFilter(5)).filter(ImageFilter.MinFilter(5))
+    return np.asarray(img.filter(ImageFilter.GaussianBlur(1.0)))
+
+
 def build(src, key):
     im = Image.open(src).convert("RGB")
     im = im.resize((WIDTH, round(im.height * WIDTH / im.width)), Image.LANCZOS)
@@ -56,6 +93,8 @@ def build(src, key):
         return np.asarray(img)
 
     mask = np.dstack([clean(suit), clean(tie), clean(shirt)])
+    if re.fullmatch(r"(sn|sp|dp)-[a-z]+", key):
+        mask = np.dstack([mask, cutout(np.asarray(im), mask.max(-1))])
     im.save(os.path.join(OUT, f"suit-photo-{key}.jpg"), quality=88, optimize=True, progressive=True)
     Image.fromarray(mask).save(os.path.join(OUT, f"suit-photo-{key}-mask.png"), optimize=True)
     return [round(float((mask[..., i] > 128).mean()), 4) for i in range(3)]
