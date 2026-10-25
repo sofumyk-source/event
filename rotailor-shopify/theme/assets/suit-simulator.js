@@ -393,6 +393,24 @@
 
     if (this.openSummaryOnLoad || root.querySelector('.form-message')) {
       setTimeout(function () { self.openSummary(true); }, 0);
+    } else {
+      setTimeout(function () { self.deepLink(); }, 0);
+    }
+  };
+
+  // トップページの入口から来たとき：#start-tailor はテイラーへの入力欄へ、#start-vzone はシャツ・タイ・靴の手順へ
+  Simulator.prototype.deepLink = function () {
+    var hash = window.location.hash;
+    if (hash === '#start-tailor' && this.$.stylist) {
+      this.$.stylist.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      this.$.stylist.classList.add('is-highlighted');
+    } else if (hash === '#start-vzone') {
+      var i = -1;
+      this.steps.forEach(function (st, n) { if (st.id === 'vzone') i = n; });
+      if (i >= 0) {
+        this.goStep(i);
+        this.root.querySelector('.simulator__layout').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
   };
 

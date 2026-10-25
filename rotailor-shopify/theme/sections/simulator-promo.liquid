@@ -1,17 +1,39 @@
+{%- comment -%}
+  トップページの「オーダースーツ・シミュレーター」案内。
+  入口は 2 つ：テイラーにおまかせで一着仕立ててもらう（#start-tailor）／手持ちの小物に合わせてみる（#start-vzone）。
+  どちらもシミュレーターのページの該当箇所から始まります（assets/suit-simulator.js の deepLink）。
+{%- endcomment -%}
+{%- assign sim_url = section.settings.page.url | default: '#' -%}
 <section class="section simulator-promo">
   <div class="container simulator-promo__grid">
     <div class="simulator-promo__body">
       {%- if section.settings.eyebrow != blank -%}<p class="eyebrow eyebrow--light">{{ section.settings.eyebrow }}</p>{%- endif -%}
-      <h2 class="section-title section-title--light">{{ section.settings.heading | newline_to_br }}</h2>
-      <div class="rte">{{ section.settings.text }}</div>
-      <ul class="simulator-promo__steps">
-        <li><span>01</span>{{ section.settings.step_1 }}</li>
-        <li><span>02</span>{{ section.settings.step_2 }}</li>
-        <li><span>03</span>{{ section.settings.step_3 }}</li>
-      </ul>
-      <a href="{{ section.settings.page.url | default: '#' }}" class="button button--light">{{ section.settings.button_label }}</a>
+      <h2 class="simulator-promo__name">{{ section.settings.name }}</h2>
+      <p class="simulator-promo__catch">{{ section.settings.heading | newline_to_br }}</p>
+      <div class="rte simulator-promo__text">{{ section.settings.text }}</div>
+
+      <div class="simulator-promo__doors">
+        <a class="promo-door" href="{{ sim_url }}#start-tailor">
+          <span class="promo-door__label">{{ section.settings.door_1_label }}</span>
+          <span class="promo-door__title">{{ section.settings.door_1_title }}</span>
+          <span class="promo-door__text">{{ section.settings.door_1_text }}</span>
+          <span class="promo-door__go" aria-hidden="true">{% render 'icon', name: 'arrow' %}</span>
+        </a>
+        <a class="promo-door" href="{{ sim_url }}#start-vzone">
+          <span class="promo-door__label">{{ section.settings.door_2_label }}</span>
+          <span class="promo-door__title">{{ section.settings.door_2_title }}</span>
+          <span class="promo-door__text">{{ section.settings.door_2_text }}</span>
+          <span class="promo-door__go" aria-hidden="true">{% render 'icon', name: 'arrow' %}</span>
+        </a>
+      </div>
+
+      <div class="simulator-promo__cta">
+        <a href="{{ sim_url }}" class="button button--accent">{{ section.settings.button_label }}</a>
+        {%- if section.settings.note != blank -%}<p class="simulator-promo__note">{{ section.settings.note }}</p>{%- endif -%}
+      </div>
     </div>
-    <a class="simulator-promo__visual" href="{{ section.settings.page.url | default: '#' }}" aria-label="{{ section.settings.button_label | escape }}">
+
+    <a class="simulator-promo__visual" href="{{ sim_url }}" aria-label="{{ section.settings.name | escape }}を開く">
       {%- if section.settings.image -%}
         {{ section.settings.image | image_url: width: 1000 | image_tag: loading: 'lazy', widths: '500, 800, 1000', sizes: '(min-width: 990px) 40vw, 100vw' }}
       {%- else -%}
@@ -23,6 +45,7 @@
           {%- endfor -%}
         </span>
       {%- endif -%}
+      <span class="simulator-promo__caption">{{ section.settings.caption }}</span>
     </a>
   </div>
 </section>
@@ -32,19 +55,28 @@
   "name": "シミュレーション案内",
   "class": "section-simulator-promo",
   "settings": [
-    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "MADE TO MEASURE" },
-    { "type": "textarea", "id": "heading", "label": "見出し", "default": "あなたの一着を、\nまずは画面の上で。" },
+    { "type": "text", "id": "eyebrow", "label": "小見出し", "default": "Order Simulator" },
+    { "type": "text", "id": "name", "label": "名称", "default": "オーダースーツ・シミュレーター" },
+    { "type": "textarea", "id": "heading", "label": "キャッチ", "default": "生地も、型も、靴との相性も。\n画面の上で、自由に仕立ててみる。" },
     {
       "type": "richtext",
       "id": "text",
       "label": "本文",
-      "default": "<p>生地、ラペル、ボタン、裏地まで。好きな組み合わせを選ぶと、イラストの一着がその場で着替えます。思い描いたイメージは、そのまま店頭でのご相談に。</p>"
+      "default": "<p>オーダースーツは、選べることがいちばんの楽しみです。気になる生地で一着つくってみたり、お持ちのネクタイや靴と合わせてみたり。遊ぶ感覚で、オーダーの面白さに触れてください。</p>"
     },
     { "type": "page", "id": "page", "label": "シミュレーションのページ" },
-    { "type": "text", "id": "button_label", "label": "ボタンの文言", "default": "一着を仕立ててみる" },
-    { "type": "text", "id": "step_1", "label": "手順 1", "default": "好きな色と、着ていく場面を伝える" },
-    { "type": "text", "id": "step_2", "label": "手順 2", "default": "生地・型・シャツ・ネクタイ・靴まで着せ替える" },
-    { "type": "text", "id": "step_3", "label": "手順 3", "default": "仕上がりの一枚を保存して、店頭へ" },
+    { "type": "header", "content": "入口 1：おまかせ" },
+    { "type": "text", "id": "door_1_label", "label": "ラベル", "default": "はじめての方に" },
+    { "type": "text", "id": "door_1_title", "label": "見出し", "default": "テイラーにおまかせで、一着仕立ててもらう" },
+    { "type": "text", "id": "door_1_text", "label": "説明", "default": "好きな色と着ていく場面を選ぶだけ。あなたのための一着が仕上がります。" },
+    { "type": "header", "content": "入口 2：手持ちに合わせる" },
+    { "type": "text", "id": "door_2_label", "label": "ラベル", "default": "コーディネートに迷ったら" },
+    { "type": "text", "id": "door_2_title", "label": "見出し", "default": "お持ちのネクタイ・靴に合わせてみる" },
+    { "type": "text", "id": "door_2_text", "label": "説明", "default": "ネクタイやシャツは写真から、靴は色から。今あるアイテムとの相性を確かめられます。" },
+    { "type": "header", "content": "ボタン・画像" },
+    { "type": "text", "id": "button_label", "label": "ボタンの文言", "default": "シミュレーターを試してみる" },
+    { "type": "text", "id": "note", "label": "ボタン下の注記", "default": "無料・会員登録なし・約1分" },
+    { "type": "text", "id": "caption", "label": "画像の下の一言", "default": "シミュレーターで仕立てた一着の例" },
     { "type": "image_picker", "id": "image", "label": "画像（未設定ならシミュレーターの仕上がり例）" }
   ],
   "presets": [{ "name": "シミュレーション案内" }]
