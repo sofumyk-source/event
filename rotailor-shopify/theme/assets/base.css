@@ -698,3 +698,18 @@ address { font-style: normal; line-height: 1.8; }
   .header-pill { padding: 8px; }
   .site-nav__link { padding-inline: 8px; }
 }
+
+/* シミュレーション案内：仕上がりの表紙を 3 枚重ねて見せる */
+.promo-covers { position: relative; display: block; width: min(100%, 520px); aspect-ratio: 1 / 0.92; margin-inline: auto; }
+.simulator-promo__visual .promo-covers__card {
+  position: absolute; top: 4%; left: 50%; width: 52%; height: auto; max-height: none;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.08);
+  transform-origin: 50% 110%; transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.promo-covers__card--1 { transform: translateX(-50%) translateX(-34%) rotate(-9deg); z-index: 1; }
+.promo-covers__card--3 { transform: translateX(-50%) translateX(34%) rotate(9deg); z-index: 1; }
+.promo-covers__card--2 { transform: translateX(-50%); z-index: 2; }
+.simulator-promo__visual:hover .promo-covers__card--1 { transform: translateX(-50%) translateX(-44%) rotate(-12deg); }
+.simulator-promo__visual:hover .promo-covers__card--3 { transform: translateX(-50%) translateX(44%) rotate(12deg); }
+.simulator-promo__visual:hover .promo-covers__card--2 { transform: translateX(-50%) translateY(-3%); }
+@media (prefers-reduced-motion: reduce) { .promo-covers__card { transition: none; } }
