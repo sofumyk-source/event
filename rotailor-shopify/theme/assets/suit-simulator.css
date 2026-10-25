@@ -423,3 +423,18 @@ input.sim-stylist__input { font-size: 0.9rem; padding: 10px 14px; }
   .sim-preview__toolbar--buttons { grid-column: 2; grid-row: 1; align-self: end; margin-top: 0; }
 }
 .sim-option__dot--photo { background-size: 520%; background-position: 50% 48%; background-repeat: no-repeat; }
+.sim-photo-inset {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 38%;
+  aspect-ratio: 1;
+  border: 2px solid var(--color-accent, #c9a55a);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  background: #ddd;
+}
+.sim-instore { margin-top: 32px; padding: 20px 22px; border: 1px solid var(--color-border); background: rgba(201, 165, 90, 0.05); }
+.sim-instore__eyebrow { margin: 0 0 4px; font-family: var(--font-display); font-style: italic; letter-spacing: 0.18em; font-size: 0.75rem; color: var(--color-accent); }
+.sim-instore__title { margin: 0 0 12px; font-size: 0.95rem; }
+.sim-instore__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 0.8rem; color: var(--color-muted); }
+.sim-instore__list b { display: inline-block; min-width: 7em; color: var(--color-text); font-weight: 500; }

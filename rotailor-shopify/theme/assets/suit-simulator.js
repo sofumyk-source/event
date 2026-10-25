@@ -36,6 +36,19 @@
     { id: 'vzone', label: 'シャツ・タイ', groups: ['shirt', 'tie'] }
   ];
 
+  // 写真モードの手順：写真で見た目が変わる項目だけを選んでもらう
+  var PHOTO_STEPS = [
+    { id: 'fabric', label: '生地', groups: ['fabric'] },
+    { id: 'style', label: '型', groups: ['style', 'lapel', 'threePiece'] },
+    { id: 'detail', label: 'ディテール', groups: ['pocket', 'vent'] },
+    { id: 'vzone', label: 'シャツ・タイ', groups: ['shirt', 'tie'] }
+  ];
+  // 写真が用意できている型（キー）。ここにないものは写真モードでは選択肢に出さない
+  var PHOTO_KEYS = { style: ['sb2', 'db6'], lapel: ['notch', 'peak'], pocket: ['flap', 'patch'], vent: ['side', 'center', 'none'] };
+  // 写真に出ないため、店頭でご案内する項目
+  var IN_STORE_GROUPS = ['button', 'lining', 'pleat', 'hem', 'extra'];
+  var VENT_PHOTO = { side: 'back-s', center: 'back-c', none: 'back-n' };
+
   var SINGLE_GROUPS = ['fabric', 'style', 'lapel', 'pocket', 'vent', 'button', 'lining', 'pleat', 'hem', 'shirt', 'tie'];
 
   var SEASON_LABELS = { all: 'オールシーズン', ss: '春夏', aw: '秋冬' };
@@ -156,7 +169,21 @@
     if (this.config.photos && !window.RoTailorPhoto) this.config.photos = null;
     this.groups.shirt = this.config.photos ? SHIRTS.slice() : [];
     this.uploads = {};
-    this.steps = STEPS.filter(function (step) {
+    if (this.config.photos) {
+      Object.keys(PHOTO_KEYS).forEach(function (g) {
+        var seen = {};
+        self.groups[g] = (self.groups[g] || []).filter(function (item) {
+          if (PHOTO_KEYS[g].indexOf(item.key) === -1 || seen[item.key]) return false;
+          seen[item.key] = true;
+          return true;
+        });
+      });
+      this.inStore = IN_STORE_GROUPS.filter(function (g) { return (self.groups[g] || []).length; }).map(function (g) {
+        return { label: GROUP_LABELS[g], names: self.groups[g].map(function (i) { return i.name; }) };
+      });
+      IN_STORE_GROUPS.forEach(function (g) { self.groups[g] = []; });
+    }
+    this.steps = (this.config.photos ? PHOTO_STEPS : STEPS).filter(function (step) {
       return step.groups.some(function (g) { return self.hasGroup(g); });
     });
     this.view = 'front';
@@ -257,15 +284,7 @@
     };
 
     root.querySelectorAll('[data-view]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        self.view = btn.getAttribute('data-view');
-        root.querySelectorAll('[data-view]').forEach(function (b) {
-          var on = b === btn;
-          b.classList.toggle('is-active', on);
-          b.setAttribute('aria-pressed', on ? 'true' : 'false');
-        });
-        self.renderPreview();
-      });
+      btn.addEventListener('click', function () { self.setView(btn.getAttribute('data-view')); });
     });
 
     this.$.prev.addEventListener('click', function () { self.goStep(self.stepIndex - 1); });
@@ -319,6 +338,17 @@
     }
   };
 
+  Simulator.prototype.setView = function (view) {
+    if (this.view === view) return;
+    this.view = view;
+    this.root.querySelectorAll('[data-view]').forEach(function (b) {
+      var on = b.getAttribute('data-view') === view;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    this.renderPreview();
+  };
+
   /* ------------------------------------------------------------ steps */
 
   Simulator.prototype.renderStepsNav = function () {
@@ -342,6 +372,10 @@
   Simulator.prototype.goStep = function (i) {
     if (i < 0 || i >= this.steps.length) return;
     this.stepIndex = i;
+    if (this.config.photos) {
+      if (this.view === 'back' && this.steps[i].id !== 'detail') this.setView('front');
+      this.renderPreview();
+    }
     this.renderStepsNav();
     this.renderStep();
     var top = this.$.nav.getBoundingClientRect().top;
@@ -367,10 +401,25 @@
         body.appendChild(fs);
       }
     });
+    if (this.inStore && this.inStore.length && this.stepIndex === this.steps.length - 1) {
+      body.appendChild(this.renderInStore());
+    }
   };
 
   Simulator.prototype.select = function (group, id) {
     this.state[group] = id;
+    if (this.config.photos) {
+      // ベントは後ろ姿で、それ以外は正面で見せる（描画は直後の update で）
+      var view = group === 'vent' ? 'back' : 'front';
+      if (this.view !== view) {
+        this.view = view;
+        this.root.querySelectorAll('[data-view]').forEach(function (b) {
+          var on = b.getAttribute('data-view') === view;
+          b.classList.toggle('is-active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      }
+    }
     if (this.uploads[group]) {
       this.uploads[group].active = false;
       this.$.body.querySelectorAll('[data-upload="' + group + '"]').forEach(function (b) { b.classList.remove('is-selected'); });
@@ -651,6 +700,12 @@
     if (tie || tieUp) spec.appendChild(el('div', { class: 'sim-spec__row' }, [el('dt', { text: 'Vゾーン' }), el('dd', { text: tieUp ? 'お持ちのネクタイの写真から' : tie.name })]));
     if (this.state.look) {
       spec.insertBefore(el('div', { class: 'sim-spec__row sim-spec__row--look' }, [el('dt', { text: '一着の名前' }), el('dd', { text: this.state.look.title })]), spec.firstChild);
+    }
+    if (this.inStore && this.inStore.length) {
+      spec.appendChild(el('div', { class: 'sim-spec__row sim-spec__row--note' }, [
+        el('dt', { text: '店頭で' }),
+        el('dd', { text: this.inStore.map(function (g) { return g.label; }).join('・') + 'をお選びいただけます' })
+      ]));
     }
     if (this.$.formSpec) this.$.formSpec.value = this.specText();
     if (this.$.summaryPreview) {
@@ -1269,8 +1324,10 @@
   Simulator.prototype.renderPhoto = function () {
     var self = this;
     var P = window.RoTailorPhoto;
-    var key = this.photoKey();
-    var urls = this.config.photos[key];
+    var vent = this.find('vent', this.state.vent) || { key: 'side' };
+    var back = this.view === 'back';
+    var key = back ? (VENT_PHOTO[vent.key] || 'back-s') : this.photoKey();
+    var urls = this.config.photos[key] || this.config.photos[this.photoKey()];
     var preview = this.$.preview;
     preview.classList.add('is-photo');
     var canvas = preview.querySelector('canvas.sim-photo');
@@ -1283,13 +1340,30 @@
     canvas.setAttribute('aria-label', [fabric.name, this.state.threePiece ? 'スリーピース' : null].filter(Boolean).join('、') + 'のスーツを着たマネキン');
     var token = this.photoToken = (this.photoToken || 0) + 1;
     preview.classList.add('is-loading');
+    var textures = {
+      suit: this.textureFor('suit', fabric),
+      shirt: this.textureFor('shirt', this.find('shirt', this.state.shirt)),
+      tie: this.textureFor('tie', this.find('tie', this.state.tie))
+    };
+    // ディテールの手順では、腰ポケットのアップを右下に重ねる
+    var step = this.steps[this.stepIndex];
+    var pocket = this.find('pocket', this.state.pocket);
+    var insetKey = !back && step && step.id === 'detail' && pocket ? 'pocket-' + pocket.key : null;
+    var inset = preview.querySelector('.sim-photo-inset');
+    if (!insetKey || !this.config.photos[insetKey]) {
+      if (inset) inset.remove();
+    } else {
+      if (!inset) {
+        inset = el('canvas', { class: 'sim-photo-inset', role: 'img', 'aria-label': '腰ポケットのアップ' });
+        preview.appendChild(inset);
+      }
+      P.loadBase(insetKey, this.config.photos[insetKey]).then(function (b) {
+        if (token === self.photoToken) P.compose(b, textures, inset, 3);
+      });
+    }
     P.loadBase(key, urls).then(function (base) {
       if (token !== self.photoToken) return;
-      P.compose(base, {
-        suit: self.textureFor('suit', fabric),
-        shirt: self.textureFor('shirt', self.find('shirt', self.state.shirt)),
-        tie: self.textureFor('tie', self.find('tie', self.state.tie))
-      }, canvas);
+      P.compose(base, textures, canvas);
       preview.classList.remove('is-loading');
       self.renderSummary();
     }).catch(function (e) {
@@ -1299,7 +1373,7 @@
       self.renderPreview();
     });
 
-    var dbl = key.indexOf('dp') === 0;
+    var dbl = back || key.indexOf('dp') === 0;
     this.root.querySelectorAll('[data-open]').forEach(function (b) {
       var isOpen = b.getAttribute('data-open') === '1';
       var on = isOpen === (!dbl && self.state.open);
@@ -1307,12 +1381,25 @@
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
       if (isOpen) {
         b.disabled = dbl;
-        b.title = dbl ? 'ダブルは留めた状態で表示します' : '';
+        b.title = back ? '正面でお試しください' : (dbl ? 'ダブルは留めた状態で表示します' : '');
       }
     });
     if (this.$.caption) {
       this.$.caption.textContent = [fabric.name, fabric.mill, fabric.composition].filter(Boolean).join(' ／ ');
     }
+  };
+
+  // 写真に出ない仕様は、店頭でのお楽しみとして案内する
+  Simulator.prototype.renderInStore = function () {
+    var list = el('ul', { class: 'sim-instore__list' });
+    this.inStore.forEach(function (g) {
+      list.appendChild(el('li', null, [el('b', { text: g.label }), el('span', { text: g.names.join('／') })]));
+    });
+    return el('div', { class: 'sim-instore' }, [
+      el('p', { class: 'sim-instore__eyebrow', text: 'AT THE SALON' }),
+      el('p', { class: 'sim-instore__title', text: 'このほかに、店頭で実物を見ながら選べるもの' }),
+      list
+    ]);
   };
 
   // シャツ・ネクタイを「お持ちの写真から」作る
@@ -1355,7 +1442,7 @@
   };
 
   Simulator.prototype.renderPreview = function () {
-    if (this.config.photos && this.view === 'front') {
+    if (this.config.photos) {
       this.renderPhoto();
       return;
     }

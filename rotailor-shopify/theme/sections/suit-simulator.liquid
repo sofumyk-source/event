@@ -238,7 +238,7 @@
       "stylistEndpoint": {{ section.settings.stylist_endpoint | json }},
       "storageKey": "rotailor-sim-{{ section.id }}",
       "photos": {%- if section.settings.photo_mode -%}{
-        {%- assign photo_keys = 'sn-c,sn-o,sn-cv,sn-ov,sp-c,sp-o,sp-cv,sp-ov,dp-c,dp-cv' | split: ',' -%}
+        {%- assign photo_keys = 'sn-c,sn-o,sn-cv,sn-ov,sp-c,sp-o,sp-cv,sp-ov,dp-c,dp-cv,back-n,back-c,back-s,pocket-flap,pocket-patch' | split: ',' -%}
         {%- for key in photo_keys -%}
           {%- assign photo_file = 'suit-photo-' | append: key | append: '.jpg' -%}
           {%- assign mask_file = 'suit-photo-' | append: key | append: '-mask.png' -%}

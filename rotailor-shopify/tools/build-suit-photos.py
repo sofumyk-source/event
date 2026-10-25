@@ -10,9 +10,11 @@ ChatGPT などで作った色分け済みのマネキン写真（スーツ＝コ
 使い方:
   python3 tools/build-suit-photos.py <元画像のフォルダ>
 
-元画像のファイル名は 01〜10 で始まる名前にしてください（下の VARIANTS 参照）。
+元画像のファイル名は 01〜10 で始まる名前（下の VARIANTS 参照）か、
+キーそのもの（例: back-c.png、pocket-flap.png）にしてください。
 """
 import os
+import re
 import sys
 
 import numpy as np
@@ -24,7 +26,7 @@ VARIANTS = {
     "05": "sp-c", "06": "sp-o", "07": "sp-cv", "08": "sp-ov",
     "09": "dp-c", "10": "dp-cv",
 }
-WIDTH, HEIGHT = 768, 1152
+WIDTH = 768
 OUT = os.path.join(os.path.dirname(__file__), "..", "theme", "assets")
 
 
@@ -39,7 +41,8 @@ def hue_band(h, center, half, soft=12):
 
 
 def build(src, key):
-    im = Image.open(src).convert("RGB").resize((WIDTH, HEIGHT), Image.LANCZOS)
+    im = Image.open(src).convert("RGB")
+    im = im.resize((WIDTH, round(im.height * WIDTH / im.width)), Image.LANCZOS)
     hsv = np.asarray(im.convert("HSV")).astype(np.float32)
     h, s, v = hsv[..., 0] * 360 / 255, hsv[..., 1] / 255, hsv[..., 2] / 255
 
@@ -61,9 +64,10 @@ def build(src, key):
 def main():
     src_dir = sys.argv[1]
     for name in sorted(os.listdir(src_dir)):
-        num = name[:2]
-        if num in VARIANTS:
-            print(num, VARIANTS[num], build(os.path.join(src_dir, name), VARIANTS[num]))
+        stem = os.path.splitext(name)[0]
+        key = VARIANTS.get(name[:2]) or (stem if re.fullmatch(r"[a-z]+(-[a-z]+)*", stem) else None)
+        if key:
+            print(name, key, build(os.path.join(src_dir, name), key))
 
 
 if __name__ == "__main__":

@@ -264,7 +264,8 @@
 
   /* ---------------------------------------------------------- compose */
 
-  function compose(base, textures, canvas) {
+  function compose(base, textures, canvas, scale) {
+    scale = scale || 1; // アップの写真では柄を拡大する
     var w = base.w, h = base.h;
     canvas.width = w;
     canvas.height = h;
@@ -284,7 +285,7 @@
         var wgt = mask[p + k] / 255;
         var t = tx[k];
         if (wgt <= 0 || !t) continue;
-        var q = ((y % t.h) * t.w + (x % t.w)) * 4;
+        var q = ((Math.floor(y / scale) % t.h) * t.w + (Math.floor(x / scale) % t.w)) * 4;
         var s = shade[i] / med[k];
         // 影はそのまま掛け、明るい部分は白に寄せる（光沢）
         var hi = s > 1 ? Math.min(1, (s - 1) * 0.9) : 0;
