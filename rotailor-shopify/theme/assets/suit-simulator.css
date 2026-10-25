@@ -459,3 +459,17 @@ input.sim-stylist__input { font-size: 0.9rem; padding: 10px 14px; }
 .sim-cover__note-eyebrow { margin: 0 0 4px; font-family: var(--font-display); font-style: italic; letter-spacing: 0.16em; font-size: 0.75rem; color: var(--color-accent); }
 .sim-cover__note-text { margin: 0; font-size: 0.9rem; line-height: 1.9; }
 .sim-cover__adjust { width: 100%; }
+
+/* 色と柄から作る生地 */
+.sim-cloth__tabs { margin-bottom: 14px; }
+.sim-cloth { display: grid; gap: 18px; }
+.sim-cloth__title { margin: 0 0 8px; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+.sim-cloth__num { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--color-accent); color: var(--color-accent); font-size: 0.72rem; }
+.sim-cloth__row { display: flex; flex-wrap: wrap; gap: 8px; }
+.sim-cloth__dot { width: 32px; height: 32px; border-radius: 50%; background: var(--dot); border: 1px solid rgba(255, 255, 255, 0.18); cursor: pointer; padding: 0; position: relative; }
+.sim-cloth__dot.is-active { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.sim-cloth__pattern { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border: 1px solid var(--color-border); background: none; color: inherit; font: inherit; font-size: 0.82rem; cursor: pointer; }
+.sim-cloth__pattern.is-active { border-color: var(--color-accent); color: var(--color-accent); }
+.sim-cloth__swatch { width: 30px; height: 30px; display: block; overflow: hidden; }
+.sim-cloth__swatch svg { width: 100%; height: 100%; display: block; }
+.sim-cloth__result { margin: 0; font-size: 0.82rem; color: var(--color-muted); }

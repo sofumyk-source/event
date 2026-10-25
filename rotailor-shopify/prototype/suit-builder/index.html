@@ -61,6 +61,16 @@
       <label><input type="radio" name="cuff" value="0" checked>シングル裾</label>
       <label><input type="radio" name="cuff" value="1">ダブル裾</label>
     </fieldset>
+    <fieldset><legend>パンツ</legend>
+      <label><input type="radio" name="length" value="regular" checked>通常</label>
+      <label><input type="radio" name="length" value="wide">ゆったり</label>
+      <label><input type="radio" name="length" value="short">短め</label>
+      <label><input type="radio" name="pleat" value="none" checked>ノータック</label>
+      <label><input type="radio" name="pleat" value="one">1タック</label>
+      <label><input type="radio" name="pleat" value="two">2タック</label>
+      <label><input type="radio" name="sockColor" value="#1f2a44" checked>紺の靴下</label>
+      <label><input type="radio" name="sockColor" value="#7a2030">ボルドーの靴下</label>
+    </fieldset>
     <fieldset><legend>靴</legend>
       <label><input type="radio" name="shoeColor" value="#1a1a1a" checked>黒</label>
       <label><input type="radio" name="shoeColor" value="#3b2516">ダークブラウン</label>
@@ -95,7 +105,7 @@
       var fab = f.get('fabric').split('|'), tie = f.get('tie').split('|');
       return {
         view: f.get('view'),
-        spec: { lapel: f.get('lapel'), closure: f.get('closure'), vest: f.get('vest') === '1', open: f.get('open') === '1', pocket: f.get('pocket'), vent: f.get('vent'), cuff: f.get('cuff') === '1', buttonColor: f.get('buttonColor'), shoeColor: f.get('shoeColor') },
+        spec: { lapel: f.get('lapel'), closure: f.get('closure'), vest: f.get('vest') === '1', open: f.get('open') === '1', pocket: f.get('pocket'), vent: f.get('vent'), cuff: f.get('cuff') === '1', buttonColor: f.get('buttonColor'), shoeColor: f.get('shoeColor'), length: f.get('length'), pleat: f.get('pleat'), sockColor: f.get('sockColor') },
         textures: {
           suit: P.patternTexture({ color: fab[0], pattern: fab[1] }, 'suit'),
           shirt: P.patternTexture({ color: f.get('shirt') }, 'shirt'),
