@@ -23,10 +23,14 @@
     <fieldset><legend>ラペル</legend>
       <label><input type="radio" name="lapel" value="notch" checked>ノッチ</label>
       <label><input type="radio" name="lapel" value="peak">ピーク</label>
+      <label><input type="radio" name="lapel" value="shawl">ショール</label>
     </fieldset>
     <fieldset><legend>ボタン</legend>
-      <label><input type="radio" name="buttons" value="2" checked>シングル2ボタン</label>
-      <label><input type="radio" name="buttons" value="1">シングル1ボタン</label>
+      <label><input type="radio" name="closure" value="sb1">シングル1ボタン</label>
+      <label><input type="radio" name="closure" value="sb2" checked>シングル2ボタン</label>
+      <label><input type="radio" name="closure" value="sb3">シングル3ボタン段返り</label>
+      <label><input type="radio" name="closure" value="db4">ダブル4ボタン</label>
+      <label><input type="radio" name="closure" value="db6">ダブル6ボタン</label>
     </fieldset>
     <fieldset><legend>ベスト</legend>
       <label><input type="radio" name="vest" value="0" checked>なし</label>
@@ -58,7 +62,7 @@
       var f = new FormData(form);
       var fab = f.get('fabric').split('|'), tie = f.get('tie').split('|');
       return {
-        spec: { lapel: f.get('lapel'), buttons: +f.get('buttons'), vest: f.get('vest') === '1' },
+        spec: { lapel: f.get('lapel'), closure: f.get('closure'), vest: f.get('vest') === '1' },
         textures: {
           suit: P.patternTexture({ color: fab[0], pattern: fab[1] }, 'suit'),
           shirt: P.patternTexture({ color: f.get('shirt') }, 'shirt'),
@@ -72,8 +76,10 @@
         var r = read();
         if (override) Object.assign(r.spec, override.spec || {});
         var g = B.render(canvas, base, r.spec, r.textures);
+        // 組み合わせの決まり（ダブル→ピーク等）で変わった選択を画面にも反映
+        ['lapel', 'closure'].forEach(function (k) { form.querySelector('input[name=' + k + '][value="' + g.spec[k] + '"]').checked = true; });
         canvas.dataset.ready = '1';
-        canvas.dataset.buttons = g.closure.buttons.length;
+        canvas.dataset.buttons = g.visibleButtons;
       });
     }
     form.addEventListener('change', function () { draw(); });
