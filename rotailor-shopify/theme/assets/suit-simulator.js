@@ -21,8 +21,6 @@
     lining: '裏地',
     pleat: 'パンツのタック',
     hem: 'パンツの裾',
-    length: 'パンツの丈',
-    socks: '靴下の色',
     threePiece: 'ベスト',
     extra: 'オプション',
     shirt: 'シャツ',
@@ -43,8 +41,7 @@
   var PHOTO_STEPS = [
     { id: 'fabric', label: '生地', groups: ['fabric'] },
     { id: 'style', label: '型', groups: ['style', 'lapel', 'threePiece'] },
-    { id: 'detail', label: 'ディテール', groups: ['pocket', 'vent', 'button'] },
-    { id: 'trousers', label: 'パンツ', groups: ['length', 'pleat', 'hem', 'socks'] },
+    { id: 'detail', label: 'ディテール', groups: ['pocket', 'vent', 'button', 'hem'] },
     { id: 'vzone', label: 'シャツ・タイ・靴', groups: ['shirt', 'tie', 'shoes'] }
   ];
   // 描画（suit-builder.js）が対応している型（キー）。ここにないものは写真モードでは選択肢に出さない
@@ -56,26 +53,9 @@
     hem: ['single', 'double']
   };
   // 写真に出ないため、店頭でご案内する項目
-  var IN_STORE_GROUPS = ['lining', 'extra'];
+  var IN_STORE_GROUPS = ['lining', 'pleat', 'extra'];
 
-  var SINGLE_GROUPS = ['fabric', 'style', 'lapel', 'pocket', 'vent', 'button', 'lining', 'pleat', 'hem', 'length', 'socks', 'shirt', 'tie', 'shoes'];
-
-  // パンツの丈（写真モード）。タックとは連動させる：ゆったり→タック入り、短め→ノータック
-  var LENGTHS = [
-    { id: 'regular', key: 'regular', name: '通常', description: '靴の甲に軽くかかる、標準的な丈' },
-    { id: 'wide', key: 'wide', name: 'ゆったり', description: '太めのシルエット。タック入りと好相性' },
-    { id: 'short', key: 'short', name: '短め（アンクル丈）', description: '足首が見える丈。靴下の色も選べます' }
-  ];
-  var SOCKS = [
-    { id: 'navy', name: 'ネイビー', color: '#1f2a44' },
-    { id: 'charcoal', name: 'チャコール', color: '#3a3c40' },
-    { id: 'black', name: 'ブラック', color: '#1a1a1a' },
-    { id: 'brown', name: 'ブラウン', color: '#5a3c26' },
-    { id: 'bordeaux', name: 'ボルドー', color: '#7a2030' },
-    { id: 'green', name: 'グリーン', color: '#2f5a3e' },
-    { id: 'mustard', name: 'マスタード', color: '#b88a2a' },
-    { id: 'white', name: 'ホワイト', color: '#ecebe6' }
-  ];
+  var SINGLE_GROUPS = ['fabric', 'style', 'lapel', 'pocket', 'vent', 'button', 'lining', 'pleat', 'hem', 'shirt', 'tie', 'shoes'];
 
   // 「色と柄から作る」生地：ベースの色・柄・柄の色
   var CLOTH_COLORS = [
@@ -230,8 +210,6 @@
     if (this.config.photos && !(window.RoTailorPhoto && window.RoTailorBuilder)) this.config.photos = null;
     this.groups.shirt = this.config.photos ? SHIRTS.slice() : [];
     this.groups.shoes = this.config.photos ? SHOES.slice() : [];
-    this.groups.length = this.config.photos ? LENGTHS.slice() : [];
-    this.groups.socks = this.config.photos ? SOCKS.slice() : [];
     this.fabricMode = 'swatch';
     this.uploads = {};
     if (this.config.photos) {
@@ -264,8 +242,7 @@
 
   Simulator.prototype.hasGroup = function (g) {
     if (g === 'threePiece') return !!this.config.threePieceEnabled;
-    if (g === 'shirt' || g === 'shoes' || g === 'length') return !!this.config.photos;
-    if (g === 'socks') return !!this.config.photos && (!this.state || this.state.length === 'short');
+    if (g === 'shirt' || g === 'shoes') return !!this.config.photos;
     return (this.groups[g] || []).length > 0;
   };
 
@@ -492,7 +469,6 @@
     this.state[group] = id;
     if (group === 'shoes') delete this.state.shoeColor;
     if (this.config.photos) this.resolveConflicts(group);
-    if (this.config.photos && (group === 'length' || group === 'pleat')) this.linkTrousers(group);
     if (this.config.photos) {
       // ベントは後ろ姿で、それ以外は正面で見せる（描画は直後の update で）
       var view = group === 'vent' ? 'back' : 'front';
@@ -659,7 +635,7 @@
     var self = this;
     var list = this.groups[group] || [];
     var fieldset = el('fieldset', { class: 'sim-group' }, [el('legend', { class: 'sim-group__title', text: GROUP_LABELS[group] || group })]);
-    var grid = el('div', { class: 'sim-options' + (group === 'button' || group === 'lining' || group === 'tie' || group === 'shirt' || group === 'shoes' || group === 'socks' ? ' sim-options--swatch' : '') });
+    var grid = el('div', { class: 'sim-options' + (group === 'button' || group === 'lining' || group === 'tie' || group === 'shirt' || group === 'shoes' ? ' sim-options--swatch' : '') });
     var uploaded = (this.uploads[group] && this.uploads[group].active) || (group === 'shoes' && this.state.shoes === 'custom');
     list.forEach(function (item) {
       var checked = self.state[group] === item.id && !uploaded;
@@ -672,7 +648,7 @@
       } else if (item.isProduct && item.image) {
         // 商品写真は生地の部分だけを拡大して見本にする
         visual = el('span', { class: 'sim-option__dot sim-option__dot--photo', style: 'background-image:url(' + JSON.stringify(item.image) + ')' });
-      } else if (group === 'shoes' || group === 'socks') {
+      } else if (group === 'shoes') {
         visual = el('span', { class: 'sim-option__dot sim-option__dot--button', style: '--dot:' + item.color });
       } else if (group === 'lining' || group === 'tie' || group === 'shirt') {
         visual = el('span', { class: 'sim-option__dot' });
@@ -860,10 +836,6 @@
     } else if (group === 'hem') {
       p('M14 4 L12 40 H36 L34 4');
       if (k === 'double') p('M12 34 H36');
-    } else if (group === 'length') {
-      if (k === 'wide') p('M14 4 L8 44 H40 L34 4');
-      else if (k === 'short') { p('M15 4 L14 34 H34 L33 4'); p('M19 34 V44'); p('M29 34 V44'); }
-      else p('M15 4 L13 44 H35 L33 4');
     } else {
       p('M10 24 H38');
     }
@@ -892,10 +864,6 @@
       var shirt = this.find('shirt', st.shirt);
       var up = this.uploads.shirt && this.uploads.shirt.active;
       if (up || shirt) rows.push({ label: 'シャツ', value: up ? 'お持ちの写真から' : shirt.name });
-    }
-    if (this.hasGroup('length')) {
-      var len = this.find('length', st.length);
-      if (len) rows.push({ label: 'パンツの丈', value: len.name + (st.length === 'short' ? '／靴下：' + (this.find('socks', st.socks) || SOCKS[0]).name : '') });
     }
     if (this.hasGroup('shoes')) {
       var shoe = this.find('shoes', st.shoes);
@@ -1572,32 +1540,9 @@
       pocket: key(this.find('pocket', st.pocket), 'flap'),
       vent: key(this.find('vent', st.vent), 'side'),
       cuff: key(this.find('hem', st.hem), 'single') === 'double',
-      length: st.length || 'regular',
-      pleat: key(this.find('pleat', st.pleat), 'none'),
-      sockColor: (this.find('socks', st.socks) || SOCKS[0]).color,
       buttonColor: button && button.color ? button.color : '#2c2019',
       shoeColor: this.shoeColor()
     };
-  };
-
-  // 丈とタックの連動：ゆったり→タック入り（ノータックなら1タックに）、短め→ノータック。
-  // タックを2本にしたのに短めなら、通常の丈に戻す
-  Simulator.prototype.linkTrousers = function (group) {
-    var self = this;
-    function keyOf(g) { var i = self.find(g, self.state[g]); return i ? i.key : null; }
-    function pick(g, key) {
-      var hit = (self.groups[g] || []).filter(function (i) { return i.key === key; })[0];
-      if (hit) self.state[g] = hit.id;
-    }
-    var length = this.state.length, pleat = keyOf('pleat');
-    if (group === 'length') {
-      if (length === 'wide' && pleat === 'none') pick('pleat', 'one');
-      if (length === 'short') pick('pleat', 'none');
-    } else if (group === 'pleat') {
-      if (length === 'short' && pleat !== 'none') this.state.length = pleat === 'two' ? 'wide' : 'regular';
-      else if (length === 'regular' && pleat === 'two') this.state.length = 'wide';
-    }
-    this.renderStep(); // 靴下の欄を出し入れし、連動した選択を表示に反映
   };
 
   // 組み合わせられない仕様は、いま選んだ方を優先して相手を合わせる

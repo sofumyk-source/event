@@ -84,13 +84,6 @@
   };
   var VENT_TOP = 452;
 
-  // パンツの丈。短めは裾を約6cm上げて靴下を見せる、ゆったりは裾に向かって片側約3cmずつ広げる
-  var LENGTHS = {
-    regular: { label: '通常' },
-    wide: { label: 'ゆったり', widen: 20 },
-    short: { label: '短め（アンクル丈）', raise: 30 }
-  };
-  var PLEATS = { none: 0, one: 1, two: 2 };
 
   function mirror(p) { return [2 * CX - p[0], p[1]]; }
   function same(p) { return p; }
@@ -107,9 +100,6 @@
       pocket: spec.pocket in POCKETS ? spec.pocket : 'flap',
       vent: spec.vent in VENTS ? spec.vent : 'side',
       cuff: !!spec.cuff,
-      length: spec.length in LENGTHS ? spec.length : 'regular',
-      pleat: spec.pleat in PLEATS ? spec.pleat : 'none',
-      sockColor: /^#[0-9a-f]{6}$/i.test(spec.sockColor || '') ? spec.sockColor : '#1f2a44',
       buttonColor: /^#[0-9a-f]{6}$/i.test(spec.buttonColor || '') ? spec.buttonColor : '#2c2019',
       shoeColor: /^#[0-9a-f]{6}$/i.test(spec.shoeColor || '') ? spec.shoeColor : '#1a1a1a'
     };
@@ -498,159 +488,16 @@
     return r[i];
   }
 
-  // 靴の左右それぞれの中心（くるぶしの位置の目安）
-  function shoeCenters(base) {
-    var S = shoePixels(base), w = base.w;
-    var acc = [[0, 0], [0, 0]];
-    var topY = Infinity;
-    S.list.forEach(function (i) { topY = Math.min(topY, Math.floor(i / w)); });
-    S.list.forEach(function (i) {
-      var y = Math.floor(i / w), x = i % w;
-      if (y > topY + 25) return; // 甲の上のほう（足首に近い部分）だけ
-      var k = x < CX ? 0 : 1;
-      acc[k][0] += x;
-      acc[k][1]++;
-    });
-    return acc.map(function (a, k) { return a[1] ? a[0] / a[1] : (k ? 445 : 320); });
-  }
-
-  // パンツの一部を背景に戻す。各脚の左右すぐ外の写真の色を横方向になめらかにつなぎ、足元ほど床の影で暗くする
-  function eraseToBackground(ctx, base, y0, y1) {
-    var w = base.w, m = base.mask, ph = base.photo;
-    var img = ctx.getImageData(0, y0, w, y1 - y0);
-    var d = img.data;
+  // パンツのダブル裾（約4cm の折り返し）
+  function drawTrousers(ctx, base, t, s) {
     var L = legs(base);
-    for (var y = y0; y < y1; y++) {
-      var lr = L.rows[Math.min(y, L.hemY)];
-      if (!lr) continue;
-      var shade = 1 - 0.1 * (y - y0) / Math.max(1, y1 - y0);
-      for (var x = 0; x < w; x++) {
-        var i = y * w + x;
-        if (m[i * 4] < 8) continue;
-        var leg = x < CX ? lr[0] : lr[1];
-        var a0 = (y * w + Math.max(0, leg[0] - 4)) * 4, a1 = (y * w + Math.min(w - 1, leg[1] + 4)) * 4;
-        var k = Math.max(0, Math.min(1, (x - leg[0]) / Math.max(1, leg[1] - leg[0])));
-        var q = ((y - y0) * w + x) * 4;
-        var a = m[i * 4] / 255;
-        for (var c = 0; c < 3; c++) {
-          var bg = (ph[a0 + c] * (1 - k) + ph[a1 + c] * k) * shade;
-          d[q + c] = d[q + c] * (1 - a) + bg * a;
-        }
-      }
-    }
-    ctx.putImageData(img, 0, y0);
-  }
-
-  // パンツ：丈（通常・ゆったり・短め）、タック、ダブル裾、靴下
-  function drawTrousers(ctx, base, t, s, front) {
-    var L = legs(base);
-    var hemY = L.hemY;
-    var len = LENGTHS[s.length];
-    var top = HEM_Y + 4; // ジャケットの裾のすぐ下から
-
-    if (len.widen) {
-      // ゆったり：脚の外側と内側に生地を足し、裾は靴に少しかぶせる
-      [0, 1].forEach(function (i) {
-        var outer = i === 0 ? 0 : 1; // 左脚は外側＝左端、右脚は外側＝右端
-        [outer, 1 - outer].forEach(function (edge) {
-          var dir = (edge === 0) ? -1 : 1;
-          var scale = edge === outer ? 1 : 0.6; // 内股側は控えめに
-          ctx.beginPath();
-          // 内側の線は写真の実際の輪郭（裾の丸みも含む）に、2px 食い込ませて継ぎ目を隠す
-          for (var y = top; y <= hemY; y += 3) {
-            var x = legAt(L, y, i)[edge] - dir * 2;
-            if (y === top) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-          }
-          for (var y2 = hemY + 4; y2 >= top; y2 -= 6) {
-            // 太ももからまっすぐ広く（裾だけが広がるフレアにしない）
-            var k = Math.min(1, Math.pow(Math.max(0, (y2 - top) / 90), 0.6) * (0.55 + 0.45 * (y2 - top) / (hemY - top)));
-            ctx.lineTo(legAt(L, Math.min(y2, hemY), i)[edge] + dir * len.widen * scale * k, y2);
-          }
-          ctx.closePath();
-          var ex = legAt(L, hemY, i)[edge];
-          fillFabric(ctx, t.suit, t.linear(ex - dir * 2, 0, ex + dir * len.widen * scale, 0, [[0, 1], [1, 0.84]], true));
-        });
-        // 裾を靴に少しかぶせる
-        var b = legAt(L, hemY, i);
-        ctx.beginPath();
-        var lo = b[0] - len.widen * (i === 0 ? 1 : 0.6), hi = b[1] + len.widen * (i === 0 ? 0.6 : 1);
-        ctx.moveTo(lo, hemY - 26);
-        ctx.lineTo(hi, hemY - 26);
-        ctx.lineTo(hi + 1, hemY + 7);
-        ctx.quadraticCurveTo((b[0] + b[1]) / 2, hemY + 10, lo - 1, hemY + 7);
-        ctx.closePath();
-        fillFabric(ctx, t.suit, t.linear(0, hemY - 26, 0, hemY + 9, [[0, 0.92], [0.7, 0.86], [1, 0.7]], true));
-        // 広がった分のドレープ（ゆるい縦じわ）
-        line(ctx, [[b[0] + 6, top + 140], [b[0] - len.widen * 0.4, hemY - 6]], 'rgba(0,0,0,0.12)', 2);
-        line(ctx, [[b[1] - 8, top + 160], [b[1] + len.widen * 0.3, hemY - 6]], 'rgba(255,255,255,0.05)', 2);
-      });
-    }
-
-    var hem = hemY;
-    if (len.raise) {
-      // 短め：裾を上げ、くるぶしまわりは背景に戻して靴下を描く
-      hem = hemY - len.raise;
-      var socks = shoeCenters(base).map(function (cx) { return [cx - 16, cx + 16]; });
-      eraseToBackground(ctx, base, hem, hemY + 6);
-      var sock = parseInt(s.sockColor.slice(1), 16);
-      socks.forEach(function (sx) {
-        ctx.beginPath();
-        ctx.rect(sx[0], hem - 2, sx[1] - sx[0], hemY + 6 - hem);
-        var gr = ctx.createLinearGradient(sx[0], 0, sx[1], 0);
-        var c = [(sock >> 16) & 255, (sock >> 8) & 255, sock & 255];
-        [[0, 0.55], [0.35, 0.95], [0.6, 1], [1, 0.5]].forEach(function (st) {
-          gr.addColorStop(st[0], 'rgb(' + c.map(function (v) { return Math.round(v * st[1] + (st[1] > 0.98 ? 12 : 0)); }).join(',') + ')');
-        });
-        ctx.fillStyle = gr;
-        ctx.fill();
-      });
-      // 新しい裾（少し細く、折り返しの影を靴下に落とす）
-      [0, 1].forEach(function (i) {
-        var b = legAt(L, hem, i);
-        ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,0.45)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetY = 2;
-        ctx.beginPath();
-        ctx.moveTo(b[0], hem - 6);
-        ctx.lineTo(b[1], hem - 6);
-        ctx.lineTo(b[1] - 1, hem + 1);
-        ctx.quadraticCurveTo((b[0] + b[1]) / 2, hem + 3, b[0] + 1, hem + 1);
-        ctx.closePath();
-        ctx.fillStyle = t.suit;
-        ctx.fill();
-        ctx.restore();
-        ctx.beginPath();
-        ctx.moveTo(b[0], hem - 6);
-        ctx.lineTo(b[1], hem - 6);
-        ctx.lineTo(b[1] - 1, hem + 1);
-        ctx.quadraticCurveTo((b[0] + b[1]) / 2, hem + 3, b[0] + 1, hem + 1);
-        ctx.closePath();
-        fillFabric(ctx, t.suit, t.linear(0, hem - 6, 0, hem + 2, [[0, 0.9], [1, 0.78]], true));
-      });
-    }
-
-    if (front && PLEATS[s.pleat]) {
-      // タック：ジャケットの裾の下で、折り山（センタークリース）の横に入るひだ
-      [0, 1].forEach(function (i) {
-        var b = legAt(L, top + 20, i);
-        var crease = (b[0] + b[1]) / 2;
-        var side = i === 0 ? 1 : -1; // 前中心側に倒れる
-        for (var n = 0; n < PLEATS[s.pleat]; n++) {
-          var x = crease + side * (7 + n * 11);
-          line(ctx, [[x, HEM_Y + 2], [x - side * 2, HEM_Y + 46], [crease + side * 2, HEM_Y + 96]], 'rgba(0,0,0,' + (0.32 * t.edge) + ')', 1.2);
-          line(ctx, [[x + side * 1.6, HEM_Y + 2], [x - side * 0.4, HEM_Y + 46]], 'rgba(255,255,255,0.08)', 1);
-        }
-      });
-    }
-
+    var hem = L.hemY;
     if (s.cuff) {
       // ダブル裾（約4cm の折り返し）
       [0, 1].forEach(function (i) {
         var b = legAt(L, hem - 4, i);
-        var e = len.widen || 0;
-        var x0 = b[0] - e * (i === 0 ? 1 : 0.6), x1 = b[1] + e * (i === 0 ? 0.6 : 1);
-        var bottom = hem + (len.widen ? 6 : 1);
+        var x0 = b[0], x1 = b[1];
+        var bottom = hem + 1;
         ctx.beginPath();
         ctx.moveTo(x0, bottom - 20);
         ctx.quadraticCurveTo((x0 + x1) / 2, bottom - 17, x1, bottom - 20);
@@ -766,14 +613,7 @@
       ctx.rect(0, 472, 768, 600);
       fillFabric(ctx, t.suit, linear(0, 472, 0, 580, [[0, 0.62], [0.2, 0.86], [1, 0.82]], true));
       line(ctx, [[CX + 6, 486], [CX + 6, 560]], 'rgba(0,0,0,0.4)', 1);
-      // タック（前を開けると腰まわりに見える）
-      for (var pn = 0; pn < PLEATS[g.spec.pleat]; pn++) {
-        [-1, 1].forEach(function (sd) {
-          var px = CX + 6 + sd * (24 + pn * 10);
-          line(ctx, [[px, 486], [px + sd * 2, 560]], 'rgba(0,0,0,0.3)', 1.1);
-          line(ctx, [[px + 1.5, 486], [px + sd * 2 + 1.5, 540]], 'rgba(255,255,255,0.07)', 1);
-        });
-      }
+
       ctx.fillStyle = shadeHex(g.spec.shoeColor, -0.25); // ベルトは靴の色にそろえる
       ctx.fillRect(0, 472, 768, 13);
       line(ctx, [[0, 472.5], [768, 472.5]], 'rgba(255,255,255,0.12)', 0.8);
@@ -990,7 +830,7 @@
       drawButton(ctx, x, b.y, 7.5, BUTTON);
     });
 
-    drawTrousers(ctx, base, t, g.spec, true);
+    drawTrousers(ctx, base, t, g.spec);
     recolorShoes(canvas, base, g.spec.shoeColor);
     return g;
   }
@@ -1024,7 +864,7 @@
       ctx.fillStyle = 'rgba(0,0,0,0.35)';
       ctx.fill();
     });
-    drawTrousers(ctx, base, t, s, false);
+    drawTrousers(ctx, base, t, s);
     recolorShoes(canvas, base, s.shoeColor);
     return s;
   }
@@ -1037,7 +877,6 @@
     CLOSURES: CLOSURES,
     LAPELS: LAPELS,
     POCKETS: POCKETS,
-    LENGTHS: LENGTHS,
     VENTS: VENTS
   };
 })();
