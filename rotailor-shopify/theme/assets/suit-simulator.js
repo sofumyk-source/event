@@ -24,6 +24,7 @@
     threePiece: 'ベスト',
     extra: 'オプション',
     shirt: 'シャツ',
+    shoes: '靴',
     tie: 'Vゾーン（ネクタイ）'
   };
 
@@ -41,7 +42,7 @@
     { id: 'fabric', label: '生地', groups: ['fabric'] },
     { id: 'style', label: '型', groups: ['style', 'lapel', 'threePiece'] },
     { id: 'detail', label: 'ディテール', groups: ['pocket', 'vent', 'button', 'hem'] },
-    { id: 'vzone', label: 'シャツ・タイ', groups: ['shirt', 'tie'] }
+    { id: 'vzone', label: 'シャツ・タイ・靴', groups: ['shirt', 'tie', 'shoes'] }
   ];
   // 描画（suit-builder.js）が対応している型（キー）。ここにないものは写真モードでは選択肢に出さない
   var PHOTO_KEYS = {
@@ -54,7 +55,7 @@
   // 写真に出ないため、店頭でご案内する項目
   var IN_STORE_GROUPS = ['lining', 'pleat', 'extra'];
 
-  var SINGLE_GROUPS = ['fabric', 'style', 'lapel', 'pocket', 'vent', 'button', 'lining', 'pleat', 'hem', 'shirt', 'tie'];
+  var SINGLE_GROUPS = ['fabric', 'style', 'lapel', 'pocket', 'vent', 'button', 'lining', 'pleat', 'hem', 'shirt', 'tie', 'shoes'];
 
   var SEASON_LABELS = { all: 'オールシーズン', ss: '春夏', aw: '秋冬' };
 
@@ -68,6 +69,24 @@
     { id: 'london', name: 'ロンドンストライプ', color: '#F6F6F2', pattern: 'london', patternColor: '#9AB2D8' },
     { id: 'gingham', name: 'ギンガムチェック', color: '#F6F6F2', pattern: 'gingham', patternColor: '#8FA9D4' },
     { id: 'black', name: 'ブラック', color: '#26262A' }
+  ];
+
+  // 写真モードで選べる靴の色（お持ちの靴に近い色は「色を選ぶ」で自由に指定できる）
+  var SHOES = [
+    { id: 'black', name: 'ブラック', color: '#1a1a1a' },
+    { id: 'dark-brown', name: 'ダークブラウン', color: '#3b2516' },
+    { id: 'brown', name: 'ブラウン', color: '#7a4a26' },
+    { id: 'tan', name: 'ライトブラウン（タン）', color: '#a8743f' },
+    { id: 'burgundy', name: 'バーガンディ', color: '#4a1a22' },
+    { id: 'navy', name: 'ネイビー', color: '#1f2a44' }
+  ];
+
+  // ベストだけ別の色にする場合の、生地見本にない定番色
+  var VEST_EXTRAS = [
+    { id: 'vest-grey', name: 'ミディアムグレー', color: '#7d7f82', pattern: 'solid' },
+    { id: 'vest-beige', name: 'ベージュ', color: '#b9a586', pattern: 'solid' },
+    { id: 'vest-black', name: 'ブラック', color: '#1f1f21', pattern: 'solid' },
+    { id: 'vest-bordeaux', name: 'ボルドー', color: '#5c1e2a', pattern: 'solid' }
   ];
 
   // 人物の基準寸法（viewBox 300×640、約 8 頭身のファッション画プロポーション）
@@ -173,6 +192,7 @@
     });
     if (this.config.photos && !(window.RoTailorPhoto && window.RoTailorBuilder)) this.config.photos = null;
     this.groups.shirt = this.config.photos ? SHIRTS.slice() : [];
+    this.groups.shoes = this.config.photos ? SHOES.slice() : [];
     this.uploads = {};
     if (this.config.photos) {
       Object.keys(PHOTO_KEYS).forEach(function (g) {
@@ -204,7 +224,7 @@
 
   Simulator.prototype.hasGroup = function (g) {
     if (g === 'threePiece') return !!this.config.threePieceEnabled;
-    if (g === 'shirt') return !!this.config.photos;
+    if (g === 'shirt' || g === 'shoes') return !!this.config.photos;
     return (this.groups[g] || []).length > 0;
   };
 
@@ -237,6 +257,11 @@
     });
     state.threePiece = !!raw.threePiece && this.hasGroup('threePiece');
     state.open = !!raw.open;
+    if (raw.vestFabric && (this.find('fabric', raw.vestFabric) || this.vestExtra(raw.vestFabric))) state.vestFabric = raw.vestFabric;
+    if (raw.shoes === 'custom' && /^#[0-9a-f]{6}$/i.test(raw.shoeColor || '')) {
+      state.shoes = 'custom';
+      state.shoeColor = raw.shoeColor;
+    }
     if (raw.extras && typeof raw.extras === 'object') {
       state.extras = {};
       Object.keys(raw.extras).forEach(function (id) {
@@ -403,6 +428,7 @@
       else {
         var fs = self.renderOptionGroup(g);
         if (self.config.photos && (g === 'shirt' || g === 'tie')) fs.appendChild(self.renderUpload(g));
+        if (self.config.photos && g === 'shoes') fs.appendChild(self.renderShoeColor());
         body.appendChild(fs);
       }
     });
@@ -413,6 +439,7 @@
 
   Simulator.prototype.select = function (group, id) {
     this.state[group] = id;
+    if (group === 'shoes') delete this.state.shoeColor;
     if (this.config.photos) this.resolveConflicts(group);
     if (this.config.photos) {
       // ベントは後ろ姿で、それ以外は正面で見せる（描画は直後の update で）
@@ -484,8 +511,8 @@
     var self = this;
     var list = this.groups[group] || [];
     var fieldset = el('fieldset', { class: 'sim-group' }, [el('legend', { class: 'sim-group__title', text: GROUP_LABELS[group] || group })]);
-    var grid = el('div', { class: 'sim-options' + (group === 'button' || group === 'lining' || group === 'tie' || group === 'shirt' ? ' sim-options--swatch' : '') });
-    var uploaded = this.uploads[group] && this.uploads[group].active;
+    var grid = el('div', { class: 'sim-options' + (group === 'button' || group === 'lining' || group === 'tie' || group === 'shirt' || group === 'shoes' ? ' sim-options--swatch' : '') });
+    var uploaded = (this.uploads[group] && this.uploads[group].active) || (group === 'shoes' && this.state.shoes === 'custom');
     list.forEach(function (item) {
       var checked = self.state[group] === item.id && !uploaded;
       var input = el('input', { type: 'radio', name: self.uid + '-' + group, value: item.id, class: 'visually-hidden', checked: checked });
@@ -497,6 +524,8 @@
       } else if (item.isProduct && item.image) {
         // 商品写真は生地の部分だけを拡大して見本にする
         visual = el('span', { class: 'sim-option__dot sim-option__dot--photo', style: 'background-image:url(' + JSON.stringify(item.image) + ')' });
+      } else if (group === 'shoes') {
+        visual = el('span', { class: 'sim-option__dot sim-option__dot--button', style: '--dot:' + item.color });
       } else if (group === 'lining' || group === 'tie' || group === 'shirt') {
         visual = el('span', { class: 'sim-option__dot' });
         visual.appendChild(self.swatchSvg(item, 'sw-' + item.id));
@@ -529,7 +558,8 @@
       input.addEventListener('change', function () {
         self.state.threePiece = opt[0];
         self.update();
-        grid.querySelectorAll('.sim-option').forEach(function (o) {
+        if (self.config.photos) self.renderStep(); // ベストの生地の選択欄を出し入れする
+        else grid.querySelectorAll('.sim-option').forEach(function (o) {
           o.classList.toggle('is-selected', o.querySelector('input').checked);
         });
       });
@@ -542,7 +572,62 @@
       ]));
     });
     fieldset.appendChild(grid);
+    if (this.config.photos && this.state.threePiece) fieldset.appendChild(this.renderVestFabric());
     return fieldset;
+  };
+
+  Simulator.prototype.vestExtra = function (id) {
+    return VEST_EXTRAS.filter(function (v) { return v.id === id; })[0] || null;
+  };
+
+  // ベストの生地：スーツと同じ（初期値）か、別の生地・色
+  Simulator.prototype.renderVestFabric = function () {
+    var self = this;
+    var box = el('div', { class: 'sim-vestcloth' }, [el('p', { class: 'sim-vestcloth__title', text: 'ベストの生地' })]);
+    var grid = el('div', { class: 'sim-options sim-options--swatch' });
+    var items = [{ id: '', name: 'スーツと同じ', same: true }].concat(this.groups.fabric, VEST_EXTRAS);
+    items.forEach(function (item) {
+      var checked = (self.state.vestFabric || '') === item.id;
+      var input = el('input', { type: 'radio', name: self.uid + '-vestcloth', class: 'visually-hidden', checked: checked });
+      input.addEventListener('change', function () {
+        self.state.vestFabric = item.id || null;
+        self.update();
+        grid.querySelectorAll('.sim-option').forEach(function (o) { o.classList.toggle('is-selected', o.querySelector('input').checked); });
+      });
+      var visual = el('span', { class: 'sim-option__dot' });
+      var swatchItem = item.same ? (self.find('fabric', self.state.fabric) || {}) : item;
+      visual.appendChild(self.swatchSvg(swatchItem, 'vc-' + (item.id || 'same')));
+      grid.appendChild(el('label', { class: 'sim-option' + (checked ? ' is-selected' : '') }, [
+        input, visual, el('span', { class: 'sim-option__body' }, [el('span', { class: 'sim-option__name', text: item.name })])
+      ]));
+    });
+    box.appendChild(grid);
+    return box;
+  };
+
+  // お持ちの靴に合わせて、色を自由に選ぶ
+  Simulator.prototype.renderShoeColor = function () {
+    var self = this;
+    var custom = this.state.shoes === 'custom';
+    var input = el('input', { type: 'color', value: this.state.shoeColor || '#5a3a22', 'aria-label': 'お持ちの靴の色' });
+    input.addEventListener('input', function () {
+      self.state.shoes = 'custom';
+      self.state.shoeColor = input.value;
+      self.update();
+      self.$.body.querySelectorAll('input[name="' + self.uid + '-shoes"]').forEach(function (r) {
+        r.checked = false;
+        r.closest('.sim-option').classList.remove('is-selected');
+      });
+      label.classList.add('is-selected');
+    });
+    var label = el('label', { class: 'sim-option sim-upload' + (custom ? ' is-selected' : '') }, [
+      el('span', { class: 'sim-option__dot sim-shoecolor' }, [input]),
+      el('span', { class: 'sim-option__body' }, [
+        el('span', { class: 'sim-option__name', text: 'お持ちの靴の色を選ぶ' }),
+        el('span', { class: 'sim-option__desc', text: '色の見本から近い色を選んでください' })
+      ])
+    ]);
+    return el('div', { class: 'sim-options sim-options--swatch sim-upload-row' }, [label]);
   };
 
   Simulator.prototype.renderExtras = function () {
@@ -648,12 +733,17 @@
       rows.push({ label: GROUP_LABELS[g], value: value });
     });
     if (this.hasGroup('threePiece')) {
-      rows.push({ label: 'ベスト', value: st.threePiece ? 'スリーピース（ベスト付き）' : 'なし' });
+      var vestCloth = st.vestFabric ? (this.find('fabric', st.vestFabric) || this.vestExtra(st.vestFabric)) : null;
+      rows.push({ label: 'ベスト', value: st.threePiece ? 'スリーピース（ベスト付き）' + (vestCloth ? '／ベストの生地：' + vestCloth.name : '') : 'なし' });
     }
     if (this.hasGroup('shirt')) {
       var shirt = this.find('shirt', st.shirt);
       var up = this.uploads.shirt && this.uploads.shirt.active;
       if (up || shirt) rows.push({ label: 'シャツ', value: up ? 'お持ちの写真から' : shirt.name });
+    }
+    if (this.hasGroup('shoes')) {
+      var shoe = this.find('shoes', st.shoes);
+      rows.push({ label: '靴', value: st.shoes === 'custom' ? 'お持ちの靴の色（' + st.shoeColor + '）' : (shoe ? shoe.name : 'ブラック') });
     }
     Object.keys(st.extras).forEach(function (id) {
       var x = self.find('extra', id);
@@ -1075,10 +1165,23 @@
       if (sel[g] && self.find(g, sel[g])) self.state[g] = sel[g];
     });
     if (this.hasGroup('threePiece')) this.state.threePiece = !!look.threePiece;
+    if (this.config.photos) {
+      this.state.vestFabric = look.vestFabric && this.vestExtra(look.vestFabric) ? look.vestFabric : null;
+      this.state.open = !!look.open;
+      delete this.state.shoeColor;
+      if (this.uploads.shirt) this.uploads.shirt.active = false;
+      if (this.uploads.tie) this.uploads.tie.active = false;
+    }
     this.state.look = { title: look.title || '', comment: look.comment || '', salonNote: look.salonNote || '', text: text };
     this.renderStep();
     this.update();
     this.renderLook();
+    if (this.config.photos) {
+      // テイラーが仕立てた一着を、そのまま表紙で発表する。細部はそこから自分で調整できる
+      this.coverNo = null;
+      this.openSummary();
+      return;
+    }
     var stage = this.root.querySelector('.simulator__layout');
     if (stage) stage.scrollIntoView({ behavior: 'smooth', block: 'start' });
     var preview = this.$.preview;
@@ -1313,7 +1416,8 @@
       pocket: key(this.find('pocket', st.pocket), 'flap'),
       vent: key(this.find('vent', st.vent), 'side'),
       cuff: key(this.find('hem', st.hem), 'single') === 'double',
-      buttonColor: button && button.color ? button.color : '#2c2019'
+      buttonColor: button && button.color ? button.color : '#2c2019',
+      shoeColor: this.shoeColor()
     };
   };
 
@@ -1337,6 +1441,24 @@
       return;
     }
     this.renderStep();
+  };
+
+  Simulator.prototype.shoeColor = function () {
+    if (this.state.shoes === 'custom' && this.state.shoeColor) return this.state.shoeColor;
+    var shoe = this.find('shoes', this.state.shoes);
+    return shoe ? shoe.color : '#1a1a1a';
+  };
+
+  // 描画に渡す生地・シャツ・ネクタイ・ベストのタイル
+  Simulator.prototype.textures = function () {
+    var fabric = this.find('fabric', this.state.fabric) || { id: 'x', color: '#2b3245', pattern: 'solid' };
+    var vest = this.state.vestFabric ? (this.find('fabric', this.state.vestFabric) || this.vestExtra(this.state.vestFabric)) : null;
+    return {
+      suit: this.textureFor('suit', fabric),
+      vest: vest ? this.textureFor('suit', vest) : null,
+      shirt: this.textureFor('shirt', this.find('shirt', this.state.shirt)),
+      tie: this.textureFor('tie', this.find('tie', this.state.tie))
+    };
   };
 
   // 仕立ての決まり（ダブル→ピーク、ショール→1ボタン等）で変わった選択を、画面の選択にも反映する
@@ -1402,11 +1524,7 @@
     canvas.setAttribute('aria-label', [fabric.name, this.state.threePiece ? 'スリーピース' : null].filter(Boolean).join('、') + 'のスーツを着たマネキン');
     var token = this.photoToken = (this.photoToken || 0) + 1;
     preview.classList.add('is-loading');
-    var textures = {
-      suit: this.textureFor('suit', fabric),
-      shirt: this.textureFor('shirt', this.find('shirt', this.state.shirt)),
-      tie: this.textureFor('tie', this.find('tie', this.state.tie))
-    };
+    var textures = this.textures();
     P.loadBase(key, urls).then(function (base) {
       if (token !== self.photoToken) return;
       // 土台の写真に、仕様どおりの前身頃・ポケット・ベントを描き重ねる
@@ -1421,7 +1539,7 @@
       self.renderPreview();
     });
 
-    var dbl = back || B.CLOSURES[spec.closure].type === 'double';
+    var dbl = back; // 後ろ姿ではボタンの開け閉めは見えない
     this.root.querySelectorAll('[data-open]').forEach(function (b) {
       var isOpen = b.getAttribute('data-open') === '1';
       var on = isOpen === (!dbl && self.state.open);
@@ -1429,7 +1547,7 @@
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
       if (isOpen) {
         b.disabled = dbl;
-        b.title = back ? '正面でお試しください' : (dbl ? 'ダブルは留めた状態で表示します' : '');
+        b.title = back ? '正面でお試しください' : '';
       }
     });
     if (this.$.caption) {
@@ -1492,10 +1610,12 @@
     else if (tie) tieName = tie.name;
     var cut = { sb1: 'シングル1B', sb2: 'シングル2B', sb3: 'シングル3B', db6: 'ダブル6B', db4: 'ダブル4B' }[style && style.key] || (style && style.name);
     var lap = { notch: 'ノッチ', peak: 'ピーク', shawl: 'ショール' }[lapel && lapel.key] || '';
+    var vestCloth = st.vestFabric ? (this.find('fabric', st.vestFabric) || this.vestExtra(st.vestFabric)) : null;
     return [
       ['FABRIC', fabric ? fabric.name : ''],
-      ['STYLE', [cut, lap, st.threePiece ? 'ベスト付き' : null].filter(Boolean).join('・')],
-      ['V-ZONE', [shirtName, tieName].filter(Boolean).join(' × ')]
+      ['STYLE', [cut, lap, st.threePiece ? (vestCloth ? 'ベスト（' + vestCloth.name + '）' : 'ベスト付き') : null].filter(Boolean).join('・')],
+      ['V-ZONE', [shirtName, tieName].filter(Boolean).join(' × ')],
+      ['SHOES', st.shoes === 'custom' ? 'お持ちの靴の色' : ((this.find('shoes', st.shoes) || { name: 'ブラック' }).name)]
     ];
   };
 
@@ -1526,9 +1646,20 @@
     var share = el('button', { type: 'button', class: 'button button--ghost', text: 'シェアする' });
     save.addEventListener('click', function () { self.saveCover(); });
     share.addEventListener('click', function () { self.shareCover(); });
+    // テイラーが仕立てた場合は、そのひとことを表紙の上に添える
+    var note = el('div', { class: 'sim-cover__note', hidden: true });
+    var adjust = el('button', { type: 'button', class: 'button button--ghost sim-cover__adjust', text: '細部を自分で調整する' });
+    adjust.addEventListener('click', function () {
+      self.goStep(0);
+      var stage = self.root.querySelector('.simulator__layout');
+      if (stage) stage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    box.appendChild(note);
     box.appendChild(canvas);
     box.appendChild(themes);
     box.appendChild(el('div', { class: 'sim-cover__actions' }, [save, share]));
+    box.appendChild(adjust);
+    this.$.coverNote = note;
     this.$.cover = canvas;
   };
 
@@ -1537,12 +1668,16 @@
     var P = window.RoTailorPhoto;
     if (!this.$.cover) this.buildCoverUi();
     var spec = window.RoTailorBuilder.normalize(this.builderSpec());
-    var fabric = this.find('fabric', this.state.fabric) || { color: '#2b3245', pattern: 'solid' };
-    var textures = {
-      suit: this.textureFor('suit', fabric),
-      shirt: this.textureFor('shirt', this.find('shirt', this.state.shirt)),
-      tie: this.textureFor('tie', this.find('tie', this.state.tie))
-    };
+    var look = this.state.look;
+    if (this.$.coverNote) {
+      this.$.coverNote.hidden = !look;
+      this.$.coverNote.innerHTML = '';
+      if (look) {
+        this.$.coverNote.appendChild(el('p', { class: 'sim-cover__note-eyebrow', text: 'FROM YOUR TAILOR' }));
+        this.$.coverNote.appendChild(el('p', { class: 'sim-cover__note-text', text: look.comment }));
+      }
+    }
+    var textures = this.textures();
     var token = this.coverToken = (this.coverToken || 0) + 1;
     if (!this.logoImg && this.config.logo) {
       this.logoImg = new Image();

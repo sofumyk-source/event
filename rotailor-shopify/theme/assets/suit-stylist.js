@@ -237,6 +237,41 @@
 
     var threePiece = !!threePieceEnabled && (p.classic + formal + (p.season === 'aw' ? 1 : 0) >= 3 || (p.classic > 0 && rand() > 0.6));
 
+    // シャツ：改まった場は白・サックス、くだけた場や明るい気分は柄や色
+    pick.shirt = best(groups.shirt || [], function (sh) {
+      var s = 0;
+      var plain = !sh.pattern;
+      if (formal > 0) s += plain ? formal * 1.5 : -formal;
+      if (sh.id === 'white') s += formal > 1 ? 2 : 0.5;
+      if (sh.id === 'black') s += p.light < -1 ? 2 : -3;
+      if (relaxed > 0 && !plain) s += relaxed;
+      if (p.light > 0 && (sh.id === 'sax' || sh.id === 'pink' || sh.id === 'lavender')) s += p.light;
+      p.ties.slice(0, 1).forEach(function (c) { if (lightness(c) > 0.5) s += 1 - distance(sh.color, c) / 120; });
+      return s;
+    }, rand);
+
+    // 靴：生地の色に合わせた定番（ネイビー→焦げ茶・バーガンディ、チャコール・黒→黒、茶・ベージュ→茶）
+    var fl = lightness(fabricColor);
+    var fr = hexToRgb(fabricColor);
+    var warm = fr[0] > fr[2] + 10;
+    pick.shoes = best(groups.shoes || [], function (sh) {
+      var s = 0;
+      if (formal > 1 && sh.id === 'black') s += 3;
+      if (!warm && fr[2] > fr[0] + 10) s += { 'dark-brown': 2.5, burgundy: 2, black: 1.2 }[sh.id] || 0; // ネイビー系
+      else if (!warm) s += { black: 2.5, burgundy: 1.2, 'dark-brown': 1 }[sh.id] || 0; // グレー系
+      else s += { brown: 2.5, 'dark-brown': 2, tan: fl > 0.45 ? 2.5 : 0.5 }[sh.id] || 0; // 茶系
+      if (relaxed > 0 && (sh.id === 'tan' || sh.id === 'brown')) s += relaxed * 0.6;
+      return s;
+    }, rand);
+
+    // ベストを別の色にするのは、遊び心のある（bold）ときだけ
+    var vestFabric = null;
+    if (threePiece && bold > 0 && rand() > 0.4) {
+      vestFabric = fl < 0.3 ? 'vest-grey' : (warm ? 'vest-beige' : 'vest-bordeaux');
+    }
+    // くだけた場なら、前を開けた着こなしで見せる
+    var open = relaxed > 1 && !(pick.style && /^db/.test(pick.style.key || ''));
+
     var moods = p.moods.slice(0, 2);
     if (!moods.length) moods = ['あなたらしさ'];
     var fabricName = pick.fabric ? pick.fabric.name : '';
@@ -257,6 +292,8 @@
     return {
       selection: selection,
       threePiece: threePiece,
+      vestFabric: vestFabric,
+      open: open,
       title: title,
       comment: comment,
       salonNote: '店頭では、約6,000種類の生地見本を手に取りながらこのイメージをさらに磨けます。',

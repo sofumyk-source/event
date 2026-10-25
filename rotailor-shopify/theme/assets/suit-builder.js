@@ -67,7 +67,7 @@
   };
 
   // 腰ポケット（中心の位置と、フラップの幅）。画像の左が着用者の右
-  var POCKET_AT = [[299, 442], [468, 442]];
+  var POCKET_AT = [[305, 442], [463, 442]];
   var POCKETS = {
     flap: { label: 'フラップポケット' },
     flap_ticket: { label: 'フラップ＋チェンジポケット', ticket: true },
@@ -93,7 +93,7 @@
 
   /* ---------------------------------------------------------- geometry */
 
-  // 組み合わせの決まり：ダブルはピーク、ショールはシングル1ボタン、ダブルは前を留めた状態だけ
+  // 組み合わせの決まり：ダブルはピーク、ショールはシングル1ボタン
   function normalize(spec) {
     var s = {
       closure: spec.closure in CLOSURES ? spec.closure : 'sb2',
@@ -103,12 +103,10 @@
       pocket: spec.pocket in POCKETS ? spec.pocket : 'flap',
       vent: spec.vent in VENTS ? spec.vent : 'side',
       cuff: !!spec.cuff,
-      buttonColor: /^#[0-9a-f]{6}$/i.test(spec.buttonColor || '') ? spec.buttonColor : '#2c2019'
+      buttonColor: /^#[0-9a-f]{6}$/i.test(spec.buttonColor || '') ? spec.buttonColor : '#2c2019',
+      shoeColor: /^#[0-9a-f]{6}$/i.test(spec.shoeColor || '') ? spec.shoeColor : '#1a1a1a'
     };
-    if (CLOSURES[s.closure].type === 'double') {
-      s.lapel = 'peak';
-      s.open = false;
-    }
+    if (CLOSURES[s.closure].type === 'double') s.lapel = 'peak';
     if (s.lapel === 'shawl') s.closure = 'sb1';
     return s;
   }
@@ -130,11 +128,19 @@
       overlapEnd: lastButton + 20, // シングル：ここまで前身頃が重なり、下はカッタウェイ
       vest: s.vest
     };
-    if (g.open) {
-      // 前を開けると、左右の前身頃は中心から離れて下がる（約3cm → 裾で約6cm）
-      g.breakPoint = [CX - 14, closure.breakY + 6];
-      g.underBreak = [CX + 14, closure.breakY + 6];
-      g.openEdge = [[CX - 14, closure.breakY + 6], [CX - 30, HEM_Y + 2]];
+    if (g.double && g.open) {
+      // ダブルを開けた状態：身頃の重なりは浅くなるが、まだ重なっている（約6cm ずつ外へずれる）。
+      // ボタン列とボタンホールも、それぞれの身頃と一緒に動く
+      g.open = false;
+      g.dbOpen = true;
+      g.shift = 30;
+      g.edgeX = CX + closure.overlap - g.shift;
+      g.underBreak = [2 * CX - g.breakPoint[0] + 4, g.breakPoint[1] + 6];
+    } else if (g.open) {
+      // 前を開けると、左右の前身頃は中心から離れて下がる（片側約5cm → 裾で約10cm）
+      g.breakPoint = [CX - 24, closure.breakY + 8];
+      g.underBreak = [CX + 24, closure.breakY + 8];
+      g.openEdge = [[CX - 24, closure.breakY + 8], [CX - 50, HEM_Y + 2]];
     } else {
       // 下前（画像の右）のラペルの返り止まり。上前の下に入るので、上前の返り止まりの少し下・内側
       g.underBreak = [2 * CX - g.breakPoint[0] + 4, g.breakPoint[1] + 6];
@@ -301,8 +307,12 @@
     // 淡い生地ほど陰影を弱める（乗算は明るい色ほど暗く目立つため）
     var soft = 1 - 0.55 * meanLum(textures.suit);
     return {
+      edge: 0.6 + 0.4 * soft, // 淡い生地は線や影も控えめに
       suitTile: suitTile,
       suit: ctx.createPattern(suitTile, 'repeat'),
+      // ベストを別の生地にする場合は textures.vest。なければスーツと同じ
+      vest: ctx.createPattern(textures.vest ? tileCanvas(textures.vest) : suitTile, 'repeat'),
+      vestSoft: textures.vest ? 1 - 0.55 * meanLum(textures.vest) : soft,
       shirt: textures.shirt ? ctx.createPattern(tileCanvas(textures.shirt), 'repeat') : null,
       tie: textures.tie ? ctx.createPattern(tileCanvas(textures.tie), 'repeat') : null,
       linear: function (x0, y0, x1, y1, stops, fabric) {
@@ -315,80 +325,122 @@
 
   /* ---------------------------------------------------------- pockets */
 
+  // 下の角だけ丸いフラップの形
+  function flapPath(ctx, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(-w / 2, 0);
+    ctx.lineTo(w / 2, 0);
+    ctx.lineTo(w / 2, h - r);
+    ctx.quadraticCurveTo(w / 2, h, w / 2 - r, h + 0.5);
+    ctx.quadraticCurveTo(0, h + 1.5, -w / 2 + r, h + 0.5); // 下辺は体に沿ってわずかに膨らむ
+    ctx.quadraticCurveTo(-w / 2, h, -w / 2, h - r);
+    ctx.closePath();
+  }
+
+  /*
+   * 生地と同じ色のまま、立体感は影とハイライトだけで出す（輪郭線で囲まない）。
+   * 写真のフラップと同じく：上に玉縁の細い線、下の縁にやわらかい落ち影、縁の内側にごく薄いステッチ。
+   */
+  function drawFlap(ctx, t, w, h) {
+    // 玉縁（フラップの上の口）
+    line(ctx, [[-w / 2 - 2, -1.5], [w / 2 + 2, -1.5]], 'rgba(0,0,0,' + (0.42 * t.edge) + ')', 1);
+    line(ctx, [[-w / 2 - 2, -0.2], [w / 2 + 2, -0.2]], 'rgba(255,255,255,0.07)', 0.8);
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,' + (0.5 * t.edge) + ')';
+    ctx.shadowBlur = 7;
+    ctx.shadowOffsetY = 3;
+    flapPath(ctx, w, h, 5);
+    ctx.fillStyle = t.suit;
+    ctx.fill();
+    ctx.restore();
+    flapPath(ctx, w, h, 5);
+    fillFabric(ctx, t.suit, t.linear(0, 0, 0, h, [[0, 0.97], [0.75, 1], [1, 0.93]], true));
+    // 下の縁の光（生地の厚み）
+    ctx.save();
+    flapPath(ctx, w, h, 5);
+    ctx.clip();
+    ctx.strokeStyle = 'rgba(255,255,255,0.09)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-w / 2 + 2, h - 1.5);
+    ctx.quadraticCurveTo(0, h, w / 2 - 2, h - 1.5);
+    ctx.stroke();
+    ctx.restore();
+    // 縁のステッチ（ごく薄く）
+    ctx.save();
+    ctx.setLineDash([1.6, 2.2]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.11)';
+    ctx.lineWidth = 0.7;
+    ctx.beginPath();
+    ctx.moveTo(-w / 2 + 3, 2);
+    ctx.lineTo(-w / 2 + 3, h - 6);
+    ctx.quadraticCurveTo(-w / 2 + 3, h - 3, -w / 2 + 7, h - 2.5);
+    ctx.lineTo(w / 2 - 7, h - 2.5);
+    ctx.quadraticCurveTo(w / 2 - 3, h - 3, w / 2 - 3, h - 6);
+    ctx.lineTo(w / 2 - 3, 2);
+    ctx.stroke();
+    ctx.restore();
+    flapPath(ctx, w, h, 5);
+    ctx.strokeStyle = 'rgba(0,0,0,' + (0.2 * t.edge) + ')';
+    ctx.lineWidth = 0.7;
+    ctx.stroke();
+  }
+
   function drawPocket(ctx, t, kind, at, side) {
     var P = POCKETS[kind] || POCKETS.flap;
     var x = at[0], y = at[1];
     var w = 54;
     ctx.save();
-    ctx.translate(x, y);
-    // スラントは前（中心側）が高い
-    if (P.angle) ctx.rotate(side < 0 ? -P.angle : P.angle);
+    ctx.translate(x, y - 12);
+    // 体の丸みに沿って、ごくわずかに外側へ下げる。スラントは前（中心側）が高い
+    var tilt = side < 0 ? 0.03 : -0.03;
+    if (P.angle) tilt += side < 0 ? -P.angle : P.angle;
+    ctx.rotate(tilt);
     if (P.jetted) {
-      // 両玉縁：フラップのない細い 2 本の玉縁
-      ctx.fillStyle = t.suit;
-      ctx.fillRect(-w / 2, -3, w, 6);
-      line(ctx, [[-w / 2, 0], [w / 2, 0]], 'rgba(0,0,0,0.7)', 1.4);
-      line(ctx, [[-w / 2, -3], [w / 2, -3]], 'rgba(0,0,0,0.3)', 0.8);
-      line(ctx, [[-w / 2, 3], [w / 2, 3]], 'rgba(0,0,0,0.3)', 0.8);
-      line(ctx, [[-w / 2, -1.5], [w / 2, -1.5]], 'rgba(255,255,255,0.12)', 0.6);
+      // 両玉縁：フラップのない細い 2 本の玉縁（上下の唇）と、その間の口
+      line(ctx, [[-w / 2, 6], [w / 2, 6]], 'rgba(0,0,0,' + (0.6 * t.edge) + ')', 1.2);
+      line(ctx, [[-w / 2, 3.5], [w / 2, 3.5]], 'rgba(255,255,255,0.08)', 1.6);
+      line(ctx, [[-w / 2, 8.5], [w / 2, 8.5]], 'rgba(255,255,255,0.07)', 1.6);
+      line(ctx, [[-w / 2, 2.2], [w / 2, 2.2]], 'rgba(0,0,0,' + (0.25 * t.edge) + ')', 0.7);
+      line(ctx, [[-w / 2, 10], [w / 2, 10]], 'rgba(0,0,0,' + (0.25 * t.edge) + ')', 0.7);
+      [-w / 2, w / 2].forEach(function (ex) { line(ctx, [[ex, 2.2], [ex, 10]], 'rgba(0,0,0,' + (0.3 * t.edge) + ')', 0.8); });
     } else if (P.patch) {
-      // パッチ：外から縫い付けた袋。少し大きく、角が丸い
-      var pw = 60, ph = 58;
+      // パッチ：外から縫い付けた袋。上端は折り返し、縁にステッチ
+      var pw = 58, ph = 54, r = 9;
+      ctx.translate(0, -4);
       ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.35)';
+      ctx.shadowColor = 'rgba(0,0,0,' + (0.4 * t.edge) + ')';
       ctx.shadowBlur = 5;
+      ctx.shadowOffsetX = side < 0 ? -1 : 1;
       ctx.shadowOffsetY = 2;
-      roundRect(ctx, -pw / 2, -18, pw, ph, 10);
+      roundRect(ctx, -pw / 2, 0, pw, ph, r);
       ctx.fillStyle = t.suit;
       ctx.fill();
-      fillFabric(ctx, t.suit, t.linear(0, -18, 0, 40, [[0, 0.98], [1, 0.9]], true));
       ctx.restore();
-      roundRect(ctx, -pw / 2, -18, pw, ph, 10);
-      ctx.strokeStyle = 'rgba(0,0,0,0.45)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.setLineDash([2, 2.5]);
-      roundRect(ctx, -pw / 2 + 3, -15, pw - 6, ph - 6, 8);
-      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-      ctx.stroke();
-      ctx.setLineDash([]);
-      line(ctx, [[-pw / 2 + 2, -12], [pw / 2 - 2, -12]], 'rgba(0,0,0,0.25)', 0.8);
-    } else {
-      // フラップ：玉縁の上にふたがかぶさる
-      line(ctx, [[-w / 2, -14], [w / 2, -14]], 'rgba(0,0,0,0.55)', 1.2);
+      roundRect(ctx, -pw / 2, 0, pw, ph, r);
+      fillFabric(ctx, t.suit, t.linear(0, 0, 0, ph, [[0, 0.95], [0.12, 1], [1, 0.95]], true));
+      line(ctx, [[-pw / 2 + 1, 7], [pw / 2 - 1, 7]], 'rgba(0,0,0,' + (0.2 * t.edge) + ')', 0.8);
       ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.4)';
-      ctx.shadowBlur = 5;
-      ctx.shadowOffsetY = 2.5;
-      roundRect(ctx, -w / 2, -13, w, 30, 4);
-      ctx.fillStyle = t.suit;
-      ctx.fill();
-      fillFabric(ctx, t.suit, t.linear(0, -13, 0, 17, [[0, 0.96], [1, 0.88]], true));
-      ctx.restore();
-      roundRect(ctx, -w / 2, -13, w, 30, 4);
-      ctx.strokeStyle = 'rgba(0,0,0,0.45)';
-      ctx.lineWidth = 1;
+      ctx.setLineDash([1.6, 2.2]);
+      roundRect(ctx, -pw / 2 + 3, 3, pw - 6, ph - 6, r - 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.lineWidth = 0.7;
       ctx.stroke();
+      ctx.restore();
+      roundRect(ctx, -pw / 2, 0, pw, ph, r);
+      ctx.strokeStyle = 'rgba(0,0,0,' + (0.22 * t.edge) + ')';
+      ctx.lineWidth = 0.7;
+      ctx.stroke();
+    } else {
+      drawFlap(ctx, t, w, 24);
     }
     ctx.restore();
     // チェンジポケット：着用者の右（画像の左）のフラップの上に小さなフラップ
     if (P.ticket && side < 0) {
       ctx.save();
-      ctx.translate(x + 4, y - 38);
-      line(ctx, [[-17, -9], [17, -9]], 'rgba(0,0,0,0.5)', 1);
-      ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.35)';
-      ctx.shadowBlur = 4;
-      ctx.shadowOffsetY = 2;
-      roundRect(ctx, -17, -8, 34, 18, 3);
-      ctx.fillStyle = t.suit;
-      ctx.fill();
-      fillFabric(ctx, t.suit, t.linear(0, -8, 0, 10, [[0, 0.96], [1, 0.88]], true));
-      ctx.restore();
-      roundRect(ctx, -17, -8, 34, 18, 3);
-      ctx.strokeStyle = 'rgba(0,0,0,0.45)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      ctx.translate(x + 6, y - 46);
+      ctx.rotate(tilt);
+      drawFlap(ctx, t, 34, 15);
       ctx.restore();
     }
   }
@@ -415,6 +467,56 @@
       ctx.stroke();
       ctx.restore();
     });
+  }
+
+  /* ---------------------------------------------------------- shoes */
+
+  // 写真の靴（足元の暗い部分）を探す。パンツ（スーツのマスク）と床・背景は除く。結果は土台ごとに覚えておく
+  function shoePixels(base) {
+    if (base.shoes) return base.shoes;
+    var w = base.w, h = base.h, ph = base.photo, m = base.mask;
+    var list = [], weights = [], lums = [];
+    for (var y = Math.floor(h * 0.84); y < h; y++) {
+      for (var x = 0; x < w; x++) {
+        var i = y * w + x, p = i * 4;
+        if (m[p] > 40) continue; // パンツ
+        var v = Math.max(ph[p], ph[p + 1], ph[p + 2]) / 255;
+        if (v > 0.55) continue; // 背景・床（明るい）
+        var wgt = Math.min(1, (0.55 - v) / 0.12);
+        list.push(i);
+        weights.push(wgt);
+        lums.push(v);
+      }
+    }
+    var sorted = lums.slice().sort(function (a, b) { return a - b; });
+    base.shoes = { list: list, weights: weights, median: sorted[Math.floor(sorted.length * 0.6)] || 0.15 };
+    return base.shoes;
+  }
+
+  // 靴を指定の色に塗り替える（写真の陰影と、つま先の光沢は残す）
+  function recolorShoes(canvas, base, hex) {
+    if (!/^#[0-9a-f]{6}$/i.test(hex || '') || hex.toLowerCase() === '#1a1a1a') return; // 黒は写真のまま
+    var S = shoePixels(base);
+    if (!S.list.length) return;
+    var v = parseInt(hex.slice(1), 16);
+    var col = [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+    var ctx = canvas.getContext('2d');
+    var y0 = Math.floor(base.h * 0.84);
+    var img = ctx.getImageData(0, y0, base.w, base.h - y0);
+    var d = img.data, ph = base.photo;
+    for (var n = 0; n < S.list.length; n++) {
+      var i = S.list[n], p = i * 4, q = (i - y0 * base.w) * 4;
+      var lum = Math.max(ph[p], ph[p + 1], ph[p + 2]) / 255;
+      var s = lum / S.median;
+      var hi = s > 1.8 ? Math.min(0.7, (s - 1.8) / 2.5) : 0; // 光沢（つま先のハイライト）
+      var k = Math.min(s, 1.3) * 0.88; // 明るい色の靴が金属のように光らないよう、明るさの上限を抑える
+      var a = S.weights[n];
+      for (var c = 0; c < 3; c++) {
+        var out = col[c] * k * (1 - hi) + 235 * hi;
+        d[q + c] = d[q + c] * (1 - a) + Math.min(255, out) * a;
+      }
+    }
+    ctx.putImageData(img, 0, y0);
   }
 
   /* ---------------------------------------------------------- front */
@@ -460,12 +562,12 @@
       ctx.rect(0, 472, 768, 600);
       fillFabric(ctx, t.suit, linear(0, 472, 0, 580, [[0, 0.62], [0.2, 0.86], [1, 0.82]], true));
       line(ctx, [[CX + 6, 486], [CX + 6, 560]], 'rgba(0,0,0,0.4)', 1);
-      ctx.fillStyle = '#141210';
+      ctx.fillStyle = shadeHex(g.spec.shoeColor, -0.25); // ベルトは靴の色にそろえる
       ctx.fillRect(0, 472, 768, 13);
       line(ctx, [[0, 472.5], [768, 472.5]], 'rgba(255,255,255,0.12)', 0.8);
       ctx.fillStyle = '#9a9184';
       ctx.fillRect(CX - 9, 471, 18, 15);
-      ctx.fillStyle = '#141210';
+      ctx.fillStyle = shadeHex(g.spec.shoeColor, -0.25);
       ctx.fillRect(CX - 5, 474, 10, 9);
     }
 
@@ -488,9 +590,12 @@
       ctx.shadowColor = 'rgba(0,0,0,0.45)';
       ctx.shadowBlur = 6;
       ctx.shadowOffsetY = 3;
-      ctx.fillStyle = t.suit;
+      ctx.fillStyle = t.vest;
       ctx.fill();
-      fillFabric(ctx, t.suit, linear(CX - 40, 0, CX + 40, 0, [[0, 0.84], [0.3, 0.96], [0.5, 1], [0.7, 0.96], [1, 0.84]], true));
+      var vs = t.vestSoft;
+      var vshade = ctx.createLinearGradient(CX - 40, 0, CX + 40, 0);
+      [[0, 0.84], [0.3, 0.96], [0.5, 1], [0.7, 0.96], [1, 0.84]].forEach(function (st) { vshade.addColorStop(st[0], grey(1 - (1 - st[1]) * vs)); });
+      fillFabric(ctx, t.vest, vshade);
       ctx.restore();
       line(ctx, [[330, 190], [CX, apexY], [438, 190]], 'rgba(0,0,0,0.45)', 1.4);
       line(ctx, [[CX + 3, apexY], [CX + 3, vestBottom]], 'rgba(0,0,0,0.45)', 1.4);
@@ -640,10 +745,17 @@
         ctx.restore();
         return;
       }
+      if (g.dbOpen) {
+        // ダブルを開けた状態：上前（左）のボタンは左へ、下前（右）のボタンは右へ。
+        // 留めていたボタンの位置には、上前のボタンホールが見える
+        if (b.dx > 0 && b.dx <= 30) buttonhole(ctx, CX + b.dx - g.shift - 8, CX + b.dx - g.shift + 8, b.y);
+        drawButton(ctx, CX + b.dx + (b.dx < 0 ? -g.shift : g.shift), b.y, 7.5, BUTTON);
+        return;
+      }
       if (g.open) {
         // 開けた状態：ボタンは下前（画像の右）の前端の内側、ボタンホールは上前（画像の左）の前端に並ぶ
         var k = (b.y - g.openEdge[0][1]) / (g.openEdge[1][1] - g.openEdge[0][1]);
-        var off = 14 + 16 * Math.max(0, k);
+        var off = 24 + 26 * Math.max(0, k);
         buttonhole(ctx, CX - off - 20, CX - off - 5, b.y);
         drawButton(ctx, CX + off + 12, b.y, 7.5, BUTTON);
         return;
@@ -653,6 +765,7 @@
     });
 
     if (g.spec.cuff) drawCuffs(ctx, t);
+    recolorShoes(canvas, base, g.spec.shoeColor);
     return g;
   }
 
@@ -686,6 +799,7 @@
       ctx.fill();
     });
     if (s.cuff) drawCuffs(ctx, t);
+    recolorShoes(canvas, base, s.shoeColor);
     return s;
   }
 

@@ -26,7 +26,7 @@ export interface Env {
   STYLE_LIMITER?: RateLimit;
 }
 
-const GROUPS = ["fabric", "style", "lapel", "pocket", "vent", "button", "lining", "pleat", "hem", "tie"] as const;
+const GROUPS = ["fabric", "style", "lapel", "pocket", "vent", "button", "lining", "pleat", "hem", "shirt", "tie", "shoes"] as const;
 type Group = (typeof GROUPS)[number];
 
 interface CatalogItem {
@@ -54,7 +54,7 @@ const MAX_FIELD = 160;
 const SYSTEM_PROMPT = `あなたは、広島のオーダースーツ専門店「ROtailor」のテイラーです。
 お客様が「好きな色」「着ていく場面」「ひとこと」を選び、参考写真を添えることもあります。それらを読み取り、
 用意された選択肢（生地・ジャケットの型・ラペル・ポケット・ベント・ボタン・裏地・パンツ・ネクタイ）から
-最もふさわしい一着を選び、テイラーとして短く語ってください。
+シャツ・ネクタイ・靴までの色合わせを含めて最もふさわしい一着を選び、テイラーとして短く語ってください。
 
 これは「オーダースーツを仕立てる体験」を楽しんでもらうためのゲームです。
 - 好きな色はできるだけ生地・ネクタイ・裏地に反映し、着ていく場面にふさわしい格（フォーマル度）に整えます。
@@ -165,7 +165,9 @@ function catalogText(req: StyleRequest): string {
     lining: "裏地",
     pleat: "パンツのタック",
     hem: "パンツの裾",
+    shirt: "シャツ",
     tie: "ネクタイ（Vゾーン）",
+    shoes: "靴（スーツの色に合う定番を）",
   };
   const lines: string[] = [];
   for (const group of GROUPS) {

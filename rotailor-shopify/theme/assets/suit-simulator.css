@@ -451,3 +451,11 @@ input.sim-stylist__input { font-size: 0.9rem; padding: 10px 14px; }
 @media (max-width: 989px) { .sim-summary__look.has-cover { grid-template-columns: 1fr; } }
 .sim-summary__look.has-cover { grid-template-columns: 1fr; }
 .sim-summary__look.has-cover .sim-cover { width: min(100%, 560px); justify-self: center; }
+.sim-vestcloth { margin-top: 16px; }
+.sim-vestcloth__title { margin: 0 0 8px; font-size: 0.85rem; color: var(--color-muted); }
+.sim-shoecolor { display: grid; place-items: center; overflow: hidden; }
+.sim-shoecolor input[type="color"] { width: 150%; height: 150%; border: 0; padding: 0; background: none; cursor: pointer; }
+.sim-cover__note { border-left: 2px solid var(--color-accent); padding: 4px 0 4px 14px; }
+.sim-cover__note-eyebrow { margin: 0 0 4px; font-family: var(--font-display); font-style: italic; letter-spacing: 0.16em; font-size: 0.75rem; color: var(--color-accent); }
+.sim-cover__note-text { margin: 0; font-size: 0.9rem; line-height: 1.9; }
+.sim-cover__adjust { width: 100%; }

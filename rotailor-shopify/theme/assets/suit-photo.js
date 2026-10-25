@@ -435,19 +435,21 @@
     lines.slice(0, 3).forEach(function (line, i) { ctx.fillText(line, 64, 176 + i * size * 1.3); });
 
     // 仕様
-    var sx = 760, sw = 270, sy = 900;
+    // 仕様は最大 4 行（生地・型・Vゾーン・靴）。ロゴの上に収まるよう、行が多いときは上から始める
+    var rows = opts.specs || [];
+    var sx = 760, sw = 270, sy = rows.length > 3 ? 770 : 900;
     ctx.fillStyle = t.accent;
     ctx.fillRect(sx, sy, sw, 2);
-    sy += 50;
-    (opts.specs || []).forEach(function (row) {
+    sy += 46;
+    rows.forEach(function (row) {
       ctx.fillStyle = t.accent;
-      ctx.font = '500 22px "EB Garamond", serif';
+      ctx.font = '500 21px "EB Garamond", serif';
       spaced(ctx, row[0], sx, sy, 5);
-      sy += 38;
+      sy += 34;
       ctx.fillStyle = t.text;
-      ctx.font = '500 26px "Shippori Mincho", serif';
-      wrapText(ctx, row[1], sw).slice(0, 2).forEach(function (line) { ctx.fillText(line, sx, sy); sy += 38; });
-      sy += 16;
+      ctx.font = '500 24px "Shippori Mincho", serif';
+      wrapText(ctx, row[1], sw).slice(0, 2).forEach(function (line) { ctx.fillText(line, sx, sy); sy += 34; });
+      sy += 12;
     });
 
     // ロゴ
