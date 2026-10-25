@@ -5,7 +5,9 @@
       "settings": {
         "three_piece_enabled": true,
         "show_stylist": true,
-        "stylist_endpoint": ""
+        "stylist_endpoint": "",
+        "photo_mode": true,
+        "tie_collection": "ties"
       },
       "blocks": {
         "fab-navy": {

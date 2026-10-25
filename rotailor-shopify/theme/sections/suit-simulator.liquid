@@ -9,6 +9,7 @@
 
 {{ 'suit-simulator.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'suit-stylist.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'suit-photo.js' | asset_url }}" defer="defer"></script>
 <script src="{{ 'suit-simulator.js' | asset_url }}" defer="defer"></script>
 
 <section class="section simulator" id="Simulator-{{ section.id }}" data-suit-simulator data-section-id="{{ section.id }}">
@@ -70,6 +71,12 @@
             <button type="button" class="sim-chip is-active" data-view="front" aria-pressed="true">FRONT</button>
             <button type="button" class="sim-chip" data-view="back" aria-pressed="false">BACK</button>
           </div>
+          {%- if section.settings.photo_mode -%}
+            <div class="sim-preview__toolbar sim-preview__toolbar--buttons" role="group" aria-label="ジャケットのボタン" data-open-toggle>
+              <button type="button" class="sim-chip is-active" data-open="0" aria-pressed="true">ボタンを留める</button>
+              <button type="button" class="sim-chip" data-open="1" aria-pressed="false">開ける</button>
+            </div>
+          {%- endif -%}
           <div class="sim-preview__canvas" data-preview aria-live="polite"></div>
           <div class="sim-preview__fabric" data-fabric-caption></div>
           <div class="sim-tryon" data-tryon>
@@ -196,6 +203,11 @@
             </div>
           {%- endif -%}
         {%- endfor -%}
+        {%- for product in section.settings.tie_collection.products limit: 24 -%}
+          <div class="product-grid product-grid--single" data-tie-product-for="p-{{ product.handle }}" hidden>
+            {% render 'product-card', product: product, note: 'プレビューで合わせたネクタイ' %}
+          </div>
+        {%- endfor -%}
         {%- if section.settings.use_metaobjects -%}
           {%- for fabric in shop.metaobjects.suit_fabric.values -%}
             {%- assign mo_products = fabric.pairing_products.value -%}
@@ -225,6 +237,14 @@
       "threePieceEnabled": {{ section.settings.three_piece_enabled | json }},
       "stylistEndpoint": {{ section.settings.stylist_endpoint | json }},
       "storageKey": "rotailor-sim-{{ section.id }}",
+      "photos": {%- if section.settings.photo_mode -%}{
+        {%- assign photo_keys = 'sn-c,sn-o,sn-cv,sn-ov,sp-c,sp-o,sp-cv,sp-ov,dp-c,dp-cv' | split: ',' -%}
+        {%- for key in photo_keys -%}
+          {%- assign photo_file = 'suit-photo-' | append: key | append: '.jpg' -%}
+          {%- assign mask_file = 'suit-photo-' | append: key | append: '-mask.png' -%}
+          {{ key | json }}: { "photo": {{ photo_file | asset_url | json }}, "mask": {{ mask_file | asset_url | json }} }{% unless forloop.last %},{% endunless %}
+        {%- endfor -%}
+      }{%- else -%}null{%- endif -%},
       "items": [
         {%- assign sep = '' -%}
         {%- for block in section.blocks -%}
@@ -291,6 +311,23 @@
             {%- assign sep = ',' -%}
           {%- endfor -%}
         {%- endif -%}
+        {%- for product in section.settings.tie_collection.products limit: 24 -%}
+          {%- if product.featured_image != blank -%}
+            {{ sep }}{
+              "id": {{ 'p-' | append: product.handle | json }},
+              "type": "tie",
+              "name": {{ product.title | remove: 'ROtailor×' | remove: 'ROtailor ' | json }},
+              "description": {{ product.price | money | append: '（オンラインストアで購入できます）' | json }},
+              "color": "",
+              "pattern": "solid",
+              "image": {{ product.featured_image | image_url: width: 600 | json }},
+              "imageCrop": 0.12,
+              "isProduct": true,
+              "isDefault": false
+            }
+            {%- assign sep = ',' -%}
+          {%- endif -%}
+        {%- endfor -%}
       ]
     }
   </script>
@@ -372,6 +409,19 @@
       "id": "three_piece_enabled",
       "label": "スリーピース（ベスト）を選べるようにする",
       "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "photo_mode",
+      "label": "写真で着せ替える（正面）",
+      "info": "マネキン写真の上で生地・シャツ・ネクタイを塗り替えます。オフにするとイラスト表示になります",
+      "default": true
+    },
+    {
+      "type": "collection",
+      "id": "tie_collection",
+      "label": "ネクタイの商品を選択肢に加える",
+      "info": "選んだコレクションの商品写真から柄を作ります（最大 24 点）"
     },
     {
       "type": "header",
