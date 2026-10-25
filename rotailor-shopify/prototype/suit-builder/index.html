@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suit Builder Prototype</title>
+<style>
+  :root { --bg: #0b0b0b; --panel: #161616; --text: #f2f2f2; --muted: #9a9a92; --accent: #c9a55a; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
+  .wrap { display: grid; grid-template-columns: minmax(0, 520px) minmax(0, 1fr); gap: 24px; padding: 16px; max-width: 1100px; margin: 0 auto; }
+  canvas { width: 100%; height: auto; display: block; background: #ddd; }
+  fieldset { border: 1px solid #2a2a28; margin: 0 0 12px; padding: 10px 12px; }
+  legend { color: var(--accent); font-size: 0.8rem; letter-spacing: 0.1em; }
+  label { display: inline-flex; gap: 6px; align-items: center; margin: 4px 12px 4px 0; font-size: 0.9rem; }
+  .swatch { width: 16px; height: 16px; border-radius: 50%; display: inline-block; border: 1px solid #444; }
+  @media (max-width: 760px) { .wrap { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <canvas id="view" width="768" height="1152" data-ready="0"></canvas>
+  <form id="spec">
+    <fieldset><legend>ラペル</legend>
+      <label><input type="radio" name="lapel" value="notch" checked>ノッチ</label>
+      <label><input type="radio" name="lapel" value="peak">ピーク</label>
+    </fieldset>
+    <fieldset><legend>ボタン</legend>
+      <label><input type="radio" name="buttons" value="2" checked>シングル2ボタン</label>
+      <label><input type="radio" name="buttons" value="1">シングル1ボタン</label>
+    </fieldset>
+    <fieldset><legend>ベスト</legend>
+      <label><input type="radio" name="vest" value="0" checked>なし</label>
+      <label><input type="radio" name="vest" value="1">あり（シングル6ボタン）</label>
+    </fieldset>
+    <fieldset><legend>生地</legend>
+      <label><input type="radio" name="fabric" value="#1F2A44|solid" checked><span class="swatch" style="background:#1F2A44"></span>ネイビー</label>
+      <label><input type="radio" name="fabric" value="#3A3C40|solid"><span class="swatch" style="background:#3A3C40"></span>チャコール</label>
+      <label><input type="radio" name="fabric" value="#5A4232|solid"><span class="swatch" style="background:#5A4232"></span>ブラウン</label>
+      <label><input type="radio" name="fabric" value="#1C2540|pinstripe"><span class="swatch" style="background:#1C2540"></span>ネイビー ピンストライプ</label>
+      <label><input type="radio" name="fabric" value="#9A9C9E|check"><span class="swatch" style="background:#9A9C9E"></span>ライトグレー ウィンドウペン</label>
+    </fieldset>
+    <fieldset><legend>シャツ・ネクタイ</legend>
+      <label><input type="radio" name="shirt" value="#F6F6F2" checked>白</label>
+      <label><input type="radio" name="shirt" value="#CADBEE">サックス</label>
+      <label><input type="radio" name="tie" value="#6B1F2A|birdseye" checked>ボルドー小紋</label>
+      <label><input type="radio" name="tie" value="#1E2A4A|solid">ネイビー</label>
+    </fieldset>
+  </form>
+</div>
+<script src="../../theme/assets/suit-photo.js"></script>
+<script src="builder.js"></script>
+<script>
+  (function () {
+    var P = window.RoTailorPhoto, B = window.RoTailorBuilder;
+    var canvas = document.getElementById('view');
+    var form = document.getElementById('spec');
+    function read() {
+      var f = new FormData(form);
+      var fab = f.get('fabric').split('|'), tie = f.get('tie').split('|');
+      return {
+        spec: { lapel: f.get('lapel'), buttons: +f.get('buttons'), vest: f.get('vest') === '1' },
+        textures: {
+          suit: P.patternTexture({ color: fab[0], pattern: fab[1] }, 'suit'),
+          shirt: P.patternTexture({ color: f.get('shirt') }, 'shirt'),
+          tie: P.patternTexture({ color: tie[0], pattern: tie[1] }, 'tie')
+        }
+      };
+    }
+    var basePromise = P.loadBase('front-base', { photo: 'front-base.jpg', mask: 'front-base-mask.png' });
+    function draw(override) {
+      basePromise.then(function (base) {
+        var r = read();
+        if (override) Object.assign(r.spec, override.spec || {});
+        var g = B.render(canvas, base, r.spec, r.textures);
+        canvas.dataset.ready = '1';
+        canvas.dataset.buttons = g.closure.buttons.length;
+      });
+    }
+    form.addEventListener('change', function () { draw(); });
+    window.drawSpec = function (spec, fabric) {
+      if (fabric) form.querySelector('input[name=fabric][value="' + fabric + '"]').checked = true;
+      Object.keys(spec).forEach(function (k) {
+        var v = typeof spec[k] === 'boolean' ? (spec[k] ? '1' : '0') : String(spec[k]);
+        form.querySelector('input[name=' + k + '][value="' + v + '"]').checked = true;
+      });
+      draw();
+    };
+    draw();
+  })();
+</script>
+</body>
+</html>
