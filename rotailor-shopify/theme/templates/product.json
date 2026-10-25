@@ -49,7 +49,8 @@
         "size": {
           "type": "size_guide",
           "settings": {
-            "label": "サイズガイドを見る"
+            "label": "サイズガイドを見る",
+            "page": "size-guide"
           }
         }
       },

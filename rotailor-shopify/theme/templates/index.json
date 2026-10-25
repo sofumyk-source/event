@@ -182,7 +182,8 @@
         "eyebrow": "Made to Order",
         "heading": "あなたの一着を、\nまずは画面の上で。",
         "text": "<p>好きな色と着ていく場面を選ぶと、テイラーが一着を仕立てます。生地やラペル、裏地まで着せ替えて、オーダーの楽しさを体験してください。本物の一着は、約6,000種類の生地から店頭で。</p>",
-        "button_label": "スーツを仕立ててみる"
+        "button_label": "スーツを仕立ててみる",
+        "page": "suit-simulator"
       }
     },
     "journal": {
@@ -191,7 +192,8 @@
         "eyebrow": "Journal",
         "heading": "テイラーの手帖",
         "limit": 3,
-        "show_excerpt": true
+        "show_excerpt": true,
+        "blog": "journal"
       }
     },
     "visit": {
@@ -247,7 +249,8 @@
         "heading": "店頭で仕立てる、オーダーメニュー",
         "text": "<p>スーツだけではありません。トータルコーディネートで、あなたをもっと輝かせます。</p>",
         "note": "価格はすべて税込です。オーダー品は店頭での採寸・お打ち合わせのうえお仕立てします。",
-        "simulator_label": "スーツを仕立ててみる"
+        "simulator_label": "スーツを仕立ててみる",
+        "simulator_page": "suit-simulator"
       },
       "blocks": {
         "m1": {
