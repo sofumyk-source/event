@@ -395,11 +395,22 @@
     var t = COVER_THEMES[opts.theme] || COVER_THEMES.gold;
     paintBackground(ctx, W, H, opts.theme);
 
+    // 日本語のタイトルは 2 行に収まるよう文字を小さくする（英字タイトルの位置はその下に合わせる）
+    ctx.textBaseline = 'alphabetic';
+    var size = 66;
+    ctx.font = '700 ' + size + 'px "Shippori Mincho", serif';
+    var lines = wrapText(ctx, opts.title, W - 128);
+    while (lines.length > 2 && size > 40) {
+      size -= 4;
+      ctx.font = '700 ' + size + 'px "Shippori Mincho", serif';
+      lines = wrapText(ctx, opts.title, W - 128);
+    }
+    var enY = 176 + (Math.min(lines.length, 3) - 1) * size * 1.3 + 110;
+
     // 英字のタイトル（背景側）
     ctx.fillStyle = t.sub;
     ctx.font = 'italic 400 82px "EB Garamond", serif';
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillText(opts.en || '', 64, 380);
+    ctx.fillText(opts.en || '', 64, Math.max(380, enY));
 
     // マネキン
     var cut = cutout(opts.base, opts.composed);
@@ -420,14 +431,7 @@
     ctx.font = 'italic 400 30px "EB Garamond", serif';
     spaced(ctx, opts.eyebrow || '', 64, 92, 5);
     ctx.fillStyle = t.text;
-    var size = 66;
     ctx.font = '700 ' + size + 'px "Shippori Mincho", serif';
-    var lines = wrapText(ctx, opts.title, W - 128);
-    while (lines.length > 3 && size > 44) {
-      size -= 4;
-      ctx.font = '700 ' + size + 'px "Shippori Mincho", serif';
-      lines = wrapText(ctx, opts.title, W - 128);
-    }
     lines.slice(0, 3).forEach(function (line, i) { ctx.fillText(line, 64, 176 + i * size * 1.3); });
 
     // 仕様

@@ -36,6 +36,31 @@
       <label><input type="radio" name="vest" value="0" checked>なし</label>
       <label><input type="radio" name="vest" value="1">あり（シングル6ボタン）</label>
     </fieldset>
+    <fieldset><legend>前</legend>
+      <label><input type="radio" name="open" value="0" checked>留める</label>
+      <label><input type="radio" name="open" value="1">開ける</label>
+    </fieldset>
+    <fieldset><legend>腰ポケット</legend>
+      <label><input type="radio" name="pocket" value="flap" checked>フラップ</label>
+      <label><input type="radio" name="pocket" value="flap_ticket">フラップ＋チェンジ</label>
+      <label><input type="radio" name="pocket" value="slant">スラント</label>
+      <label><input type="radio" name="pocket" value="jetted">両玉縁</label>
+      <label><input type="radio" name="pocket" value="patch">パッチ</label>
+    </fieldset>
+    <fieldset><legend>ベント（後ろ姿）</legend>
+      <label><input type="radio" name="vent" value="side" checked>サイド</label>
+      <label><input type="radio" name="vent" value="center">センター</label>
+      <label><input type="radio" name="vent" value="none">なし</label>
+      <label><input type="radio" name="view" value="front" checked>正面</label>
+      <label><input type="radio" name="view" value="back">後ろ</label>
+    </fieldset>
+    <fieldset><legend>ボタン・裾</legend>
+      <label><input type="radio" name="buttonColor" value="#2c2019" checked>ダークブラウン</label>
+      <label><input type="radio" name="buttonColor" value="#26314A">ネイビー</label>
+      <label><input type="radio" name="buttonColor" value="#B8963E">ゴールド</label>
+      <label><input type="radio" name="cuff" value="0" checked>シングル裾</label>
+      <label><input type="radio" name="cuff" value="1">ダブル裾</label>
+    </fieldset>
     <fieldset><legend>生地</legend>
       <label><input type="radio" name="fabric" value="#1F2A44|solid" checked><span class="swatch" style="background:#1F2A44"></span>ネイビー</label>
       <label><input type="radio" name="fabric" value="#3A3C40|solid"><span class="swatch" style="background:#3A3C40"></span>チャコール</label>
@@ -52,7 +77,7 @@
   </form>
 </div>
 <script src="../../theme/assets/suit-photo.js"></script>
-<script src="builder.js"></script>
+<script src="../../theme/assets/suit-builder.js"></script>
 <script>
   (function () {
     var P = window.RoTailorPhoto, B = window.RoTailorBuilder;
@@ -62,7 +87,8 @@
       var f = new FormData(form);
       var fab = f.get('fabric').split('|'), tie = f.get('tie').split('|');
       return {
-        spec: { lapel: f.get('lapel'), closure: f.get('closure'), vest: f.get('vest') === '1' },
+        view: f.get('view'),
+        spec: { lapel: f.get('lapel'), closure: f.get('closure'), vest: f.get('vest') === '1', open: f.get('open') === '1', pocket: f.get('pocket'), vent: f.get('vent'), cuff: f.get('cuff') === '1', buttonColor: f.get('buttonColor') },
         textures: {
           suit: P.patternTexture({ color: fab[0], pattern: fab[1] }, 'suit'),
           shirt: P.patternTexture({ color: f.get('shirt') }, 'shirt'),
@@ -70,14 +96,21 @@
         }
       };
     }
-    var basePromise = P.loadBase('front-base', { photo: 'front-base.jpg', mask: 'front-base-mask.png' });
+    var basePromise = P.loadBase('front-base', { photo: '../../theme/assets/suit-front-base.jpg', mask: '../../theme/assets/suit-front-base-mask.png' });
+    var backPromise = P.loadBase('back-base', { photo: '../../theme/assets/suit-photo-back-n.jpg', mask: '../../theme/assets/suit-photo-back-n-mask.png' });
     function draw(override) {
-      basePromise.then(function (base) {
+      Promise.all([basePromise, backPromise]).then(function (bases) {
         var r = read();
         if (override) Object.assign(r.spec, override.spec || {});
-        var g = B.render(canvas, base, r.spec, r.textures);
+        if (r.view === 'back') {
+          B.renderBack(canvas, bases[1], r.spec, r.textures);
+          canvas.dataset.ready = '1';
+          return;
+        }
+        var g = B.render(canvas, bases[0], r.spec, r.textures);
         // 組み合わせの決まり（ダブル→ピーク等）で変わった選択を画面にも反映
         ['lapel', 'closure'].forEach(function (k) { form.querySelector('input[name=' + k + '][value="' + g.spec[k] + '"]').checked = true; });
+        form.querySelector('input[name=open][value="' + (g.spec.open ? 1 : 0) + '"]').checked = true;
         canvas.dataset.ready = '1';
         canvas.dataset.buttons = g.visibleButtons;
       });

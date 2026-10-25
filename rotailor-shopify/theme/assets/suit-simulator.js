@@ -40,14 +40,19 @@
   var PHOTO_STEPS = [
     { id: 'fabric', label: '生地', groups: ['fabric'] },
     { id: 'style', label: '型', groups: ['style', 'lapel', 'threePiece'] },
-    { id: 'detail', label: 'ディテール', groups: ['pocket', 'vent'] },
+    { id: 'detail', label: 'ディテール', groups: ['pocket', 'vent', 'button', 'hem'] },
     { id: 'vzone', label: 'シャツ・タイ', groups: ['shirt', 'tie'] }
   ];
-  // 写真が用意できている型（キー）。ここにないものは写真モードでは選択肢に出さない
-  var PHOTO_KEYS = { style: ['sb2', 'db6'], lapel: ['notch', 'peak'], pocket: ['flap', 'patch'], vent: ['side', 'center', 'none'] };
+  // 描画（suit-builder.js）が対応している型（キー）。ここにないものは写真モードでは選択肢に出さない
+  var PHOTO_KEYS = {
+    style: ['sb1', 'sb2', 'sb3', 'db4', 'db6'],
+    lapel: ['notch', 'peak', 'shawl'],
+    pocket: ['flap', 'flap_ticket', 'slant', 'jetted', 'patch'],
+    vent: ['side', 'center', 'none'],
+    hem: ['single', 'double']
+  };
   // 写真に出ないため、店頭でご案内する項目
-  var IN_STORE_GROUPS = ['button', 'lining', 'pleat', 'hem', 'extra'];
-  var VENT_PHOTO = { side: 'back-s', center: 'back-c', none: 'back-n' };
+  var IN_STORE_GROUPS = ['lining', 'pleat', 'extra'];
 
   var SINGLE_GROUPS = ['fabric', 'style', 'lapel', 'pocket', 'vent', 'button', 'lining', 'pleat', 'hem', 'shirt', 'tie'];
 
@@ -166,7 +171,7 @@
     this.config.items.forEach(function (item) {
       (self.groups[item.type] = self.groups[item.type] || []).push(item);
     });
-    if (this.config.photos && !window.RoTailorPhoto) this.config.photos = null;
+    if (this.config.photos && !(window.RoTailorPhoto && window.RoTailorBuilder)) this.config.photos = null;
     this.groups.shirt = this.config.photos ? SHIRTS.slice() : [];
     this.uploads = {};
     if (this.config.photos) {
@@ -408,6 +413,7 @@
 
   Simulator.prototype.select = function (group, id) {
     this.state[group] = id;
+    if (this.config.photos) this.resolveConflicts(group);
     if (this.config.photos) {
       // ベントは後ろ姿で、それ以外は正面で見せる（描画は直後の update で）
       var view = group === 'vent' ? 'back' : 'front';
@@ -1294,14 +1300,60 @@
 
   /* ------------------------------------------------ photo mode */
 
-  // 選択内容から、使うマネキン写真のキー（例：sn-ov）を決める
-  Simulator.prototype.photoKey = function () {
-    var style = this.find('style', this.state.style) || { key: 'sb2' };
-    var lapel = this.find('lapel', this.state.lapel) || { key: 'notch' };
-    var dbl = /^db/.test(style.key || '');
-    var cut = dbl ? 'dp' : (lapel.key === 'peak' ? 'sp' : 'sn');
-    var open = !dbl && this.state.open;
-    return cut + '-' + (open ? 'o' : 'c') + (this.state.threePiece ? 'v' : '');
+  // 選択内容を、描画（suit-builder.js）の仕様に変換する
+  Simulator.prototype.builderSpec = function () {
+    var st = this.state;
+    function key(item, fallback) { return item && item.key ? item.key : fallback; }
+    var button = this.find('button', st.button);
+    return {
+      closure: key(this.find('style', st.style), 'sb2'),
+      lapel: key(this.find('lapel', st.lapel), 'notch'),
+      vest: !!st.threePiece,
+      open: !!st.open,
+      pocket: key(this.find('pocket', st.pocket), 'flap'),
+      vent: key(this.find('vent', st.vent), 'side'),
+      cuff: key(this.find('hem', st.hem), 'single') === 'double',
+      buttonColor: button && button.color ? button.color : '#2c2019'
+    };
+  };
+
+  // 組み合わせられない仕様は、いま選んだ方を優先して相手を合わせる
+  // （ダブルはピークラペル、ショールカラーはシングル1ボタン）
+  Simulator.prototype.resolveConflicts = function (group) {
+    var self = this;
+    function keyOf(g) { var i = self.find(g, self.state[g]); return i ? i.key : null; }
+    function pick(g, key) {
+      var hit = (self.groups[g] || []).filter(function (i) { return i.key === key; })[0];
+      if (hit) self.state[g] = hit.id;
+    }
+    var style = keyOf('style') || '', lapel = keyOf('lapel');
+    if (group === 'style') {
+      if (/^db/.test(style)) pick('lapel', 'peak');
+      else if (lapel === 'shawl' && style !== 'sb1') pick('lapel', 'notch');
+    } else if (group === 'lapel') {
+      if (lapel === 'shawl') pick('style', 'sb1');
+      else if (/^db/.test(style) && lapel !== 'peak') pick('style', 'sb2');
+    } else {
+      return;
+    }
+    this.renderStep();
+  };
+
+  // 仕立ての決まり（ダブル→ピーク、ショール→1ボタン等）で変わった選択を、画面の選択にも反映する
+  Simulator.prototype.applyNormalized = function (spec) {
+    var self = this;
+    var changed = false;
+    [['style', spec.closure], ['lapel', spec.lapel]].forEach(function (pair) {
+      var cur = self.find(pair[0], self.state[pair[0]]);
+      if (cur && cur.key === pair[1]) return;
+      var hit = (self.groups[pair[0]] || []).filter(function (i) { return i.key === pair[1]; })[0];
+      if (hit) { self.state[pair[0]] = hit.id; changed = true; }
+    });
+    if (this.state.open && !spec.open) { this.state.open = false; changed = true; }
+    if (changed) {
+      storageSet(this.config.storageKey, this.state);
+      this.renderStep();
+    }
   };
 
   // 生地・シャツ・ネクタイのタイル。写真由来のものは非同期に作ってキャッシュする
@@ -1332,10 +1384,12 @@
   Simulator.prototype.renderPhoto = function () {
     var self = this;
     var P = window.RoTailorPhoto;
-    var vent = this.find('vent', this.state.vent) || { key: 'side' };
+    var B = window.RoTailorBuilder;
     var back = this.view === 'back';
-    var key = back ? (VENT_PHOTO[vent.key] || 'back-s') : this.photoKey();
-    var urls = this.config.photos[key] || this.config.photos[this.photoKey()];
+    var spec = B.normalize(this.builderSpec());
+    this.applyNormalized(spec);
+    var key = back ? 'back' : 'front';
+    var urls = this.config.photos[key];
     var preview = this.$.preview;
     preview.classList.add('is-photo');
     var canvas = preview.querySelector('canvas.sim-photo');
@@ -1353,25 +1407,11 @@
       shirt: this.textureFor('shirt', this.find('shirt', this.state.shirt)),
       tie: this.textureFor('tie', this.find('tie', this.state.tie))
     };
-    // ディテールの手順では、腰ポケットのアップを右下に重ねる
-    var step = this.steps[this.stepIndex];
-    var pocket = this.find('pocket', this.state.pocket);
-    var insetKey = !back && step && step.id === 'detail' && pocket ? 'pocket-' + pocket.key : null;
-    var inset = preview.querySelector('.sim-photo-inset');
-    if (!insetKey || !this.config.photos[insetKey]) {
-      if (inset) inset.remove();
-    } else {
-      if (!inset) {
-        inset = el('canvas', { class: 'sim-photo-inset', role: 'img', 'aria-label': '腰ポケットのアップ' });
-        preview.appendChild(inset);
-      }
-      P.loadBase(insetKey, this.config.photos[insetKey]).then(function (b) {
-        if (token === self.photoToken) P.compose(b, textures, inset, 3);
-      });
-    }
     P.loadBase(key, urls).then(function (base) {
       if (token !== self.photoToken) return;
-      P.compose(base, textures, canvas);
+      // 土台の写真に、仕様どおりの前身頃・ポケット・ベントを描き重ねる
+      if (back) B.renderBack(canvas, base, spec, textures);
+      else B.render(canvas, base, spec, textures);
       preview.classList.remove('is-loading');
       self.renderSummary();
     }).catch(function (e) {
@@ -1381,7 +1421,7 @@
       self.renderPreview();
     });
 
-    var dbl = back || key.indexOf('dp') === 0;
+    var dbl = back || B.CLOSURES[spec.closure].type === 'double';
     this.root.querySelectorAll('[data-open]').forEach(function (b) {
       var isOpen = b.getAttribute('data-open') === '1';
       var on = isOpen === (!dbl && self.state.open);
@@ -1496,7 +1536,7 @@
     var self = this;
     var P = window.RoTailorPhoto;
     if (!this.$.cover) this.buildCoverUi();
-    var key = this.photoKey();
+    var spec = window.RoTailorBuilder.normalize(this.builderSpec());
     var fabric = this.find('fabric', this.state.fabric) || { color: '#2b3245', pattern: 'solid' };
     var textures = {
       suit: this.textureFor('suit', fabric),
@@ -1515,11 +1555,11 @@
       document.fonts.load('italic 400 82px "EB Garamond"'),
       document.fonts.load('500 44px "EB Garamond"')
     ]).catch(function () {}) : Promise.resolve();
-    Promise.all([P.loadBase(key, this.config.photos[key]), fonts, logoReady]).then(function (res) {
+    Promise.all([P.loadBase('front', this.config.photos.front), fonts, logoReady]).then(function (res) {
       if (token !== self.coverToken) return;
       var base = res[0];
       var composed = document.createElement('canvas');
-      P.compose(base, textures, composed);
+      window.RoTailorBuilder.render(composed, base, spec, textures);
       var story = self.coverStory();
       self.coverNo = self.coverNo || ('00' + (Math.floor(Math.random() * 900) + 100)).slice(-3);
       P.drawCover(self.$.cover, {

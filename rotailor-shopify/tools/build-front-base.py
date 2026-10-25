@@ -3,11 +3,14 @@
 
 シングル2ボタン・ノッチの色分け写真から、前身頃（ラペル・Vゾーン・ボタン・前端）を
 取り除き、周りの生地の陰影でなめらかに埋めた写真とマスクを書き出します。
-シャツの襟とネクタイの結び目（首元）だけは写真のまま残します。
-ラペルやボタンは、ブラウザ側（builder.js）で仕様どおりに描き直します。
+腰ポケットのフラップも取り除きます。シャツの襟とネクタイの結び目（首元）だけは写真のまま残します。
+ラペル・ボタン・ポケットは、ブラウザ側（suit-builder.js）で仕様どおりに描き直します。
+マスクの A チャンネルには、仕上がり画面で使う切り抜き（首から上と背景が透明）を入れます。
 
   python3 tools/build-front-base.py <色分け写真(01番)> <出力フォルダ>
 """
+import importlib.util
+import os
 import sys
 
 import numpy as np
@@ -18,6 +21,11 @@ W, H = 768, 1152
 REBUILD = [(286, 140), (482, 140), (490, 196), (456, 300), (414, 366), (414, 470), (424, 566),
            (344, 566), (354, 470), (354, 366), (312, 300), (278, 196)]
 KEEP_ABOVE = 214  # これより上のシャツ襟・ネクタイの結び目は写真を残す
+POCKETS = [(266, 416, 334, 468), (434, 416, 502, 468)]  # 写真のフラップポケット（左右）
+
+_spec = importlib.util.spec_from_file_location("bsp", os.path.join(os.path.dirname(__file__), "build-suit-photos.py"))
+bsp = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(bsp)
 
 
 def hue_band(h, center, half):
@@ -41,6 +49,12 @@ def main(src, out):
     keep = np.asarray(Image.fromarray(keep.astype(np.uint8) * 255).filter(ImageFilter.MaxFilter(3))) > 0
     background = (s < 0.14) & (v > 0.55) & (yy < 200)  # 肩より上の背景・マネキンの首は残す
     fill = region & ~keep & ~background
+    # 腰ポケット：袖との隙間（背景）は残し、生地とフラップの影だけを埋める
+    pocket = Image.new("L", (W, H), 0)
+    for box in POCKETS:
+        ImageDraw.Draw(pocket).rectangle(box, fill=255)
+    near_suit = np.asarray(Image.fromarray(suit.astype(np.uint8) * 255).filter(ImageFilter.MaxFilter(5))) > 0
+    fill |= (np.asarray(pocket) > 0) & near_suit & ~((s < 0.14) & (v > 0.55))
 
     # 生地の明るさ（V）を、作り直す範囲の外側の生地から内側へなめらかに補間（ラプラス方程式）
     lum = v.copy()
@@ -72,9 +86,10 @@ def main(src, out):
     mask[..., 1] = np.where(hue_band(h, 125, 40) & (s > 0.25) & ~fill, 255, 0)
     mask[..., 2] = np.where(hue_band(h, 54, 16) & (s > 0.15) & (v > 0.5) & ~fill, 255, 0)
     mask = np.asarray(Image.fromarray(mask).filter(ImageFilter.GaussianBlur(0.6)))
+    mask = np.dstack([mask, bsp.cutout(np.asarray(im), mask.max(-1))])
 
-    Image.fromarray(out_img.clip(0, 255).astype(np.uint8)).save(f"{out}/front-base.jpg", quality=90)
-    Image.fromarray(mask).save(f"{out}/front-base-mask.png", optimize=True)
+    Image.fromarray(out_img.clip(0, 255).astype(np.uint8)).save(f"{out}/suit-front-base.jpg", quality=90)
+    Image.fromarray(mask).save(f"{out}/suit-front-base-mask.png", optimize=True)
     print("rebuilt pixels:", int(fill.sum()))
 
 
