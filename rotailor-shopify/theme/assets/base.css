@@ -560,6 +560,8 @@ button { font: inherit; }
 .modal__close { position: absolute; top: 12px; right: 12px; }
 .modal table, .rte table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 .rte th, .rte td { padding: 8px 10px; border-bottom: 1px solid var(--color-border); text-align: left; }
+.rte tbody th { width: 9em; vertical-align: top; color: var(--color-muted); font-weight: 500; }
+@media (max-width: 749px) { .rte tbody th { width: 6.5em; } }
 .size-guide__open { border: 0; border-bottom: 1px solid currentColor; background: none; cursor: pointer; padding: 0 0 2px; font: inherit; font-size: 0.82rem; color: var(--color-primary); }
 
 /* predictive search */

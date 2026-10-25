@@ -38,7 +38,9 @@
         },
         "specs": {
           "type": "specs",
-          "settings": {}
+          "settings": {
+            "shipping_page": "shipping"
+          }
         },
         "cta": {
           "type": "store_cta",

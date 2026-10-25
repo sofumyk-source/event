@@ -11,10 +11,18 @@
             "text": "オーダースーツのご予約・ご相談は LINE から",
             "link": "https://lin.ee/SaICq3So"
           }
+        },
+        "msg-2": {
+          "type": "message",
+          "settings": {
+            "text": "送料全国一律 1,100円｜2〜3営業日で発送",
+            "link": "/pages/shipping"
+          }
         }
       },
       "block_order": [
-        "msg-1"
+        "msg-1",
+        "msg-2"
       ],
       "settings": {}
     },
