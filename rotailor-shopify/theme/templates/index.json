@@ -8,7 +8,7 @@
         "fallback_image": "ro-hero.jpg",
         "eyebrow": "ROtailor Online Store — Hiroshima",
         "heading": "非日常を日常に。\nオーダーをもっと身近に。",
-        "text": "<p>広島のオーダースーツ専門店 ROtailor のオンラインストア。<br>仕立ての現場で選び抜いたシューズ・ネクタイ・ベルト・バッグを、全国へお届けします。</p>",
+        "text": "<p>広島のオーダースーツ専門店 ROtailor のオンラインストア。<br>職人が手染めで仕上げたシューズやバッグ、名門生地で仕立てたネクタイを、全国へお届けします。</p>",
         "button_1_label": "アイテムを見る",
         "button_1_link": "/collections/all",
         "button_2_label": "オーダースーツを仕立てる",
@@ -26,36 +26,31 @@
           "type": "collection",
           "settings": {
             "title": "シューズ",
-            "label_en": "Shoes"
+            "label_en": "Shoes",
+            "collection": "shoes"
           }
         },
         "cat-bags": {
           "type": "collection",
           "settings": {
             "title": "バッグ",
-            "label_en": "Bags"
+            "label_en": "Bags",
+            "collection": "bags"
           }
         },
         "cat-ties": {
           "type": "collection",
           "settings": {
             "title": "ネクタイ",
-            "label_en": "Neckwear"
-          }
-        },
-        "cat-acc": {
-          "type": "collection",
-          "settings": {
-            "title": "ベルト・小物",
-            "label_en": "Accessories"
+            "label_en": "Neckwear",
+            "collection": "ties"
           }
         }
       },
       "block_order": [
         "cat-shoes",
         "cat-bags",
-        "cat-ties",
-        "cat-acc"
+        "cat-ties"
       ]
     },
     "brand": {
@@ -110,11 +105,19 @@
           "settings": {
             "suit_name": "ネイビー",
             "swatch_color": "#1F2A44",
-            "title": "一着目のネイビーには、ボルドーと焦げ茶を。",
-            "advice": "<p>ネイビーは最も合わせやすい色だからこそ、小物で差が出ます。ネクタイは補色に近いボルドーで血色よく、靴とベルトは黒よりも濃い茶で柔らかさを。</p>",
-            "rule_tie": "ボルドーの小紋、ネイビーのソリッド",
-            "rule_shoes": "ダークブラウンのストレートチップ",
-            "rule_bag": "靴と同じ茶系で揃える"
+            "title": "一着目のネイビーには、茶の靴とグレーのタイを。",
+            "advice": "<p>ネイビーは最も合わせやすい色だからこそ、小物で差が出ます。ネクタイはグレーやブルーで品よく、靴は黒よりも茶やワインで柔らかさを。手染めの靴ならではの色の奥行きが、ネイビーによく映えます。</p>",
+            "rule_tie": "グレー×ネイビーの柄、ブルーのソリッド",
+            "rule_shoes": "ブラウンのセミブローグ、ワインのプレーントゥ",
+            "rule_bag": "ネイビーのレザートートで色をつなぐ",
+            "products": [
+              "tie-zignone",
+              "tie-cerruti-blue",
+              "shoes-semi-brogue",
+              "shoes-plain-toe",
+              "bag-tote-navy"
+            ],
+            "collection": "all"
           }
         },
         "suit-charcoal": {
@@ -122,11 +125,19 @@
           "settings": {
             "suit_name": "チャコールグレー",
             "swatch_color": "#3B3D40",
-            "title": "チャコールには、黒の靴と銀鼠のネクタイで端正に。",
-            "advice": "<p>改まった場にも対応できるチャコールグレーは、黒の内羽根で格を揃えるのが基本。ネクタイは同系のグレーか、深いグリーンで奥行きを出します。</p>",
-            "rule_tie": "シルバーグレー、深いグリーン",
-            "rule_shoes": "ブラックのキャップトゥ",
-            "rule_bag": "黒のブリーフケースで引き締める"
+            "title": "チャコールには、濃色の靴と同系のタイで端正に。",
+            "advice": "<p>改まった場にも対応できるチャコールグレーは、靴を濃い色で揃えて格を保つのが基本。ネクタイは同系のグレーでまとめるか、ネイビーで少しだけ色を差します。</p>",
+            "rule_tie": "ミディアムグレー、ダークネイビー",
+            "rule_shoes": "ブラック〜ネイビーのダブルモンク、ホールカット",
+            "rule_bag": "ネイビーのトートで引き締める",
+            "products": [
+              "tie-cerruti-mediumgrey",
+              "tie-reda-grey",
+              "tie-cerruti-darknavy",
+              "shoes-double-monk",
+              "shoes-wholecut"
+            ],
+            "collection": "all"
           }
         },
         "suit-brown": {
@@ -135,10 +146,18 @@
             "suit_name": "ブラウン",
             "swatch_color": "#5A4232",
             "title": "ブラウンのスーツは、同系色でまとめて上品に。",
-            "advice": "<p>秋冬に映えるブラウンは、黒の小物を合わせると重く見えがち。スエードやヌメ革など、素材の表情で軽さを足すのがテイラーのおすすめです。</p>",
-            "rule_tie": "オリーブ、マスタードのニットタイ",
-            "rule_shoes": "スエードのダークブラウン",
-            "rule_bag": "ヌメ革やタンの小物で軽さを出す"
+            "advice": "<p>秋冬に映えるブラウンは、黒の小物を合わせると重く見えがち。ブラウンやカーキの革小物で同系色にまとめ、ネクタイの素材感で表情を足すのがテイラーのおすすめです。</p>",
+            "rule_tie": "ウールの起毛感があるタイ、ネイビーで引き締め",
+            "rule_shoes": "ライトブラウンのセミブローグ、ワイン",
+            "rule_bag": "カーキブラウンのミニトートで軽さを出す",
+            "products": [
+              "tie-hollandsherry",
+              "tie-delfino",
+              "tie-reda-navy",
+              "shoes-semi-brogue",
+              "bag-mini-tote-khaki"
+            ],
+            "collection": "all"
           }
         }
       },
@@ -153,7 +172,8 @@
       "settings": {
         "eyebrow": "New Arrivals",
         "heading": "新着アイテム",
-        "limit": 8
+        "limit": 8,
+        "collection": "all"
       }
     },
     "simulator": {
