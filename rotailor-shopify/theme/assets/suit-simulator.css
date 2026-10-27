@@ -417,8 +417,9 @@ input.sim-stylist__input { font-size: 0.9rem; padding: 10px 14px; }
 .sim-summary__preview img { width: 100%; height: auto; display: block; }
 
 @media (max-width: 989px) {
-  .sim-preview__canvas.is-photo { aspect-ratio: auto; height: 36vh; max-height: 36vh; }
-  .sim-preview__canvas.is-photo .sim-photo { object-fit: cover; object-position: 50% 14%; }
+  /* スマホでも全身（頭から靴まで）が収まるよう、切り抜かずに縮めて表示する */
+  .sim-preview__canvas.is-photo { aspect-ratio: auto; height: 44vh; max-height: 44vh; }
+  .sim-preview__canvas.is-photo .sim-photo { object-fit: contain; object-position: 50% 50%; }
   .sim-preview__toolbar { align-self: start; }
   .sim-preview__toolbar--buttons { grid-column: 2; grid-row: 1; align-self: end; margin-top: 0; }
 }
