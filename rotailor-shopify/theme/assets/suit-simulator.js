@@ -338,7 +338,8 @@
       pairing: root.querySelector('[data-pairing]'),
       pairingComment: root.querySelector('[data-pairing-comment]'),
       stylist: root.querySelector('[data-stylist]'),
-      look: root.querySelector('[data-look]')
+      look: root.querySelector('[data-look]'),
+      stage: root.querySelector('.simulator__stage')
     };
 
     root.querySelectorAll('[data-view]').forEach(function (btn) {
@@ -364,6 +365,7 @@
 
     this.bindStylist();
     this.bindTryOn();
+    this.bindCompactLayout();
     if (this.config.photos) {
       var tryon = root.querySelector('[data-tryon]');
       if (tryon) tryon.style.display = 'none'; // 写真モードでは顔写真の試着は使わない
@@ -441,8 +443,12 @@
       btn.addEventListener('click', function () { self.goStep(i); });
       nav.appendChild(el('li', { class: 'sim-steps__item' + (i === self.stepIndex ? ' is-active' : '') + (i < self.stepIndex ? ' is-done' : '') }, [btn]));
     });
+    // 手順タブが画面幅に収まらないときは、いまの手順が見える位置まで横に送る
+    var active = nav.querySelector('.is-active');
+    if (active && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = Math.max(0, active.offsetLeft - (nav.clientWidth - active.offsetWidth) / 2);
     this.$.prev.disabled = this.stepIndex === 0;
-    this.$.next.textContent = this.stepIndex >= this.steps.length - 1 ? '仕上がりを見る' : '次へ';
+    var nextStep = this.steps[this.stepIndex + 1];
+    this.$.next.textContent = nextStep ? '次へ：' + nextStep.label : '仕上がりを見る';
   };
 
   Simulator.prototype.goStep = function (i) {
@@ -454,9 +460,56 @@
     }
     this.renderStepsNav();
     this.renderStep();
+    if (this.isCompact()) {
+      // スマホ：固定したプレビューと手順タブのすぐ下に、新しい手順の先頭が来るようにする
+      var offset = this.stickyTop() + this.$.stage.offsetHeight + this.$.nav.offsetHeight + 8;
+      var y = this.$.body.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+      return;
+    }
     var top = this.$.nav.getBoundingClientRect().top;
     if (top < 0 || top > window.innerHeight * 0.6) {
       this.$.nav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  /* ---------------------------------------------------- phone layout */
+
+  Simulator.prototype.isCompact = function () {
+    return window.matchMedia('(max-width: 989px)').matches;
+  };
+
+  // 固定ヘッダーの下端（プレビューを貼り付ける位置）
+  Simulator.prototype.stickyTop = function () {
+    var header = document.querySelector('[data-header]');
+    if (!header || getComputedStyle(header).position !== 'sticky') return 0;
+    return Math.max(0, Math.round(header.getBoundingClientRect().bottom));
+  };
+
+  /*
+   * スマホでは「プレビュー → 手順タブ」を画面上部に固定し、「戻る／次へ」を画面下に固定する。
+   * 選択肢だけがその間をスクロールするので、いまどの手順か、次に何をするかが常に見える。
+   */
+  Simulator.prototype.bindCompactLayout = function () {
+    var self = this;
+    var root = this.root;
+    var stepNav = root.querySelector('.sim-step-nav');
+    var layout = root.querySelector('.simulator__layout');
+    function measure() {
+      root.style.setProperty('--sim-top', self.stickyTop() + 'px');
+      root.style.setProperty('--sim-stage-h', self.$.stage.offsetHeight + 'px');
+    }
+    measure();
+    window.addEventListener('resize', measure);
+    window.addEventListener('scroll', function () {
+      if (self.isCompact()) root.style.setProperty('--sim-top', self.stickyTop() + 'px');
+    }, { passive: true });
+    if (window.ResizeObserver) new ResizeObserver(measure).observe(this.$.stage);
+    // 下の「戻る／次へ」は、シミュレーターが画面にある間だけ出す（仕上がりやフッターには重ねない）
+    if (stepNav && layout && window.IntersectionObserver) {
+      new IntersectionObserver(function (entries) {
+        stepNav.classList.toggle('is-docked', entries[0].isIntersecting);
+      }, { rootMargin: '0px 0px -40% 0px' }).observe(layout);
     }
   };
 

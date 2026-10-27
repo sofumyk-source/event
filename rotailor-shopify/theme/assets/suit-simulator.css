@@ -253,7 +253,28 @@
 
 @media (max-width: 989px) {
   .simulator__layout { grid-template-columns: 1fr; gap: 24px; }
-  .simulator__stage { top: 56px; z-index: 5; gap: 0; margin-inline: -20px; }
+  .simulator__stage { top: var(--sim-top, 56px); z-index: 5; gap: 0; margin-inline: -20px; }
+  /* 合計欄は下の固定バー（戻る／次へ）に役割を譲る */
+  .simulator__stage .sim-total { display: none; }
+  /* 手順タブはプレビューのすぐ下に固定 */
+  .sim-steps {
+    position: sticky; top: calc(var(--sim-top, 56px) + var(--sim-stage-h, 0px)); z-index: 4;
+    margin-inline: -20px; padding-inline: 20px; background: var(--color-bg);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+  }
+  /* 戻る／次へ は画面下に固定 */
+  .sim-step-nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; margin: 0;
+    padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+    background: rgba(8, 8, 8, 0.96); border-top: 1px solid var(--color-border);
+    transform: translateY(110%); transition: transform 0.25s ease;
+  }
+  .sim-step-nav.is-docked { transform: none; }
+  .sim-step-nav .button { padding-block: 12px; }
+  .sim-step-nav [data-prev] { flex: 0 0 auto; }
+  .sim-step-nav [data-next] { flex: 1; }
+  .sim-step-nav .button[disabled] { visibility: visible; opacity: 0.35; }
+  .simulator__panel { padding-bottom: 88px; }
   .sim-preview { padding: 8px 12px 4px; border-inline: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
   .sim-preview__toolbar { grid-column: 2; grid-row: 1; flex-direction: column; }
   .sim-preview__canvas { grid-column: 1; grid-row: 1; max-height: 28vh; height: 28vh; }
@@ -418,7 +439,7 @@ input.sim-stylist__input { font-size: 0.9rem; padding: 10px 14px; }
 
 @media (max-width: 989px) {
   /* スマホでも全身（頭から靴まで）が収まるよう、切り抜かずに縮めて表示する */
-  .sim-preview__canvas.is-photo { aspect-ratio: auto; height: 44vh; max-height: 44vh; }
+  .sim-preview__canvas.is-photo { aspect-ratio: auto; height: 34vh; max-height: 34vh; }
   .sim-preview__canvas.is-photo .sim-photo { object-fit: contain; object-position: 50% 50%; }
   .sim-preview__toolbar { align-self: start; }
   .sim-preview__toolbar--buttons { grid-column: 2; grid-row: 1; align-self: end; margin-top: 0; }
@@ -477,3 +498,18 @@ input.sim-stylist__input { font-size: 0.9rem; padding: 10px 14px; }
 .sim-stylist.is-highlighted { animation: sim-glow 2.4s ease 0.4s 1; }
 @keyframes sim-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(201, 165, 90, 0); } 30% { box-shadow: 0 0 0 3px rgba(201, 165, 90, 0.7); } }
 @media (prefers-reduced-motion: reduce) { .sim-stylist.is-highlighted { animation: none; } }
+@media (max-width: 599px) {
+  .sim-steps__btn { font-size: 0.8rem; letter-spacing: 0.04em; }
+}
+@media (max-width: 989px) {
+  .sim-step-nav .button--ghost { background: var(--color-bg); }
+}
+@media (max-width: 599px) {
+  /* 色の選択肢は2列にして、スクロールを減らす */
+  .sim-options--swatch { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sim-options--swatch .sim-option { padding: 10px 12px; gap: 10px; }
+  .sim-options--swatch .sim-option__name { font-size: 0.85rem; }
+  .sim-options--swatch .sim-option__desc { display: none; }
+  .sim-upload-row { grid-template-columns: 1fr; }
+  .sim-upload-row .sim-option__desc { display: block; }
+}
