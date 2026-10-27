@@ -253,28 +253,36 @@
 
 @media (max-width: 989px) {
   .simulator__layout { grid-template-columns: 1fr; gap: 24px; }
-  .simulator__stage { top: var(--sim-top, 56px); z-index: 5; gap: 0; margin-inline: -20px; }
-  /* 合計欄は下の固定バー（戻る／次へ）に役割を譲る */
+  /*
+   * スマホ：シミュレーターは画面1枚ぶんのアプリのような枠にする。
+   * 上から プレビュー → 手順タブ → 選択肢（この中だけスクロール）→ 戻る／次へ。
+   * 選択肢をスクロールし切っても、ページ（フッター）へは流れない。
+   */
+  .simulator__layout {
+    display: flex; flex-direction: column; gap: 0;
+    height: 100vh; height: 100dvh; width: 100vw; margin-inline: calc(50% - 50vw);
+    border-block: 1px solid var(--color-border); background: var(--color-bg);
+  }
+  .simulator__stage { position: static; flex: none; gap: 0; margin: 0; width: 100%; }
+  .simulator__stage .sim-preview { border-inline: 0; }
   .simulator__stage .sim-total { display: none; }
-  /* 手順タブはプレビューのすぐ下に固定 */
-  .sim-steps {
-    position: sticky; top: calc(var(--sim-top, 56px) + var(--sim-stage-h, 0px)); z-index: 4;
-    margin-inline: -20px; padding-inline: 20px; background: var(--color-bg);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+  .simulator__panel { flex: 1; min-height: 0; width: 100%; min-width: 0; display: flex; flex-direction: column; }
+  .simulator__panel > * { min-width: 0; max-width: 100%; }
+  .simulator__panel .sim-look { display: none; }
+  .sim-steps { flex: none; margin: 0; padding-inline: 16px; background: var(--color-bg); }
+  .sim-step-body {
+    flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    padding: 4px 16px 20px; box-shadow: inset 0 10px 10px -10px rgba(0, 0, 0, 0.6);
   }
-  /* 戻る／次へ は画面下に固定 */
   .sim-step-nav {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; margin: 0;
-    padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
-    background: rgba(8, 8, 8, 0.96); border-top: 1px solid var(--color-border);
-    transform: translateY(110%); transition: transform 0.25s ease;
+    flex: none; margin: 0;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: var(--color-bg); border-top: 1px solid var(--color-border);
   }
-  .sim-step-nav.is-docked { transform: none; }
   .sim-step-nav .button { padding-block: 12px; }
   .sim-step-nav [data-prev] { flex: 0 0 auto; }
   .sim-step-nav [data-next] { flex: 1; }
   .sim-step-nav .button[disabled] { visibility: visible; opacity: 0.35; }
-  .simulator__panel { padding-bottom: 88px; }
   .sim-preview { padding: 8px 12px 4px; border-inline: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
   .sim-preview__toolbar { grid-column: 2; grid-row: 1; flex-direction: column; }
   .sim-preview__canvas { grid-column: 1; grid-row: 1; max-height: 28vh; height: 28vh; }
@@ -439,7 +447,7 @@ input.sim-stylist__input { font-size: 0.9rem; padding: 10px 14px; }
 
 @media (max-width: 989px) {
   /* スマホでも全身（頭から靴まで）が収まるよう、切り抜かずに縮めて表示する */
-  .sim-preview__canvas.is-photo { aspect-ratio: auto; height: 34vh; max-height: 34vh; }
+  .sim-preview__canvas.is-photo { aspect-ratio: auto; height: 32dvh; max-height: 32dvh; }
   .sim-preview__canvas.is-photo .sim-photo { object-fit: contain; object-position: 50% 50%; }
   .sim-preview__toolbar { align-self: start; }
   .sim-preview__toolbar--buttons { grid-column: 2; grid-row: 1; align-self: end; margin-top: 0; }
@@ -500,9 +508,6 @@ input.sim-stylist__input { font-size: 0.9rem; padding: 10px 14px; }
 @media (prefers-reduced-motion: reduce) { .sim-stylist.is-highlighted { animation: none; } }
 @media (max-width: 599px) {
   .sim-steps__btn { font-size: 0.8rem; letter-spacing: 0.04em; }
-}
-@media (max-width: 989px) {
-  .sim-step-nav .button--ghost { background: var(--color-bg); }
 }
 @media (max-width: 599px) {
   /* 色の選択肢は2列にして、スクロールを減らす */

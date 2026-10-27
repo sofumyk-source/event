@@ -461,10 +461,9 @@
     this.renderStepsNav();
     this.renderStep();
     if (this.isCompact()) {
-      // スマホ：固定したプレビューと手順タブのすぐ下に、新しい手順の先頭が来るようにする
-      var offset = this.stickyTop() + this.$.stage.offsetHeight + this.$.nav.offsetHeight + 8;
-      var y = this.$.body.getBoundingClientRect().top + window.pageYOffset - offset;
-      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+      // スマホ：選択肢の枠を先頭に戻し、シミュレーターを画面いっぱいに合わせる
+      this.$.body.scrollTop = 0;
+      this.fitToScreen();
       return;
     }
     var top = this.$.nav.getBoundingClientRect().top;
@@ -479,38 +478,22 @@
     return window.matchMedia('(max-width: 989px)').matches;
   };
 
-  // 固定ヘッダーの下端（プレビューを貼り付ける位置）
-  Simulator.prototype.stickyTop = function () {
-    var header = document.querySelector('[data-header]');
-    if (!header || getComputedStyle(header).position !== 'sticky') return 0;
-    return Math.max(0, Math.round(header.getBoundingClientRect().bottom));
+  // スマホ：シミュレーターの枠（画面1枚ぶん）がちょうど画面に収まる位置までスクロールする
+  Simulator.prototype.fitToScreen = function () {
+    var layout = this.root.querySelector('.simulator__layout');
+    var top = layout.getBoundingClientRect().top;
+    if (Math.abs(top) > 2) window.scrollTo({ top: window.pageYOffset + top, behavior: 'smooth' });
   };
 
-  /*
-   * スマホでは「プレビュー → 手順タブ」を画面上部に固定し、「戻る／次へ」を画面下に固定する。
-   * 選択肢だけがその間をスクロールするので、いまどの手順か、次に何をするかが常に見える。
-   */
+  // スマホでは、手順タブを押す・選択肢に触れるなど、シミュレーターを操作し始めたら枠を画面に合わせる
   Simulator.prototype.bindCompactLayout = function () {
     var self = this;
-    var root = this.root;
-    var stepNav = root.querySelector('.sim-step-nav');
-    var layout = root.querySelector('.simulator__layout');
-    function measure() {
-      root.style.setProperty('--sim-top', self.stickyTop() + 'px');
-      root.style.setProperty('--sim-stage-h', self.$.stage.offsetHeight + 'px');
-    }
-    measure();
-    window.addEventListener('resize', measure);
-    window.addEventListener('scroll', function () {
-      if (self.isCompact()) root.style.setProperty('--sim-top', self.stickyTop() + 'px');
-    }, { passive: true });
-    if (window.ResizeObserver) new ResizeObserver(measure).observe(this.$.stage);
-    // 下の「戻る／次へ」は、シミュレーターが画面にある間だけ出す（仕上がりやフッターには重ねない）
-    if (stepNav && layout && window.IntersectionObserver) {
-      new IntersectionObserver(function (entries) {
-        stepNav.classList.toggle('is-docked', entries[0].isIntersecting);
-      }, { rootMargin: '0px 0px -40% 0px' }).observe(layout);
-    }
+    var layout = this.root.querySelector('.simulator__layout');
+    if (!layout) return;
+    layout.addEventListener('click', function (e) {
+      if (!self.isCompact()) return;
+      if (e.target.closest('.sim-steps, .sim-option, .sim-cloth, [data-open], [data-view], [data-shuffle]')) self.fitToScreen();
+    });
   };
 
   Simulator.prototype.renderStep = function () {
