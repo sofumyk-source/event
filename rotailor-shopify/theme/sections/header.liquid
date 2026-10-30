@@ -9,6 +9,8 @@
         <nav aria-label="{{ 'general.menu' | t }}">
           <ul class="drawer__menu">
             {%- for link in section.settings.menu.links -%}
+              {%- comment -%} 商品がまだないカテゴリー（追加準備中のカフス・Tシャツなど）は、商品が入るまで出さない {%- endcomment -%}
+              {%- if link.type == 'collection_link' and link.object.products_count == 0 -%}{%- continue -%}{%- endif -%}
               <li>
                 <a href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title }}</a>
                 {%- if link.links.size > 0 -%}
@@ -47,6 +49,8 @@
     <nav class="site-nav" aria-label="{{ 'general.menu' | t }}">
       <ul class="site-nav__list">
         {%- for link in section.settings.menu.links -%}
+          {%- comment -%} 商品がまだないカテゴリー（追加準備中のカフス・Tシャツなど）は、商品が入るまで出さない {%- endcomment -%}
+          {%- if link.type == 'collection_link' and link.object.products_count == 0 -%}{%- continue -%}{%- endif -%}
           <li class="site-nav__item{% if link.links.size > 0 %} has-children{% endif %}">
             <a href="{{ link.url }}" class="site-nav__link"{% if link.current %} aria-current="page"{% endif %}>{{ link.title }}</a>
             {%- if link.links.size > 0 -%}
@@ -62,6 +66,12 @@
     </nav>
 
     <div class="site-header__actions">
+      {%- if section.settings.show_line_link and settings.reservation_url != blank -%}
+        <a href="{{ settings.reservation_url }}" class="header-line" target="_blank" rel="noopener">
+          {% render 'icon', name: 'line' %}
+          <span>{{ section.settings.line_label }}</span>
+        </a>
+      {%- endif -%}
       {%- if section.settings.show_simulator_link and section.settings.simulator_page != blank -%}
         <a href="{{ section.settings.simulator_page.url }}" class="header-pill">
           {% render 'icon', name: 'needle' %}
@@ -121,7 +131,10 @@
     { "type": "header", "content": "スーツシミュレーションへのリンク" },
     { "type": "checkbox", "id": "show_simulator_link", "label": "ヘッダーに表示", "default": true },
     { "type": "page", "id": "simulator_page", "label": "シミュレーションのページ", "info": "テンプレート「page.simulator」を割り当てたページを選択" },
-    { "type": "text", "id": "simulator_label", "label": "表示名", "default": "スーツを仕立てる" }
+    { "type": "text", "id": "simulator_label", "label": "表示名", "default": "スーツを仕立てる" },
+    { "type": "header", "content": "LINE予約ボタン" },
+    { "type": "checkbox", "id": "show_line_link", "label": "ヘッダーに表示", "default": true, "info": "リンク先はテーマ設定「ご来店・ご予約」の予約ボタンのリンク先" },
+    { "type": "text", "id": "line_label", "label": "表示名", "default": "LINE予約" }
   ]
 }
 {% endschema %}

@@ -142,7 +142,7 @@ button { font: inherit; }
 .site-header { background: var(--color-bg); border-bottom: 1px solid var(--color-border); z-index: 50; }
 .site-header--sticky { position: sticky; top: 0; }
 .site-header__inner { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 32px; height: 76px; }
-.site-logo { display: flex; align-items: center; gap: 14px; line-height: 1.1; color: var(--color-text); }
+.site-logo { display: flex; align-items: center; gap: 14px; line-height: 1.1; color: var(--color-text); min-width: max-content; }
 .site-logo__img { height: var(--logo-width); width: auto; }
 .site-logo__name { font-family: var(--font-display); font-size: 1.7rem; font-weight: 600; letter-spacing: 0.18em; }
 .site-logo__tagline { font-family: var(--font-display); font-style: italic; font-size: 0.78rem; letter-spacing: 0.14em; color: var(--color-accent); }
@@ -169,6 +169,13 @@ button { font: inherit; }
 }
 .header-pill .icon { width: 16px; height: 16px; }
 .header-pill:hover { background: var(--color-primary); color: var(--color-on-primary); }
+.header-line { white-space: nowrap; flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 6px; margin-right: 8px;
+  padding: 8px 16px; border: 1px solid var(--color-accent); background: var(--color-accent);
+  font-size: 0.78rem; letter-spacing: 0.08em; color: var(--color-on-primary);
+}
+.header-line .icon { width: 16px; height: 16px; }
+.header-line:hover { background: transparent; color: var(--color-accent); }
 .cart-count {
   position: absolute; top: 2px; right: 0;
   min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
@@ -476,6 +483,15 @@ button { font: inherit; }
   .site-footer__grid { grid-template-columns: 1fr 1fr; }
 }
 
+/* PC：1段目にロゴとボタン、2段目にメニュー（カテゴリーが増えても収まるように） */
+@media (min-width: 990px) {
+  .site-header__inner { grid-template-columns: auto 1fr auto; grid-template-areas: "logo . actions" "nav nav nav"; row-gap: 0; height: auto; padding-top: 14px; }
+  .site-logo { grid-area: logo; }
+  .site-header__actions { grid-area: actions; }
+  .site-nav { grid-area: nav; margin-top: 12px; border-top: 1px solid var(--color-border); }
+  .site-nav__list { justify-content: center; flex-wrap: wrap; padding-block: 4px; }
+}
+
 @media (max-width: 989px) {
   .container { padding-inline: 20px; }
   .section { padding-block: 64px; }
@@ -486,6 +502,8 @@ button { font: inherit; }
   .site-nav, .icon-button--desktop, .header-pill span { display: none; }
   .header-pill { padding: 8px; margin: 0; border: 0; }
   .header-pill .icon { width: 22px; height: 22px; }
+  .header-line { flex-direction: column; gap: 1px; margin: 0 2px 0 0; padding: 5px 6px 4px; font-size: 0.56rem; letter-spacing: 0.02em; line-height: 1; }
+  .header-line .icon { width: 18px; height: 18px; }
   .drawer { display: block; }
   .drawer__panel { inset: 100px 0 0; }
   .hero--large { min-height: 80vh; }
@@ -706,12 +724,9 @@ address { font-style: normal; line-height: 1.8; }
   .order-menu__grid { grid-template-columns: 1fr; }
 }
 
-/* 中くらいの幅：メニューを優先して、ロゴ横の英字とピルの文字を省く */
-@media (max-width: 1240px) {
+/* スマホ：ロゴ横の英字は省く（PC はメニューが 2 段目にあるので省かない） */
+@media (max-width: 989px) {
   .site-logo__tagline { display: none; }
-  .header-pill span { display: none; }
-  .header-pill { padding: 8px; }
-  .site-nav__link { padding-inline: 8px; }
 }
 
 /* シミュレーション案内：仕上がりの表紙を 3 枚重ねて見せる */
