@@ -4,13 +4,23 @@
       {%- if section.settings.eyebrow != blank -%}<p class="eyebrow">{{ section.settings.eyebrow }}</p>{%- endif -%}
       <h2 class="section-title">{{ section.settings.heading }}</h2>
     </div>
-    <div class="category-grid category-grid--{{ section.blocks.size | at_most: 4 }}">
+    {%- comment -%} 商品がまだない（または非公開の）カテゴリーは出さない。増やしたカテゴリーは商品が入って公開された時点で並ぶ {%- endcomment -%}
+    {%- liquid
+      assign tile_count = 0
+      for block in section.blocks
+        if block.settings.collection.products_count > 0
+          assign tile_count = tile_count | plus: 1
+        endif
+      endfor
+    -%}
+    <div class="category-grid category-grid--{{ tile_count | at_most: 4 }}">
       {%- for block in section.blocks -%}
         {%- assign collection = block.settings.collection -%}
+        {%- unless collection.products_count > 0 -%}{%- continue -%}{%- endunless -%}
         <a href="{{ collection.url | default: '#' }}" class="category-tile" {{ block.shopify_attributes }}>
           <div class="category-tile__media">
             {%- liquid
-              assign fallbacks = 'ro-shoes.jpg,ro-bags.jpg,ro-ties.jpg,ro-belts.jpg' | split: ','
+              assign fallbacks = 'ro-shoes.jpg,ro-bags.jpg,ro-ties.jpg,ro-cufflinks.jpg' | split: ','
               assign tile_image = block.settings.image
               assign tile_fallback = fallbacks[forloop.index0]
               if tile_image == blank and tile_fallback == blank

@@ -45,12 +45,21 @@
             "label_en": "Neckwear",
             "collection": "ties"
           }
+        },
+        "cat-cufflinks": {
+          "type": "collection",
+          "settings": {
+            "title": "カフス",
+            "label_en": "Cufflinks",
+            "collection": "cufflinks"
+          }
         }
       },
       "block_order": [
         "cat-shoes",
         "cat-bags",
-        "cat-ties"
+        "cat-ties",
+        "cat-cufflinks"
       ]
     },
     "brand": {
