@@ -161,7 +161,7 @@ def build():
             if pos == 1:
                 r.update({
                     "Title": title, "Body (HTML)": card_body, "Vendor": "ROtailor",
-                    "Type": "カードケース", "Tags": "カードケース,名刺入れ,ハンドメイド,ウール,ギフト",
+                    "Type": "小物", "Tags": "小物,カードケース,名刺入れ,ハンドメイド,ウール,ギフト",
                     "Published": "TRUE", "Option1 Name": "柄", "Gift Card": "FALSE", "Status": "active",
                     "素材 (product.metafields.custom.material)": "ウール（オーダースーツの残布）",
                 })

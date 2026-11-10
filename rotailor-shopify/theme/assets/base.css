@@ -233,6 +233,7 @@ button { font: inherit; }
 .category-grid--1 { grid-template-columns: 1fr; }
 .category-grid--2 { grid-template-columns: repeat(2, 1fr); }
 .category-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.category-grid--5 { grid-template-columns: repeat(5, 1fr); gap: 12px; }
 .category-tile { position: relative; display: block; overflow: hidden; color: #fff; }
 .category-tile__media img, .category-tile__media .placeholder { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; transition: transform 0.8s ease; }
 .category-tile:hover .category-tile__media img { transform: scale(1.04); }
@@ -510,7 +511,10 @@ button { font: inherit; }
   .brand-story__grid, .simulator-promo__grid, .store-visit__grid { grid-template-columns: 1fr; gap: 40px; }
   .brand-story__grid--reverse .brand-story__media { order: 0; }
   .store-visit__body { padding: 32px 24px; }
-  .category-grid, .category-grid--3 { grid-template-columns: repeat(2, 1fr); }
+  .category-grid, .category-grid--3, .category-grid--5 { grid-template-columns: repeat(2, 1fr); }
+  /* 数が奇数のとき、最後の 1 枚は横いっぱいに */
+  .category-grid--3 > :last-child, .category-grid--5 > :last-child { grid-column: 1 / -1; }
+  .category-grid--3 > :last-child .category-tile__media img, .category-grid--5 > :last-child .category-tile__media img { aspect-ratio: 2 / 1; }
   .product-grid, .product-grid--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 12px; }
   .suit-pairing__panel { grid-template-columns: 1fr; gap: 32px; }
   .post-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

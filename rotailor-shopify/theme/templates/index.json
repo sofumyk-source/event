@@ -53,13 +53,22 @@
             "label_en": "Cufflinks",
             "collection": "cufflinks"
           }
+        },
+        "cat-small-goods": {
+          "type": "collection",
+          "settings": {
+            "title": "小物",
+            "label_en": "Small Goods",
+            "collection": "small-goods"
+          }
         }
       },
       "block_order": [
         "cat-shoes",
         "cat-bags",
         "cat-ties",
-        "cat-cufflinks"
+        "cat-cufflinks",
+        "cat-small-goods"
       ]
     },
     "brand": {

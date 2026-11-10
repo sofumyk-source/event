@@ -13,14 +13,14 @@
         endif
       endfor
     -%}
-    <div class="category-grid category-grid--{{ tile_count | at_most: 4 }}">
+    <div class="category-grid category-grid--{{ tile_count | at_most: 5 }}">
       {%- for block in section.blocks -%}
         {%- assign collection = block.settings.collection -%}
         {%- unless collection.products_count > 0 -%}{%- continue -%}{%- endunless -%}
         <a href="{{ collection.url | default: '#' }}" class="category-tile" {{ block.shopify_attributes }}>
           <div class="category-tile__media">
             {%- liquid
-              assign fallbacks = 'ro-shoes.jpg,ro-bags.jpg,ro-ties.jpg,ro-cufflinks.jpg' | split: ','
+              assign fallbacks = 'ro-shoes.jpg,ro-bags.jpg,ro-ties.jpg,ro-cufflinks.jpg,ro-small-goods.jpg' | split: ','
               assign tile_image = block.settings.image
               assign tile_fallback = fallbacks[forloop.index0]
               if tile_image == blank and tile_fallback == blank
