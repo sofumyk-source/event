@@ -5,7 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 # ストアのドメインをカンマ区切りで（独自ドメインと myshopify.com の両方）
-ALLOWED_ORIGINS = "https://example.com,https://example.myshopify.com"
+ALLOWED_ORIGINS = "https://ro-tailor-ps0r63h0.myshopify.com"
 # 使用モデル（README の「費用」を参照）
 STYLIST_MODEL = "claude-haiku-5-5"
 
