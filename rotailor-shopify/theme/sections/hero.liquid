@@ -12,7 +12,7 @@
           sizes: '100vw',
           alt: image_alt }}
     {%- else -%}
-      <img src="{{ section.settings.fallback_image | default: 'ro-hero.jpg' | asset_url }}" alt="" loading="eager" width="900" height="601">
+      <img src="{{ section.settings.fallback_image | default: 'ro-hero.jpg' | asset_url }}" alt="" loading="eager" fetchpriority="high" width="900" height="601">
     {%- endif -%}
   </div>
   <div class="hero__content container">

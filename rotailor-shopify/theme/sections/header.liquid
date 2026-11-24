@@ -39,7 +39,7 @@
           | image_tag: alt: shop.name, class: 'site-logo__img', loading: 'eager'
         }}
       {%- else -%}
-        <img src="{{ 'ro-logo.jpg' | asset_url }}" alt="{{ shop.name }}" class="site-logo__img" width="542" height="709" loading="eager">
+        <img src="{{ 'ro-logo-sm.jpg' | asset_url }}" alt="{{ shop.name }}" class="site-logo__img" width="122" height="160" loading="eager">
       {%- endif -%}
       {%- if settings.brand_tagline != blank -%}
         <span class="site-logo__tagline">{{ settings.brand_tagline }}</span>

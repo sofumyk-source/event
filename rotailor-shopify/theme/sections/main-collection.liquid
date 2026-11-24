@@ -116,7 +116,11 @@
     {%- if collection.products.size > 0 -%}
       <div class="product-grid">
         {%- for product in collection.products -%}
-          {% render 'product-card', product: product %}
+          {%- if forloop.index <= 4 -%}
+            {% render 'product-card', product: product, eager: true %}
+          {%- else -%}
+            {% render 'product-card', product: product %}
+          {%- endif -%}
         {%- endfor -%}
       </div>
     {%- else -%}

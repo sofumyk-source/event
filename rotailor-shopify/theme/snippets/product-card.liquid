@@ -1,11 +1,16 @@
 {%- comment -%}
   Usage: {% render 'product-card', product: product %}
   Optional: note (string) — a short tailor's caption shown under the title.
+            eager (boolean) — first cards above the fold: load the image right away.
 {%- endcomment -%}
 {%- liquid
   assign image = product.featured_media
   assign second_image = product.media[1]
   assign image_alt = image.alt | default: product.title | escape
+  assign card_loading = 'lazy'
+  if eager
+    assign card_loading = 'eager'
+  endif
   assign on_sale = false
   if product.compare_at_price > product.price
     assign on_sale = true
@@ -18,7 +23,7 @@
         image
         | image_url: width: 900
         | image_tag:
-          loading: 'lazy',
+          loading: card_loading,
           widths: '300, 450, 600, 900',
           sizes: '(min-width: 990px) 25vw, 50vw',
           alt: image_alt,
