@@ -5,7 +5,7 @@
       "settings": {
         "three_piece_enabled": true,
         "show_stylist": true,
-        "stylist_endpoint": "",
+        "stylist_endpoint": "https://rotailor-stylist-api.rotailor.workers.dev/style",
         "photo_mode": true,
         "tie_collection": "ties"
       },
